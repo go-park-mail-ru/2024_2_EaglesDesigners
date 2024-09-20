@@ -1,10 +1,10 @@
 package main
 
 import (
-	"./chat_list/controller"
+	_ "./chat_list/controller"
+	"fmt"
 )
 
 func main() {
-	controller.DoSomething()
-
+	fmt.Println("dqw")
 }
