@@ -12,6 +12,8 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	log.Println("Пришёл запрос на получения чатов")
+
 	chats, err := service.GetChats(r.Cookies())
 	if err != nil {
 		fmt.Println(err)
@@ -19,14 +21,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		//вернуть 401
 		w.WriteHeader(http.StatusUnauthorized)
 
-		log.Fatalf("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
+		log.Println("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
 		return
 	}
 
 	jsonResp, err := json.Marshal(chats)
 
 	if err != nil {
-		log.Fatalf("Error happened in JSON marshal. Err: %s", err)
+		log.Println("Error happened in JSON marshal. Err: %s", err)
 	}
 
 	w.Write(jsonResp)
@@ -36,5 +38,4 @@ func init() {
 	http.HandleFunc("/chats", handler)
 
 	fmt.Println("starting server at :8080")
-	http.ListenAndServe(":8080", nil)
 }

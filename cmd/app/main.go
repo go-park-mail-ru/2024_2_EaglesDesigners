@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
+	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/controller"
 )
 
 func main() {

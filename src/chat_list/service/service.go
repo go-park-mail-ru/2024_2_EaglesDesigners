@@ -1,13 +1,14 @@
 package service
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+
 	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
 	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/repository"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/model"
-	"errors"
-	"fmt"
-	"net/http"
 )
 
 var tokenService *userService.TokenService
@@ -26,4 +27,6 @@ func GetChats(cookie []*http.Cookie) ([]chatModel.Chat, error) {
 
 func init() {
 	tokenService = userService.NewTokenService(*userRepository.NewUserRepository())
+
+	fmt.Println("starting server at :8080")
 }
