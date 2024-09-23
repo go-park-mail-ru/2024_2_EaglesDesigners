@@ -24,19 +24,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
 		return
 	}
+
 	jsonResp, err := json.Marshal(chats)
 
-
 	if err != nil {
-		log.Printf("Error happened in JSON marshal. Err: %s /n", err)
+		log.Printf("error happened in JSON marshal. Err: %s", err)
 	}
-	
-	w.Header().Set("Content-Type", "application/json") 
-	w.Write(jsonResp)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(jsonResp)
 }
 
 func init() {
 	http.HandleFunc("/chats", handler)
-
-	fmt.Println("starting server at :8080")
 }

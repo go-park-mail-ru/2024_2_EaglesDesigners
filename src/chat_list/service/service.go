@@ -13,22 +13,18 @@ import (
 
 var tokenService *userService.TokenService
 
-
 func GetChats(cookie []*http.Cookie) ([]chatModel.Chat, error) {
 	fmt.Println("yes")
 
-	
 	user, err := tokenService.GetUserByJWT(cookie)
 	if err != nil {
-		return []chatModel.Chat{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ") 
-	} 
-	
+		return []chatModel.Chat{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+	}
+
 	return repository.GetUserChats(&user), nil
 
 }
 
 func init() {
 	tokenService = userService.NewTokenService(*userRepository.NewUserRepository())
-
-	fmt.Println("starting server at :8080")
 }

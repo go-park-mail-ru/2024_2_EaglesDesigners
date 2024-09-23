@@ -76,23 +76,22 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) {
 	token, err := parserCookies(cookies)
 	if err != nil {
-		return model.User{}, errors.New("Не удалось распарсит куки")
+		return model.User{}, errors.New("не удалось распарсить куки")
 	}
-
 	jwt := strings.Split(token, ".")
 	if len(jwt) != 3 {
-		return model.User{}, errors.New("Невалидный jwt token")
+		return model.User{}, errors.New("невалидный jwt token")
 	}
 
-	payloadBytes, err := base64.RawURLEncoding.DecodeString(jwt[1])
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(jwt[2])
 	if err != nil {
-		return model.User{}, errors.New("Невалидный jwt token")
+		return model.User{}, errors.New("невалидный jwt token")
 	}
 
 	var payload Payload
 	err = json.Unmarshal(payloadBytes, &payload)
 	if err != nil {
-		return model.User{}, errors.New("Невалидный jwt token")
+		return model.User{}, errors.New("невалидный jwt token")
 	}
 
 	//если юзера нет, надо дропнуть ошибку

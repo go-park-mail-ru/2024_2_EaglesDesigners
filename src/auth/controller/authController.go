@@ -83,10 +83,10 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if c.authService.Registation(creds.Username, creds.Password) == nil {
-		sendOKResponse(w, "Registration successful")
-	} else {
+	if err := c.authService.Registation(creds.Username, creds.Password); err != nil {
 		sendErrorResponse(w, "A user with that username already exists", http.StatusConflict)
+	} else {
+		sendOKResponse(w, "Registration successful")
 	}
 }
 
