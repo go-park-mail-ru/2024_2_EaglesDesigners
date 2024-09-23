@@ -1,13 +1,15 @@
 package repository
 
 import (
+	"log"
+
 	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/model"
 )
 
 
-var keys = map[int][]chatModel.Chat {
-	1: []chatModel.Chat{
+var keys = map[int64][]chatModel.Chat {
+	0: []chatModel.Chat{
 		chatModel.Chat{
 			ChatId: 1,
 			ChatName: "1",
@@ -50,12 +52,13 @@ var keys = map[int][]chatModel.Chat {
 }
 
 func GetUserChats(user *userModel.User) []chatModel.Chat {
-	chats, ok := keys[int(user.ID)]
-
+	chats, ok := keys[user.ID]
+	log.Println(chats)
+	
 	if !ok {
 		return []chatModel.Chat{}
 	}
-
+	
 	return chats
 }
 

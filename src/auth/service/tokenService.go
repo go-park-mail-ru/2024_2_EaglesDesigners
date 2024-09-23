@@ -84,7 +84,7 @@ func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) 
 		return model.User{}, errors.New("Невалидный jwt token")
 	}
 
-	payloadBytes, err := base64.RawURLEncoding.DecodeString(jwt[2])
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(jwt[1])
 	if err != nil {
 		return model.User{}, errors.New("Невалидный jwt token")
 	}

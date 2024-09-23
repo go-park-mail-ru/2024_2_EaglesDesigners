@@ -21,16 +21,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		//вернуть 401
 		w.WriteHeader(http.StatusUnauthorized)
 
-		log.Println("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
+		log.Printf("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
 		return
 	}
-
 	jsonResp, err := json.Marshal(chats)
 
-	if err != nil {
-		log.Println("Error happened in JSON marshal. Err: %s", err)
-	}
 
+	if err != nil {
+		log.Printf("Error happened in JSON marshal. Err: %s /n", err)
+	}
+	
+	w.Header().Set("Content-Type", "application/json") 
 	w.Write(jsonResp)
 }
 
