@@ -15,6 +15,7 @@ type AuthCredentials struct {
 
 type RegisterCredentials struct {
 	Username string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
@@ -30,7 +31,7 @@ func NewAuthController(authService service.AuthService, tokenService service.Tok
 	}
 }
 
-func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
+func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
 		return
@@ -53,7 +54,7 @@ func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
 			Name:     "access_token",
 			Value:    token,
 			Path:     "/",
-			Expires:  time.Now().Add(48 * time.Hour),
+			Expires:  time.Now().Add(24 * time.Hour),
 			HttpOnly: true,
 			Secure:   true,
 		}
@@ -78,12 +79,12 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if creds.Username == "" || creds.Password == "" {
+	if creds.Username == "" || creds.Password == "" || creds.Name == "" {
 		sendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
 		return
 	}
 
-	if err := c.authService.Registation(creds.Username, creds.Password); err != nil {
+	if err := c.authService.Registation(creds.Username, creds.Name, creds.Password); err != nil {
 		sendErrorResponse(w, "A user with that username already exists", http.StatusConflict)
 	} else {
 		sendOKResponse(w, "Registration successful")
@@ -111,4 +112,48 @@ func sendErrorResponse(w http.ResponseWriter, message string, statusCode int) {
 	}
 
 	json.NewEncoder(w).Encode(response)
+}
+
+func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
+		return
+	}
+	data, err := c.tokenService.GetUserDataByJWT(r.Cookies())
+	if err != nil {
+		sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	response := struct {
+		User service.UserData `json:"user"`
+	}{
+		User: data,
+	}
+
+	jsonResp, err := json.Marshal(response)
+	if err != nil {
+		sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResp)
+}
+
+func (c *AuthController) Middleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !c.middlewareHelper(w, r) {
+			return
+		}
+		next(w, r)
+	}
+}
+
+func (c *AuthController) middlewareHelper(w http.ResponseWriter, r *http.Request) bool {
+	if !c.tokenService.IsAuthorized(r.Cookies()) {
+		sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		return false
+	}
+	return true
 }

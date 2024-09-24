@@ -9,11 +9,13 @@ import (
 )
 
 func main() {
-	authController := auth.SetupController()
+	auth := auth.SetupController()
 
-	// http.HandleFunc("/")
-	http.HandleFunc("/login", authController.AuthHandler)
-	http.HandleFunc("/register", authController.RegisterHandler)
+	http.HandleFunc("/", auth.AuthHandler)
+	http.HandleFunc("/auth", auth.AuthHandler)
+	http.HandleFunc("/login", auth.LoginHandler)
+	http.HandleFunc("/signup", auth.RegisterHandler)
+
 	// http.HandleFunc("/logout")
 
 	log.Println("Starting server on :8080")

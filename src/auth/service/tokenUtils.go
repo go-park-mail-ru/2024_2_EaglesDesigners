@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -17,10 +18,17 @@ type Header struct {
 }
 
 type Payload struct {
-	Sub  int64  `json:"sub"`
+	Sub  string `json:"sub"`
 	Name string `json:"name"`
+	ID   int64  `json:"id"`
 	Iat  int64  `json:"iat"`
 	Exp  int64  `json:"exp"`
+}
+
+type UserData struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
 }
 
 func generatorJWT(header string, payload string) (string, error) {
@@ -61,4 +69,22 @@ func parserCookies(cookies []*http.Cookie) (string, error) {
 		}
 	}
 	return "", errors.New("cookie does not exist")
+}
+
+func parserJWT(token string) (payload Payload, err error) {
+	jwt := strings.Split(token, ".")
+	if len(jwt) != 3 {
+		return payload, errors.New("невалидный jwt token")
+	}
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(jwt[1])
+	if err != nil {
+		return payload, errors.New("невалидный jwt token")
+	}
+
+	err = json.Unmarshal(payloadBytes, &payload)
+	if err != nil {
+		return payload, errors.New("невалидный jwt token")
+	}
+
+	return payload, nil
 }

@@ -3,9 +3,7 @@ package service
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
@@ -42,11 +40,14 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 		Typ: "JWT",
 	}
 
-	id := s.userRepo.GetUserByUsername(username).ID
+	user, err := s.userRepo.GetUserByUsername(username)
+	if err != nil {
+		return "", err
+	}
 
 	payload := Payload{
-		Sub:  id,
-		Name: username,
+		Sub:  username,
+		Name: user.Name,
 		Iat:  time.Now().Unix(),
 		Exp:  time.Now().Add(time.Hour * 72).Unix(),
 	}
@@ -76,24 +77,33 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) {
 	token, err := parserCookies(cookies)
 	if err != nil {
-		return model.User{}, errors.New("не удалось распарсить куки")
-	}
-	jwt := strings.Split(token, ".")
-	if len(jwt) != 3 {
-		return model.User{}, errors.New("невалидный jwt token")
+		return model.User{}, err
 	}
 
-	payloadBytes, err := base64.RawURLEncoding.DecodeString(jwt[1])
+	payload, err := parserJWT(token)
 	if err != nil {
-		return model.User{}, errors.New("невалидный jwt token")
+		return model.User{}, err
 	}
 
-	var payload Payload
-	err = json.Unmarshal(payloadBytes, &payload)
+	return s.userRepo.GetUserByUsername(payload.Sub)
+}
+
+func (s *TokenService) GetUserDataByJWT(cookies []*http.Cookie) (UserData, error) {
+	token, err := parserCookies(cookies)
 	if err != nil {
-		return model.User{}, errors.New("невалидный jwt token")
+		return UserData{}, err
 	}
 
-	//если юзера нет, надо дропнуть ошибку
-	return s.userRepo.GetUserByUsername(payload.Name), nil
+	payload, err := parserJWT(token)
+	if err != nil {
+		return UserData{}, err
+	}
+
+	data := UserData{
+		ID:       payload.ID,
+		Username: payload.Sub,
+		Name:     payload.Name,
+	}
+
+	return data, nil
 }

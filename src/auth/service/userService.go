@@ -17,17 +17,16 @@ func NewAuthService(userRepo repository.UserRepository, tokenService TokenServic
 }
 
 func (s *AuthService) Authenticate(username, password string) bool {
-	user := s.userRepo.GetUserByUsername(username)
-	if user.Username == "" {
+	user, err := s.userRepo.GetUserByUsername(username)
+	if err != nil {
 		return false
 	}
-	return doPasswordsMatch(user.Password, password, user.Salt)
+	return doPasswordsMatch(user.Password, password)
 }
 
-func (s *AuthService) Registation(username, password string) error {
-	salt := generateRandomSalt(saltSize)
-	hashed := hashPassword(password, salt)
-	err := s.userRepo.CreateUser(username, hashed, salt)
+func (s *AuthService) Registation(username, name, password string) error {
+	hashed := hashPassword(password)
+	err := s.userRepo.CreateUser(username, name, hashed)
 	if err != nil {
 		return err
 	}

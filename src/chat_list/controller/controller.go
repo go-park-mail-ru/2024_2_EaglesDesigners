@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
 )
 
@@ -36,5 +37,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
-	http.HandleFunc("/chats", handler)
+	auth := auth.SetupController()
+	http.HandleFunc("/chats", auth.Middleware(handler))
+	// http.HandleFunc("/chats", handler)
 }

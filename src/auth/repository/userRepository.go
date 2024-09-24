@@ -17,32 +17,30 @@ var users = map[string]model.User{
 	"user1": {
 		ID:       0,
 		Username: "user1",
-		Password: "5daafb93f7b8c5b1041a5611bb8ca082cd62ea1d0462717a4f2b06e160a531263ddd4ae3f241c6fd0551b97dbad837fb8892db6d9ebba9e98ddf4f6e83f47f3d",
-		Salt:     []byte{1, 25, 166, 86, 76, 151, 89, 178, 211, 185, 117, 124, 253, 7, 197, 248},
+		Name:     "Бал Матье",
+		Password: "edfe8b0b61dd1b86b855e138936db4eb2793df3aaae52c1fb8c5fc08dae72b36f4374a5569e9abf90d85bddf2c6a576b47b5b4ca948e98409c0ca9b3047c9509",
 	},
 	"user2": {
 		ID:       1,
 		Username: "user2",
-		Password: "65c07e80473a2c915b1b1fd769610cf4d2c5dd20d07716bf7622d340cba1b9a16e9055a8ff8d2c2a0dfb15212a7506862e04a41075e655f2687048cbdb11592d",
-		Salt:     []byte{118, 45, 116, 226, 167, 225, 122, 104, 27, 166, 92, 198, 92, 112, 55, 128},
+		Name:     "Жабка Пепе",
+		Password: "5126c5568550f9ced38b64ce28db77796bfb46927b8c13c2bf83c7b09b539cb9469e0c7c33afbdfdc12fdcaa80bd11c024118cabda0beeafb29c9352e6f017db",
 	},
 }
 
-func (repository *UserRepository) GetUserByUsername(username string) model.User {
-	return users[username]
-	// user, exists := users[username]
-	// if exists {
-	// 	return user
-	// }
-
-	// return model.User{}
+func (repository *UserRepository) GetUserByUsername(username string) (model.User, error) {
+	user, exists := users[username]
+	if !exists {
+		return user, errors.New("user does not exist")
+	}
+	return user, nil
 }
 
-func (repository *UserRepository) CreateUser(username, password string, salt []byte) error {
+func (repository *UserRepository) CreateUser(username, name, password string) error {
 	if _, exists := users[username]; exists {
 		return errors.New("the user already exists")
 	}
-	users[username] = model.User{ID: int64(len(users)), Username: username, Password: password, Salt: salt}
+	users[username] = model.User{ID: int64(len(users)), Username: username, Name: name, Password: password}
 
 	return nil
 }
