@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
