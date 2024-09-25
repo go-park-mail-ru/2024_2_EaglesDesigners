@@ -4,7 +4,7 @@ import (
 	"log"
 
 	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/model"
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
 )
 
 
