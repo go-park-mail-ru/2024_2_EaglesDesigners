@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -25,8 +26,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
 		return
 	}
-
 	jsonResp, err := json.Marshal(chats)
+
 
 	if err != nil {
 		log.Printf("error happened in JSON marshal. Err: %s", err)
