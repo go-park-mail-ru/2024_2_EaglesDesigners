@@ -13,40 +13,56 @@ var keys = map[int64][]chatModel.Chat {
 		chatModel.Chat{
 			ChatId: 1,
 			ChatName: "1",
+			ChatType: "personalMessages",
+			UsersId: []int{1, 2},
 		},
 		chatModel.Chat{
 			ChatId: 2,
 			ChatName: "2",
+			ChatType: "group",
+			UsersId: []int{1, 2, 3},
 		},
 		chatModel.Chat{
 			ChatId: 3,
 			ChatName: "3",
+			ChatType: "channel",
+			UsersId: []int{1, 2, 3},
 		},
 	},
 	2:  []chatModel.Chat{
 		chatModel.Chat{
 			ChatId: 1,
 			ChatName: "1",
+			ChatType: "personalMessages",
+			UsersId: []int{1, 2},
 		},
 	},
 	3:  []chatModel.Chat{
 		chatModel.Chat{
 			ChatId: 2,
 			ChatName: "2",
+			ChatType: "group",
+			UsersId: []int{1, 2, 3},
 		},
 		chatModel.Chat{
 			ChatId: 4,
 			ChatName: "4",
+			ChatType: "group",
+			UsersId: []int{1, 2, 3, 5},
 		},
 	},
 	4:  []chatModel.Chat{
 		chatModel.Chat{
 			ChatId: 5,
 			ChatName: "5",
+			ChatType: "channel",
+			UsersId: []int{4},
 		},
 		chatModel.Chat{
 			ChatId: 4,
 			ChatName: "4",
+			ChatType: "group",
+			UsersId: []int{1, 2, 3, 5},
 		},
 	},
 }
