@@ -28,7 +28,7 @@ var users = map[string]model.User{
 	},
 }
 
-func (repository *UserRepository) GetUserByUsername(username string) (model.User, error) {
+func (r *UserRepository) GetUserByUsername(username string) (model.User, error) {
 	user, exists := users[username]
 	if !exists {
 		return user, errors.New("user does not exist")
@@ -36,7 +36,7 @@ func (repository *UserRepository) GetUserByUsername(username string) (model.User
 	return user, nil
 }
 
-func (repository *UserRepository) CreateUser(username, name, password string) error {
+func (r *UserRepository) CreateUser(username, name, password string) error {
 	if _, exists := users[username]; exists {
 		return errors.New("the user already exists")
 	}

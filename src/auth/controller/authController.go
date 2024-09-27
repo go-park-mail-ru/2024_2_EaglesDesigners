@@ -32,10 +32,10 @@ func NewAuthController(authService service.AuthService, tokenService service.Tok
 }
 
 func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
-		return
-	}
+	// if r.Method != "POST" {
+	// 	sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
+	// 	return
+	// }
 
 	var creds AuthCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {

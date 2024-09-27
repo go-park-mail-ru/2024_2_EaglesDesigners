@@ -6,17 +6,26 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+type ChatController struct {
+	service service.ChatService
+}
+
+func NewChatController(service service.ChatService) *ChatController {
+	return &ChatController{
+		service: service,
+	}
+}
+
+func (c *ChatController) Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	log.Println("Пришёл запрос на получения чатов")
 
-	chats, err := service.GetChats(r.Cookies())
+	chats, err := c.service.GetChats(r.Cookies())
 	if err != nil {
 		fmt.Println(err)
 
@@ -38,10 +47,4 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResp)
-}
-
-func init() {
-	auth := auth.SetupController()
-	http.HandleFunc("/chats", auth.Middleware(handler))
-	// http.HandleFunc("/chats", handler)
 }

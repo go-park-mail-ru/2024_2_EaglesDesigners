@@ -5,26 +5,30 @@ import (
 	"fmt"
 	"net/http"
 
-	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/repository"
 	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/repository"
 )
 
-var tokenService *userService.TokenService
+type ChatService struct {
+	tokenService userService.TokenService
+	repository   repository.ChatRepository
+}
 
-func GetChats(cookie []*http.Cookie) ([]chatModel.Chat, error) {
+func NewChatService(tokenService userService.TokenService, repository repository.ChatRepository) *ChatService {
+	return &ChatService{
+		tokenService: tokenService,
+		repository:   repository,
+	}
+}
+
+func (s *ChatService) GetChats(cookie []*http.Cookie) ([]chatModel.Chat, error) {
 	fmt.Println("yes")
 
-	user, err := tokenService.GetUserByJWT(cookie)
+	user, err := s.tokenService.GetUserByJWT(cookie)
 	if err != nil {
 		return []chatModel.Chat{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
-	return repository.GetUserChats(&user), nil
-
-}
-
-func init() {
-	tokenService = userService.NewTokenService(*userRepository.NewUserRepository())
+	return s.repository.GetUserChats(&user), nil
 }
