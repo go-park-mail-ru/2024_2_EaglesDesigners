@@ -127,6 +127,7 @@ func (c *AuthController) setToken(w http.ResponseWriter, username string) error 
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
 		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	http.SetCookie(w, cookie)
