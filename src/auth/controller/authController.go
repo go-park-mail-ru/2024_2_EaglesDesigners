@@ -126,7 +126,7 @@ func (c *AuthController) setToken(w http.ResponseWriter, username string) error 
 		Path:     "/",
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   false,
 	}
 
 	http.SetCookie(w, cookie)
