@@ -15,7 +15,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			"https://127.0.0.1",
 			"http://localhost",
 			"https://localhost",
-			"http://213.87.134.168",
+			"http://213.87.134.168:8001",
 			"https://213.87.134.168",
 			"http://212.233.98.59",
 			"https://212.233.98.59"},
