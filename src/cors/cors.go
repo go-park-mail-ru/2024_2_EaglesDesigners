@@ -13,8 +13,8 @@ func CorsMiddleware(next http.Handler) http.Handler {
 		AllowedOrigins: []string{
 			"http://127.0.0.1",
 			"https://127.0.0.1",
-			"http://localhost",
-			"https://localhost",
+			"http://localhost:8001",
+			"https://localhost:8001",
 			"http://213.87.134.168:8001",
 			"https://213.87.134.168",
 			"http://212.233.98.59",
