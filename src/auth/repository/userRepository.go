@@ -40,7 +40,7 @@ func (r *UserRepository) CreateUser(username, name, password string) error {
 	if _, exists := users[username]; exists {
 		return errors.New("the user already exists")
 	}
-	users[username] = model.User{ID: int64(len(users)), Username: username, Name: name, Password: password}
+	users[username] = model.User{ID: int64(len(users)), Username: username, Name: name, Password: password, Version: 0}
 
 	return nil
 }

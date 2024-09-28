@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/controller"
 	chat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/cors"
 )
@@ -15,6 +16,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.Use(cors.CorsMiddleware)
+	router.MethodNotAllowedHandler = http.HandlerFunc(controller.MethodNotAllowedHandler)
 
 	auth := auth.SetupController()
 	chat := chat.SetupController()

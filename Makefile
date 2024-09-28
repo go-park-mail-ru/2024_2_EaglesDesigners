@@ -1,6 +1,6 @@
 # Устанавливаем имя исполняемого файла
 
-BINARY_NAME=app
+BINARY_NAME=backend_app
 
 
 # Путь к исходному коду

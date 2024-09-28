@@ -1,12 +1,14 @@
 package cors
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/rs/cors"
 )
 
 func CorsMiddleware(next http.Handler) http.Handler {
+	log.Println("cors start")
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
 			"http://127.0.0.1",
@@ -22,6 +24,5 @@ func CorsMiddleware(next http.Handler) http.Handler {
 		AllowedHeaders:     []string{"*"},
 		OptionsPassthrough: false,
 	})
-
 	return c.Handler(next)
 }

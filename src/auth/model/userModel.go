@@ -5,4 +5,5 @@ type User struct {
 	Username string
 	Name     string
 	Password string
+	Version  int64
 }

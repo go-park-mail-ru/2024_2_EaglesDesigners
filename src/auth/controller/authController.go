@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -32,11 +33,6 @@ func NewAuthController(authService service.AuthService, tokenService service.Tok
 }
 
 func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	// if r.Method != "POST" {
-	// 	sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
-	// 	return
-	// }
-
 	var creds AuthCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		sendErrorResponse(w, "invalid format JSON", http.StatusBadRequest)
@@ -115,11 +111,8 @@ func sendErrorResponse(w http.ResponseWriter, message string, statusCode int) {
 }
 
 func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
-		return
-	}
 	data, err := c.tokenService.GetUserDataByJWT(r.Cookies())
+	log.Println("kuka: ", data)
 	if err != nil {
 		sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -156,4 +149,8 @@ func (c *AuthController) middlewareHelper(w http.ResponseWriter, r *http.Request
 		return false
 	}
 	return true
+}
+
+func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
+	sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
 }
