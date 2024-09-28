@@ -8,10 +8,13 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	chat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/cors"
 )
 
 func main() {
 	router := mux.NewRouter()
+
+	router.Use(cors.CorsMiddleware)
 
 	auth := auth.SetupController()
 	chat := chat.SetupController()
