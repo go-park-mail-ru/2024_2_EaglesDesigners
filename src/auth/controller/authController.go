@@ -2,23 +2,13 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
 )
-
-type AuthCredentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type RegisterCredentials struct {
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
-}
 
 type AuthController struct {
 	authService  service.AuthService
@@ -35,27 +25,16 @@ func NewAuthController(authService service.AuthService, tokenService service.Tok
 func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var creds AuthCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		sendErrorResponse(w, "invalid format JSON", http.StatusBadRequest)
+		sendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
 		return
 	}
 
 	if c.authService.Authenticate(creds.Username, creds.Password) {
-		token, err := c.tokenService.CreateJWT(creds.Username)
+		err := c.setToken(w, creds.Username)
 		if err != nil {
-			sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
+			sendErrorResponse(w, "Invalid format JSON", http.StatusUnauthorized)
 			return
 		}
-
-		cookie := &http.Cookie{
-			Name:     "access_token",
-			Value:    token,
-			Path:     "/",
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: true,
-			Secure:   true,
-		}
-
-		http.SetCookie(w, cookie)
 
 		sendOKResponse(w, "Authentication successful")
 	} else {
@@ -64,11 +43,6 @@ func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
-		return
-	}
-
 	var creds RegisterCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		sendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
@@ -87,32 +61,9 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func sendOKResponse(w http.ResponseWriter, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	response := map[string]string{
-		"message": message,
-	}
-
-	json.NewEncoder(w).Encode(response)
-}
-
-func sendErrorResponse(w http.ResponseWriter, message string, statusCode int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-
-	response := map[string]string{
-		"error":  message,
-		"status": "error",
-	}
-
-	json.NewEncoder(w).Encode(response)
-}
-
 func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := c.tokenService.GetUserDataByJWT(r.Cookies())
-	log.Println("kuka: ", data)
+	log.Println("/auth cookie: ", data)
 	if err != nil {
 		sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -136,21 +87,48 @@ func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c *AuthController) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !c.middlewareHelper(w, r) {
+		err := c.isAuthorized(w, r)
+		if err == errors.New("token expired") {
+			log.Println("token expired, create new token")
+			user, err := c.tokenService.GetUserByJWT(r.Cookies())
+			if err != nil {
+				sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			c.setToken(w, user.Username)
+		}
+		if err != nil {
+			sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 		next(w, r)
 	}
 }
 
-func (c *AuthController) middlewareHelper(w http.ResponseWriter, r *http.Request) bool {
-	if !c.tokenService.IsAuthorized(r.Cookies()) {
-		sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
-		return false
+func (c *AuthController) isAuthorized(w http.ResponseWriter, r *http.Request) error {
+	err := c.tokenService.IsAuthorized(r.Cookies())
+	if err != nil {
+		return err
 	}
-	return true
+
+	return nil
 }
 
-func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
-	sendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
+func (c *AuthController) setToken(w http.ResponseWriter, username string) error {
+	token, err := c.tokenService.CreateJWT(username)
+	if err != nil {
+		return err
+	}
+
+	cookie := &http.Cookie{
+		Name:     "access_token",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+	}
+
+	http.SetCookie(w, cookie)
+	return nil
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -20,18 +21,40 @@ func NewTokenService(userRepo repository.UserRepository) *TokenService {
 	}
 }
 
-func (s *TokenService) IsAuthorized(cookies []*http.Cookie) bool {
-	token, err := parserCookies(cookies)
+func (s *TokenService) IsAuthorized(cookies []*http.Cookie) error {
+	token, err := parseCookies(cookies)
 	if err != nil {
-		return false
+		return err
 	}
 
 	result, err := checkJWT(token)
 	if err != nil {
-		return false
+		return err
 	}
 
-	return result
+	if !result {
+		return errors.New("invalid token")
+	}
+
+	payload, err := getPayloadOfJWT(token)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.GetUserByJWT(cookies)
+	if err != nil {
+		return err
+	}
+
+	if payload.Version != user.Version {
+		return errors.New("token outdated")
+	}
+
+	if payload.Exp < time.Now().Unix() {
+		return errors.New("token expired")
+	}
+
+	return nil
 }
 
 func (s *TokenService) CreateJWT(username string) (string, error) {
@@ -46,10 +69,10 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 	}
 
 	payload := Payload{
-		Sub:  username,
-		Name: user.Name,
-		Iat:  time.Now().Unix(),
-		Exp:  time.Now().Add(time.Hour * 72).Unix(),
+		Sub:     user.Username,
+		Name:    user.Name,
+		Version: user.Version,
+		Exp:     time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	headerJSON, err := json.Marshal(header)
@@ -75,12 +98,12 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 }
 
 func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) {
-	token, err := parserCookies(cookies)
+	token, err := parseCookies(cookies)
 	if err != nil {
 		return model.User{}, err
 	}
 
-	payload, err := parserJWT(token)
+	payload, err := getPayloadOfJWT(token)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -89,12 +112,12 @@ func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) 
 }
 
 func (s *TokenService) GetUserDataByJWT(cookies []*http.Cookie) (UserData, error) {
-	token, err := parserCookies(cookies)
+	token, err := parseCookies(cookies)
 	if err != nil {
 		return UserData{}, err
 	}
 
-	payload, err := parserJWT(token)
+	payload, err := getPayloadOfJWT(token)
 	if err != nil {
 		return UserData{}, err
 	}

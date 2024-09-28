@@ -18,11 +18,11 @@ type Header struct {
 }
 
 type Payload struct {
-	Sub  string `json:"sub"`
-	Name string `json:"name"`
-	ID   int64  `json:"id"`
-	Iat  int64  `json:"iat"`
-	Exp  int64  `json:"exp"`
+	Sub     string `json:"sub"`
+	Name    string `json:"name"`
+	ID      int64  `json:"id"`
+	Version int64  `json:"vrs"`
+	Exp     int64  `json:"exp"`
 }
 
 type UserData struct {
@@ -62,7 +62,7 @@ func checkJWT(token string) (bool, error) {
 	return signature == newSignature, nil
 }
 
-func parserCookies(cookies []*http.Cookie) (string, error) {
+func parseCookies(cookies []*http.Cookie) (string, error) {
 	for _, cookie := range cookies {
 		if cookie.Name == "access_token" {
 			return cookie.Value, nil
@@ -71,11 +71,13 @@ func parserCookies(cookies []*http.Cookie) (string, error) {
 	return "", errors.New("cookie does not exist")
 }
 
-func parserJWT(token string) (payload Payload, err error) {
+func getPayloadOfJWT(token string) (payload Payload, err error) {
 	jwt := strings.Split(token, ".")
+
 	if len(jwt) != 3 {
 		return payload, errors.New("невалидный jwt token")
 	}
+
 	payloadBytes, err := base64.RawURLEncoding.DecodeString(jwt[1])
 	if err != nil {
 		return payload, errors.New("невалидный jwt token")
