@@ -22,6 +22,17 @@ func NewAuthController(authService service.AuthService, tokenService service.Tok
 	}
 }
 
+// LoginHandler godoc
+// @Summary User login
+// @Description Authenticate a user with username and password.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param credentials body AuthCredentials true "Credentials for login, including username and password"
+// @Success 200 {object} SuccessResponse "Authentication successful"
+// @Failure 400 {object} ErrorResponse "Invalid format JSON"
+// @Failure 401 {object} ErrorResponse "Incorrect login or password"
+// @Router /login [post]
 func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var creds AuthCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
@@ -42,6 +53,17 @@ func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Register a new user
+// @Description Creates a new user with the provided credentials.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param creds body RegisterCredentials true "Registration information"
+// @Success 200 {object} RegisterResponse "Registration successful"
+// @Failure 400 {object} ErrorResponse "Invalid input data"
+// @Failure 409 {object} ErrorResponse "A user with that username already exists"
+// @Failure 401 {object} ErrorResponse "Unauthorized access"
+// @Router /signup [post]
 func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var creds RegisterCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
@@ -58,36 +80,33 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		sendErrorResponse(w, "A user with that username already exists", http.StatusConflict)
 	} else {
 		c.setToken(w, creds.Username)
-
 		userData, err := c.authService.GetUserDataByUsername(creds.Username)
 		if err != nil {
 			sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		response := struct {
-			Message string           `json:"message"`
-			User    service.UserData `json:"user"`
-		}{
+		response := RegisterResponse{
 			Message: "Registration successful",
 			User:    userData,
 		}
 
-		jsonResp, err := json.Marshal(response)
-		if err != nil {
-			sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		jsonResp, _ := json.Marshal(response)
 		w.Write(jsonResp)
-
 	}
 }
 
+// AuthHandler godoc
+// @Summary Authenticate a user
+// @Description Retrieve user data based on the JWT token present in the cookies.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} AuthResponse "User data retrieved successfully"
+// @Failure 401 {object} ErrorResponse "Unauthorized: token is invalid"
+// @Router /auth [get]
 func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := c.tokenService.GetUserDataByJWT(r.Cookies())
 	log.Println("/auth cookie: ", data)
@@ -96,9 +115,7 @@ func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := struct {
-		User service.UserData `json:"user"`
-	}{
+	response := AuthResponse{
 		User: data,
 	}
 
@@ -132,7 +149,29 @@ func (c *AuthController) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// LogoutHandler godoc
+// @Summary Log out a user
+// @Description Invalidate the user's session by clearing the access token cookie.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object}  SuccessResponse "Logout successful"
+// @Failure 401 {object} ErrorResponse "No access token found"
+// @Router /logout [post]
 func (c *AuthController) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	tokenExists := false
+	for _, cookie := range r.Cookies() {
+		if cookie.Name == "access_token" {
+			tokenExists = true
+			break
+		}
+	}
+
+	if !tokenExists {
+		sendErrorResponse(w, "No access token found", http.StatusUnauthorized)
+		return
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "access_token",
 		Value:    "t",

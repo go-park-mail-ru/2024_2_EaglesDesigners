@@ -26,9 +26,9 @@ type Payload struct {
 }
 
 type UserData struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
+	ID       int64  `json:"id" example:"2"`
+	Username string `json:"username" example:"user12"`
+	Name     string `json:"name" example:"Dr Peper"`
 }
 
 func generatorJWT(header string, payload string) (string, error) {
