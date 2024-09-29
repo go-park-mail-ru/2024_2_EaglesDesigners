@@ -33,3 +33,18 @@ func (s *AuthService) Registation(username, name, password string) error {
 
 	return nil
 }
+
+func (s *AuthService) GetUserDataByUsername(username string) (UserData, error) {
+	user, err := s.userRepo.GetUserByUsername(username)
+	if err != nil {
+		return UserData{}, err
+	}
+
+	userData := UserData{
+		ID:       user.ID,
+		Username: user.Username,
+		Name:     user.Name,
+	}
+
+	return userData, nil
+}

@@ -15,7 +15,6 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	// router.Use(cors.CorsMiddleware)
 	router.MethodNotAllowedHandler = http.HandlerFunc(controller.MethodNotAllowedHandler)
 
 	auth := auth.SetupController()
@@ -26,7 +25,7 @@ func main() {
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
-	// http.HandleFunc("/logout")
+	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{

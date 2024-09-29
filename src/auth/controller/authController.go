@@ -57,7 +57,34 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 	if err := c.authService.Registation(creds.Username, creds.Name, creds.Password); err != nil {
 		sendErrorResponse(w, "A user with that username already exists", http.StatusConflict)
 	} else {
-		sendOKResponse(w, "Registration successful")
+		c.setToken(w, creds.Username)
+
+		userData, err := c.authService.GetUserDataByUsername(creds.Username)
+		if err != nil {
+			sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		response := struct {
+			Message string           `json:"message"`
+			User    service.UserData `json:"user"`
+		}{
+			Message: "Registration successful",
+			User:    userData,
+		}
+
+		jsonResp, err := json.Marshal(response)
+		if err != nil {
+			sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResp)
+
 	}
 }
 
@@ -87,7 +114,7 @@ func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c *AuthController) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := c.isAuthorized(w, r)
+		err := c.isAuthorized(r)
 		if err == errors.New("token expired") {
 			log.Println("token expired, create new token")
 			user, err := c.tokenService.GetUserByJWT(r.Cookies())
@@ -105,7 +132,22 @@ func (c *AuthController) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (c *AuthController) isAuthorized(w http.ResponseWriter, r *http.Request) error {
+func (c *AuthController) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    "t",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
+
+	sendOKResponse(w, "Logout successful")
+}
+
+func (c *AuthController) isAuthorized(r *http.Request) error {
 	err := c.tokenService.IsAuthorized(r.Cookies())
 	if err != nil {
 		return err
@@ -120,7 +162,7 @@ func (c *AuthController) setToken(w http.ResponseWriter, username string) error 
 		return err
 	}
 
-	cookie := &http.Cookie{
+	http.SetCookie(w, &http.Cookie{
 		Name:     "access_token",
 		Value:    token,
 		Path:     "/",
@@ -128,8 +170,8 @@ func (c *AuthController) setToken(w http.ResponseWriter, username string) error 
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
-	}
+		MaxAge:   7 * 24 * 60 * 60,
+	})
 
-	http.SetCookie(w, cookie)
 	return nil
 }
