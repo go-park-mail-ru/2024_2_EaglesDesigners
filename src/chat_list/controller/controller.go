@@ -20,6 +20,16 @@ func NewChatController(service service.ChatService) *ChatController {
 	}
 }
 
+// ChatHandler godoc
+// @Summary Get user chats
+// @Description Retrieve the list of chats for the authenticated user based on their access token.
+// @Tags chats
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} model.ChatsDTO "List of chats"
+// @Failure 401 {object} ErrorResponse "Unauthorized, no valid access token"
+// @Router /chats [get]
 func (c *ChatController) Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -47,4 +57,9 @@ func (c *ChatController) Handler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResp)
+}
+
+type ErrorResponse struct {
+	Error  string `json:"error"`
+	Status string `json:"status" example:"error"`
 }

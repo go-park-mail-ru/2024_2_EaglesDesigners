@@ -4,14 +4,37 @@ import (
 	"log"
 	"net/http"
 
+	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/controller"
 	chat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
 )
 
+// swag init
+
+// @title           Swagger Patefon API
+// @version         1.0
+// @description     This is a description of the Patefon server.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      212.233.98.59:8080
+// @BasePath  /
+
+// @securityDefinitions.basic  BasicAuth
+
+// @externalDocs.description  OpenAPI
+// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	router := mux.NewRouter()
 
@@ -26,6 +49,7 @@ func main() {
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
+	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
