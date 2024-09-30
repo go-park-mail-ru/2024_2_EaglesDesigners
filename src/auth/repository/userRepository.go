@@ -17,28 +17,28 @@ func NewUserRepository() *UserRepository {
 var users = map[string]model.User{
 	"user1": {
 		ID:       1,
-		Username: "user1",
+		Username: "user11",
 		Name:     "Бал Матье",
 		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
 		Version:  0,
 	},
 	"user2": {
 		ID:       2,
-		Username: "user2",
+		Username: "user22",
 		Name:     "Жабка Пепе",
 		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
 		Version:  0,
 	},
 	"user3": {
 		ID:       3,
-		Username: "user3",
+		Username: "user33",
 		Name:     "Dr Peper",
 		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
 		Version:  0,
 	},
 	"user4": {
 		ID:       4,
-		Username: "user4",
+		Username: "user44",
 		Name:     "Vincent Vega",
 		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
 		Version:  0,
