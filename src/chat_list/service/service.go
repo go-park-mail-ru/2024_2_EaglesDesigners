@@ -2,7 +2,8 @@ package service
 
 import (
 	"errors"
-	"fmt"
+	"log"
+
 	"net/http"
 
 	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
@@ -23,7 +24,7 @@ func NewChatService(tokenService userService.TokenService, repository repository
 }
 
 func (s *ChatService) GetChats(cookie []*http.Cookie) ([]chatModel.Chat, error) {
-	fmt.Println("yes")
+	
 
 	user, err := s.tokenService.GetUserByJWT(cookie)
 	if err != nil {

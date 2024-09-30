@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -99,6 +100,8 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 }
 
 func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) {
+	log.Println("Запрошен поиск пользователь по jwt")
+	
 	token, err := parseCookies(cookies)
 	if err != nil {
 		return model.User{}, err
@@ -109,6 +112,8 @@ func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) 
 		return model.User{}, err
 	}
 
+	log.Println("Пользователь аутентификацирован")
+	
 	return s.userRepo.GetUserByUsername(payload.Sub)
 }
 
