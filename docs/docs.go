@@ -112,7 +112,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Authentication successful",
                         "schema": {
                             "$ref": "#/definitions/controller.SuccessResponse"
@@ -187,20 +187,14 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Registration successful",
                         "schema": {
                             "$ref": "#/definitions/controller.RegisterResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid input data",
-                        "schema": {
-                            "$ref": "#/definitions/src_auth_controller.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized access",
+                        "description": "User failed to create",
                         "schema": {
                             "$ref": "#/definitions/src_auth_controller.ErrorResponse"
                         }

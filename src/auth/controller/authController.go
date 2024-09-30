@@ -29,7 +29,7 @@ func NewAuthController(authService service.AuthService, tokenService service.Tok
 // @Accept json
 // @Produce json
 // @Param credentials body AuthCredentials true "Credentials for login, including username and password"
-// @Success 200 {object} SuccessResponse "Authentication successful"
+// @Success 201 {object} SuccessResponse "Authentication successful"
 // @Failure 400 {object} ErrorResponse "Invalid format JSON"
 // @Failure 401 {object} ErrorResponse "Incorrect login or password"
 // @Router /login [post]
@@ -47,7 +47,8 @@ func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		sendOKResponse(w, "Authentication successful")
+		sendOKResponse(w, "Authentication successful", http.StatusCreated)
+
 	} else {
 		sendErrorResponse(w, "Incorrect login or password", http.StatusUnauthorized)
 	}
@@ -59,10 +60,10 @@ func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param creds body RegisterCredentials true "Registration information"
-// @Success 200 {object} RegisterResponse "Registration successful"
+// @Success 201 {object} RegisterResponse "Registration successful"
 // @Failure 400 {object} ErrorResponse "Invalid input data"
 // @Failure 409 {object} ErrorResponse "A user with that username already exists"
-// @Failure 401 {object} ErrorResponse "Unauthorized access"
+// @Failure 400 {object} ErrorResponse "User failed to create"
 // @Router /signup [post]
 func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var creds RegisterCredentials
@@ -82,7 +83,7 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		c.setToken(w, creds.Username)
 		userData, err := c.authService.GetUserDataByUsername(creds.Username)
 		if err != nil {
-			sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+			sendErrorResponse(w, "User failed to create", http.StatusBadRequest)
 			return
 		}
 
@@ -92,7 +93,7 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusCreated)
 		jsonResp, _ := json.Marshal(response)
 		w.Write(jsonResp)
 	}
@@ -183,7 +184,7 @@ func (c *AuthController) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 
-	sendOKResponse(w, "Logout successful")
+	sendOKResponse(w, "Logout successful", http.StatusOK)
 }
 
 func (c *AuthController) isAuthorized(r *http.Request) error {
