@@ -71,6 +71,7 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 	payload := Payload{
 		Sub:     user.Username,
 		Name:    user.Name,
+		ID:      user.ID,
 		Version: user.Version,
 		Exp:     time.Now().Add(time.Hour * 24).Unix(),
 	}

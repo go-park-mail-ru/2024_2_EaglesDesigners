@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"log"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
 )
@@ -56,7 +57,8 @@ func (r *UserRepository) CreateUser(username, name, password string) error {
 	if _, exists := users[username]; exists {
 		return errors.New("the user already exists")
 	}
-	users[username] = model.User{ID: int64(len(users)), Username: username, Name: name, Password: password, Version: 0}
+	users[username] = model.User{ID: int64(len(users)) + 1, Username: username, Name: name, Password: password, Version: 0}
+	log.Println("created user:", users[username].ID, users[username].Username, users[username].Name)
 
 	return nil
 }
