@@ -49,8 +49,9 @@ type SignupResponse struct {
 	Status string `json:"status" example:"error"`
 }
 
-func sendOKResponse(w http.ResponseWriter, message string) {
+func sendOKResponse(w http.ResponseWriter, message string, statusCode int) {
 	response := SuccessResponse{Message: message}
+	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
