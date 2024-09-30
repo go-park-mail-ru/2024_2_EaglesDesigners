@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"log"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
 )
@@ -47,8 +48,10 @@ var users = map[string]model.User{
 func (r *UserRepository) GetUserByUsername(username string) (model.User, error) {
 	user, exists := users[username]
 	if !exists {
+		log.Println("Пользователь не найден в базе данных")
 		return user, errors.New("user does not exist")
 	}
+	log.Printf("Пользователь c id %s найден", user.ID)
 	return user, nil
 }
 

@@ -49,6 +49,7 @@ func (c *ChatController) Handler(w http.ResponseWriter, r *http.Request) {
 	chatsDTO := models.ChatsDTO{
 		Chats: chats,
 	}
+	
 	jsonResp, err := json.Marshal(chatsDTO)
 
 	if err != nil {
