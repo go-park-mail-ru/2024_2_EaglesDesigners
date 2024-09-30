@@ -122,13 +122,13 @@ func NewChatRepository() *ChatRepository {
 }
 
 func (r *ChatRepository) GetUserChats(user *userModel.User) []chatModel.Chat {
-	log.Printf("Поиск чатов пользователя %s", user.ID)
+	log.Printf("Поиск чатов пользователя %d", user.ID)
 
 	chats, ok := keys[user.ID]
 	log.Println(chats)
 
 	if !ok {
-		log.Printf("Чаты пользователья %s не найдены" , user.ID)
+		log.Printf("Чаты пользователья %d не найдены" , user.ID)
 		return []chatModel.Chat{}
 	}
 	log.Printf("Чаты пользователя найдены")

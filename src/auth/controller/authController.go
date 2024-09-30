@@ -66,6 +66,8 @@ func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} ErrorResponse "User failed to create"
 // @Router /signup [post]
 func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Пришел запрос на регистрацию")
+
 	var creds RegisterCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		sendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
@@ -91,6 +93,8 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 			Message: "Registration successful",
 			User:    userData,
 		}
+
+		log.Println("Пользователь успешно зарегистрирован")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
