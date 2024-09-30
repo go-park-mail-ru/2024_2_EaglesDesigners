@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"log"
 
 	"net/http"
 
