@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
@@ -57,6 +58,8 @@ func sendOKResponse(w http.ResponseWriter, message string, statusCode int) {
 }
 
 func sendErrorResponse(w http.ResponseWriter, errorMessage string, statusCode int) {
+	log.Printf("Отправлен код %d. ОШИБКА: %s \n", statusCode, errorMessage)
+
 	response := ErrorResponse{Error: errorMessage, Status: "error"}
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json")
