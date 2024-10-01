@@ -6,15 +6,15 @@ import (
 	"log"
 	"net/http"
 
+	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
 	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
 )
 
 type ChatController struct {
-	service service.ChatService
+	service chatlist.ChatService
 }
 
-func NewChatController(service service.ChatService) *ChatController {
+func NewChatController(service chatlist.ChatService) *ChatController {
 	return &ChatController{
 		service: service,
 	}
@@ -49,7 +49,7 @@ func (c *ChatController) Handler(w http.ResponseWriter, r *http.Request) {
 	chatsDTO := models.ChatsDTO{
 		Chats: chats,
 	}
-	
+
 	jsonResp, err := json.Marshal(chatsDTO)
 
 	if err != nil {

@@ -29,5 +29,5 @@ func (s *ChatService) GetChats(cookie []*http.Cookie) ([]chatModel.Chat, error) 
 		return []chatModel.Chat{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
-	return s.repository.GetUserChats(user), nil
+	return s.repository.GetUserChats(&user), nil
 }

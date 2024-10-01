@@ -8,7 +8,7 @@ import (
 )
 
 type ChatRepository interface {
-	GetUserChats(user userModel.User) []chatModel.Chat
+	GetUserChats(user *userModel.User) []chatModel.Chat
 }
 
 type ChatService interface {
