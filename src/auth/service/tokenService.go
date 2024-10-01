@@ -8,27 +8,28 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
 )
 
 type TokenService struct {
-	userRepo repository.UserRepository
+	userRepo auth.UserRepository
 }
 
-func NewTokenService(userRepo repository.UserRepository) *TokenService {
+func NewTokenService(userRepo auth.UserRepository) *TokenService {
 	return &TokenService{
 		userRepo: userRepo,
 	}
 }
 
 func (s *TokenService) IsAuthorized(cookies []*http.Cookie) error {
-	token, err := parseCookies(cookies)
+	token, err := utils.ParseCookies(cookies)
 	if err != nil {
 		return err
 	}
 
-	result, err := checkJWT(token)
+	result, err := utils.CheckJWT(token)
 	if err != nil {
 		return err
 	}
@@ -37,7 +38,7 @@ func (s *TokenService) IsAuthorized(cookies []*http.Cookie) error {
 		return errors.New("invalid token")
 	}
 
-	payload, err := getPayloadOfJWT(token)
+	payload, err := utils.GetPayloadOfJWT(token)
 	if err != nil {
 		return err
 	}
@@ -59,7 +60,7 @@ func (s *TokenService) IsAuthorized(cookies []*http.Cookie) error {
 }
 
 func (s *TokenService) CreateJWT(username string) (string, error) {
-	header := Header{
+	header := utils.Header{
 		Alg: "HS256",
 		Typ: "JWT",
 	}
@@ -69,7 +70,7 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 		return "", err
 	}
 
-	payload := Payload{
+	payload := utils.Payload{
 		Sub:     user.Username,
 		Name:    user.Name,
 		ID:      user.ID,
@@ -91,7 +92,7 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 
 	payloadEncoded := base64.RawURLEncoding.EncodeToString(payloadJSON)
 
-	jwt, err := generatorJWT(headerEncoded, payloadEncoded)
+	jwt, err := utils.GeneratorJWT(headerEncoded, payloadEncoded)
 	if err != nil {
 		return "", err
 	}
@@ -101,34 +102,33 @@ func (s *TokenService) CreateJWT(username string) (string, error) {
 
 func (s *TokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) {
 	log.Println("Запрошен поиск пользователь по jwt")
-	
-	token, err := parseCookies(cookies)
+
+	token, err := utils.ParseCookies(cookies)
 	if err != nil {
 		return model.User{}, err
 	}
 
-	payload, err := getPayloadOfJWT(token)
+	payload, err := utils.GetPayloadOfJWT(token)
 	if err != nil {
 		return model.User{}, err
 	}
 
 	log.Println("Пользователь аутентификацирован")
-	
+
 	return s.userRepo.GetUserByUsername(payload.Sub)
 }
 
-func (s *TokenService) GetUserDataByJWT(cookies []*http.Cookie) (UserData, error) {
-	token, err := parseCookies(cookies)
+func (s *TokenService) GetUserDataByJWT(cookies []*http.Cookie) (utils.UserData, error) {
+	token, err := utils.ParseCookies(cookies)
 	if err != nil {
-		return UserData{}, err
+		return utils.UserData{}, err
+	}
+	payload, err := utils.GetPayloadOfJWT(token)
+	if err != nil {
+		return utils.UserData{}, err
 	}
 
-	payload, err := getPayloadOfJWT(token)
-	if err != nil {
-		return UserData{}, err
-	}
-
-	data := UserData{
+	data := utils.UserData{
 		ID:       payload.ID,
 		Username: payload.Sub,
 		Name:     payload.Name,

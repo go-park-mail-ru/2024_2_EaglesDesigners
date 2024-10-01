@@ -1,4 +1,4 @@
-package service
+package utils
 
 import (
 	"crypto/hmac"
@@ -31,7 +31,7 @@ type UserData struct {
 	Name     string `json:"name" example:"Dr Peper"`
 }
 
-func generatorJWT(header string, payload string) (string, error) {
+func GeneratorJWT(header string, payload string) (string, error) {
 	hmac := hmac.New(sha256.New, jwtSecret)
 	hmac.Write([]byte(header + "." + payload))
 	signature := hmac.Sum(nil)
@@ -43,7 +43,7 @@ func generatorJWT(header string, payload string) (string, error) {
 	return jwt, nil
 }
 
-func checkJWT(token string) (bool, error) {
+func CheckJWT(token string) (bool, error) {
 	jwt := strings.Split(token, ".")
 	if len(jwt) != 3 {
 		return false, errors.New("invalid token")
@@ -52,7 +52,7 @@ func checkJWT(token string) (bool, error) {
 	payload := jwt[1]
 	signature := jwt[2]
 
-	newToken, err := generatorJWT(header, payload)
+	newToken, err := GeneratorJWT(header, payload)
 	if err != nil {
 		return false, err
 	}
@@ -62,7 +62,7 @@ func checkJWT(token string) (bool, error) {
 	return signature == newSignature, nil
 }
 
-func parseCookies(cookies []*http.Cookie) (string, error) {
+func ParseCookies(cookies []*http.Cookie) (string, error) {
 	for _, cookie := range cookies {
 		if cookie.Name == "access_token" {
 			return cookie.Value, nil
@@ -71,7 +71,7 @@ func parseCookies(cookies []*http.Cookie) (string, error) {
 	return "", errors.New("cookie does not exist")
 }
 
-func getPayloadOfJWT(token string) (payload Payload, err error) {
+func GetPayloadOfJWT(token string) (payload Payload, err error) {
 	jwt := strings.Split(token, ".")
 
 	if len(jwt) != 3 {

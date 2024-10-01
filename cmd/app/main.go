@@ -9,9 +9,13 @@ import (
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/controller"
-	chat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
+	authController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/controller"
+	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/repository"
+	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/controller"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/repository"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
 )
 
 // swag init
@@ -38,10 +42,16 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	router.MethodNotAllowedHandler = http.HandlerFunc(controller.MethodNotAllowedHandler)
+	router.MethodNotAllowedHandler = http.HandlerFunc(utils.MethodNotAllowedHandler)
 
-	auth := auth.SetupController()
-	chat := chat.SetupController()
+	userRepo := userRepository.NewUserRepository()
+	tokenService := userService.NewTokenService(userRepo)
+	authService := userService.NewAuthService(userRepo, tokenService)
+	auth := authController.NewAuthController(authService, tokenService)
+
+	chatRepo := chatRepository.NewChatRepository()
+	chatService := chatService.NewChatService(tokenService, chatRepo)
+	chat := chatController.NewChatController(chatService)
 
 	router.HandleFunc("/", auth.AuthHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")
