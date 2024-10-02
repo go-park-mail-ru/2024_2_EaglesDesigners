@@ -51,6 +51,18 @@ func TestGetAllStoredUsers(t *testing.T) {
 	}
 }
 
+func TestGetUnstoredUser(t *testing.T) {
+	rep := NewUserRepository()
+	username := "aboba"
+
+	_, err := rep.GetUserByUsername(username)
+
+	if err == nil {
+		t.Fail()
+	}
+
+}
+
 func TestAddNewUser(t *testing.T) {
 	username := "aboba"
 	name := "Oleg Kizaru"
