@@ -51,7 +51,7 @@ func (r *UserRepository) GetUserByUsername(username string) (model.User, error) 
 		log.Println("Пользователь не найден в базе данных")
 		return user, errors.New("user does not exist")
 	}
-	log.Printf("Пользователь c id %s найден", user.ID)
+	log.Printf("Пользователь c id %d найден", user.ID)
 	return user, nil
 }
 
