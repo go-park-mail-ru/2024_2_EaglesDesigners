@@ -196,7 +196,7 @@ func (c *AuthController) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 	})
 
@@ -225,7 +225,7 @@ func (c *AuthController) setToken(w http.ResponseWriter, username string) error 
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
 		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteStrictMode,
 		MaxAge:   7 * 24 * 60 * 60,
 	})
 

@@ -9,8 +9,8 @@ import (
 // AuthCredentials represents the credentials required for authentication
 // @Schema
 type AuthCredentials struct {
-	Username string `json:"username" example:"user1"`
-	Password string `json:"password"  example:"pass1"`
+	Username string `json:"username" example:"user11"`
+	Password string `json:"password"  example:"12345678"`
 }
 
 // RegisterCredentials represents the credentials required for user registration
