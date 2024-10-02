@@ -1,0 +1,243 @@
+basePath: /
+definitions:
+  controller.ErrorResponse:
+    properties:
+      error:
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  model.Chat:
+    properties:
+      avatarURL:
+        example: https://yandex-images.clstorage.net/bVLC53139/667e899dbzgI/Lec3og97oM2J8jgAbwmbs1UEQ_j2WQe6H7Tz0tGHlNUDiLp06xNO9LooehtZCLyucrVfOV3bNS1vNvr_fMoMLbniE8frC6CczUKcwc_ImueU0HKs18lHz490gERWwAOWtD4IttmRuiGPuG9PrfwYeJTUCT5PeyM6mMdYuXvvucreJwTwaprjvy1RSHHf2XlUxVagbjT_Z3s54KP1tiFyt1ZNSQbbE3rzTsqefIsOGIsUYXo-bNgSKZq1WSlJDWhoz9XEo5uL4K6ts3gATet5lVTXMkxWjOY7KIFDVJZywRQU_5pGKzNLwd44T06oTSlJF8LpfEw5cni4VlkKqL3pur7HtGJr6fJM_7N44i2JKwV39mKvRF_0WggAkvaH0qM3dF3rRmhTySM-KU0umyyYWiVw2A7POeGIuvaYeurMKuh91cfSm1uT3gyRmwOOe-pFVEUzzFSupwioEVOHBbBzZ2Tv-6XKcnrQn8kvjEot-5skUlksz1lzKIsGKytJHes6zpeFgbqbE_-fI5hA_TpqVeemkPzm7qcL-UCy5NVyUTYUrfi2K2JIwT85fHzLzVhIFiBIH-9b0Xt45-m5aDwpWu_VtENpCtPcbhE7gL9aisTlNiP8hE2kW1qwEiTkwILXxe9adbgRuvDt6U59ag4qWbVyOm7eG4Nq2QW5mTveSXpcdzTz-TmS_F8iiCEc6Or0JvZy3ldd9-q7MMEWl-FS5YT_GUTZQQqiztuNzust-xr0cJjMzfuSmqqlyvuIPKlJbadlI-l7IS6vUWixLdt6p1dG0dy3bMdYunPBRcWioYYX3BsV2fP7oq26jA6YvgmLxQKqnr_IU0tJJ4greQw5Sp0HhdFYu4DeXGFbEF3JOWb3ZIJvR851WQnhM2UX8VKF983KBAoDOOK9qp1_aC9YK0WCa_8P-UGZ2Eaqy5s9C4qsNofD6Rkg3qyRGCPveNplxMSyzjbctEk5w6C2k
+        type: string
+      chatId:
+        example: 1
+        type: integer
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      chatType:
+        description: '@Enum [personalMessages, group, channel]'
+        example: personalMessages
+        type: string
+      lastMessage:
+        example: Когда за кофе?
+        type: string
+      usersId:
+        example:
+        - 1
+        - 2
+        items:
+          type: integer
+        type: array
+    type: object
+  model.ChatsDTO:
+    properties:
+      chats:
+        items:
+          $ref: '#/definitions/model.Chat'
+        type: array
+    type: object
+  utils.AuthCredentials:
+    properties:
+      password:
+        example: "12345678"
+        type: string
+      username:
+        example: user11
+        type: string
+    type: object
+  utils.AuthResponse:
+    properties:
+      user:
+        $ref: '#/definitions/utils.UserData'
+    type: object
+  utils.ErrorResponse:
+    properties:
+      error:
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  utils.RegisterCredentials:
+    properties:
+      name:
+        example: Vincent Vega
+        type: string
+      password:
+        example: go_do_a_crime
+        type: string
+      username:
+        example: killer1994
+        type: string
+    type: object
+  utils.RegisterResponse:
+    properties:
+      message:
+        example: Registration successful
+        type: string
+      user:
+        $ref: '#/definitions/utils.UserData'
+    type: object
+  utils.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  utils.UserData:
+    properties:
+      id:
+        example: 2
+        type: integer
+      name:
+        example: Dr Peper
+        type: string
+      username:
+        example: user12
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: 212.233.98.59:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a description of the Patefon server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Patefon API
+  version: "1.0"
+paths:
+  /auth:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve user data based on the JWT token present in the cookies.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User data retrieved successfully
+          schema:
+            $ref: '#/definitions/utils.AuthResponse'
+        "401":
+          description: 'Unauthorized: token is invalid'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Authenticate a user
+      tags:
+      - auth
+  /chats:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the list of chats for the authenticated user based on
+        their access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of chats
+          schema:
+            $ref: '#/definitions/model.ChatsDTO'
+        "401":
+          description: Unauthorized, no valid access token
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user chats
+      tags:
+      - chats
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with username and password.
+      parameters:
+      - description: Credentials for login, including username and password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/utils.AuthCredentials'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Authentication successful
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Invalid format JSON
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Incorrect login or password
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: User login
+      tags:
+      - auth
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate the user's session by clearing the access token cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "401":
+          description: No access token found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Log out a user
+      tags:
+      - auth
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user with the provided credentials.
+      parameters:
+      - description: Registration information
+        in: body
+        name: creds
+        required: true
+        schema:
+          $ref: '#/definitions/utils.RegisterCredentials'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registration successful
+          schema:
+            $ref: '#/definitions/utils.RegisterResponse'
+        "400":
+          description: User failed to create
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "409":
+          description: A user with that username already exists
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - auth
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
