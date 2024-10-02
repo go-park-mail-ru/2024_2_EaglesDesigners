@@ -76,12 +76,12 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 
 	var creds utils.RegisterCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		utils.SendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
+		utils.SendErrorResponse(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
-	if creds.Username == "" || creds.Password == "" || creds.Name == "" {
-		utils.SendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
+	if len(creds.Username) < 6 || len(creds.Password) < 8 || creds.Name == "" {
+		utils.SendErrorResponse(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
