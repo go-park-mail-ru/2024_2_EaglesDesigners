@@ -1,20 +1,13 @@
 package repository
 
 import (
-	"errors"
-	"log"
+	"testing"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
+	"github.com/stretchr/testify/require"
 )
 
-type UserRepository struct {
-}
-
-func NewUserRepository() *UserRepository {
-	return &UserRepository{}
-}
-
-var users = map[string]model.User{
+var usersT = map[string]model.User{
 	"user11": {
 		ID:       1,
 		Username: "user11",
@@ -45,22 +38,53 @@ var users = map[string]model.User{
 	},
 }
 
-func (r *UserRepository) GetUserByUsername(username string) (model.User, error) {
-	user, exists := users[username]
-	if !exists {
-		log.Println("Пользователь не найден в базе данных")
-		return user, errors.New("user does not exist")
+func TestGetAllStoredUsers(t *testing.T) {
+	rep := NewUserRepository()
+	for _, usr := range usersT {
+		userFromStorage, err := rep.GetUserByUsername(usr.Username)
+
+		if err != nil {
+			t.Fail()
+		}
+
+		require.Equal(t, userFromStorage, usr)
 	}
-	log.Printf("Пользователь c id %d найден", user.ID)
-	return user, nil
 }
 
-func (r *UserRepository) CreateUser(username, name, password string) error {
-	if _, exists := users[username]; exists {
-		return errors.New("the user already exists")
-	}
-	users[username] = model.User{ID: int64(len(users)) + 1, Username: username, Name: name, Password: password, Version: 0}
-	log.Println("created user:", users[username].ID, users[username].Username, users[username].Name)
+func TestAddNewUser(t *testing.T) {
+	username := "aboba"
+	name := "Oleg Kizaru"
+	password := "12345678"
 
-	return nil
+	rep := NewUserRepository()
+	err := rep.CreateUser(username, name, password)
+
+	if err != nil {
+		t.Fail()
+	}
+	newUsr, err := rep.GetUserByUsername("aboba")
+
+	if err != nil {
+		t.Fail()
+	}
+	require.Equal(t, username, newUsr.Username)
+	require.Equal(t, password, newUsr.Password)
+	require.Equal(t, name, newUsr.Name)
+}
+
+func TestAddDuplicateUserFail(t *testing.T) {
+	username := "abobus"
+	name := "Oleg Kizaru"
+	password := "12345678"
+
+	rep := NewUserRepository()
+	err := rep.CreateUser(username, name, password)
+	if err != nil {
+		t.Fail()
+	}
+
+	err = rep.CreateUser(username, name, password)
+	if err == nil {
+		t.Fail()
+	}
 }
