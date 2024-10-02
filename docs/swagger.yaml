@@ -44,10 +44,10 @@ definitions:
   utils.AuthCredentials:
     properties:
       password:
-        example: pass1
+        example: "12345678"
         type: string
       username:
-        example: user1
+        example: user11
         type: string
     type: object
   utils.AuthResponse:

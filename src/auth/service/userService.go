@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
 )
@@ -26,6 +28,10 @@ func (s *AuthService) Authenticate(username, password string) bool {
 }
 
 func (s *AuthService) Registration(username, name, password string) error {
+	if len(username) < 6 || len(password) < 8 || len(name) < 1 {
+		return errors.New("bad data")
+	}
+
 	hashed := utils.HashPassword(password)
 	err := s.userRepo.CreateUser(username, name, hashed)
 	if err != nil {
