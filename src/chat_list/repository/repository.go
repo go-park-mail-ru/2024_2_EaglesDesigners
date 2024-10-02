@@ -125,12 +125,11 @@ func (r *ChatRepository) GetUserChats(user *userModel.User) []chatModel.Chat {
 	log.Printf("Поиск чатов пользователя %d", user.ID)
 
 	chats, ok := keys[user.ID]
-	log.Println(chats)
 
 	if !ok {
-		log.Printf("Чаты пользователья %d не найдены" , user.ID)
+		log.Printf("Чаты пользователья %d не найдены", user.ID)
 		return []chatModel.Chat{}
 	}
-	log.Printf("Чаты пользователя найдены")
+	log.Printf("Найдено чатов пользователя %d: %d ", user.ID, len(chats))
 	return chats
 }
