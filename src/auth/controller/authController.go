@@ -119,6 +119,12 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 // @Failure 401 {object} utils.ErrorResponse "Unauthorized: token is invalid"
 // @Router /auth [get]
 func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
+	err := c.tokenService.IsAuthorized(r.Cookies())
+	if err != nil {
+		utils.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	data, err := c.tokenService.GetUserDataByJWT(r.Cookies())
 	log.Println("/auth cookie: ", data)
 	if err != nil {

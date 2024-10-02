@@ -2,15 +2,17 @@ package utils
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 )
 
-var jwtSecret = []byte("КТо пРочитАл тОт сдОхНет :)")
+var jwtSecret = generateJWTSecret()
 
 type Header struct {
 	Alg string `json:"alg"`
@@ -29,6 +31,15 @@ type UserData struct {
 	ID       int64  `json:"id" example:"2"`
 	Username string `json:"username" example:"user12"`
 	Name     string `json:"name" example:"Dr Peper"`
+}
+
+func generateJWTSecret() []byte {
+	secret := make([]byte, 32)
+	if _, err := rand.Read(secret); err != nil {
+		log.Fatalf("Ошибка при генерации jwtSecret: %v", err)
+	}
+	return secret
+
 }
 
 func GeneratorJWT(header string, payload string) (string, error) {
