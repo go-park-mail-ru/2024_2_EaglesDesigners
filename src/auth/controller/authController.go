@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
@@ -14,6 +15,7 @@ import (
 type AuthController struct {
 	authService  auth.AuthService
 	tokenService auth.TokenService
+	mu           sync.Mutex
 }
 
 func NewAuthController(authService auth.AuthService, tokenService auth.TokenService) *AuthController {
@@ -35,6 +37,9 @@ func NewAuthController(authService auth.AuthService, tokenService auth.TokenServ
 // @Failure 401 {object} utils.ErrorResponse "Incorrect login or password"
 // @Router /login [post]
 func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	var creds utils.AuthCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		utils.SendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
@@ -67,6 +72,9 @@ func (c *AuthController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} utils.ErrorResponse "User failed to create"
 // @Router /signup [post]
 func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	log.Println("Пришел запрос на регистрацию")
 
 	var creds utils.RegisterCredentials
@@ -114,6 +122,9 @@ func (c *AuthController) RegisterHandler(w http.ResponseWriter, r *http.Request)
 // @Failure 401 {object} utils.ErrorResponse "Unauthorized: token is invalid"
 // @Router /auth [get]
 func (c *AuthController) AuthHandler(w http.ResponseWriter, r *http.Request) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	data, err := c.tokenService.GetUserDataByJWT(r.Cookies())
 	log.Println("/auth cookie: ", data)
 	if err != nil {
@@ -165,6 +176,9 @@ func (c *AuthController) Middleware(next http.HandlerFunc) http.HandlerFunc {
 // @Failure 401 {object} utils.ErrorResponse "No access token found"
 // @Router /logout [post]
 func (c *AuthController) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	tokenExists := false
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "access_token" {
