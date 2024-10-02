@@ -25,10 +25,13 @@ func TestLoginHandler_Success(t *testing.T) {
 		},
 	}
 	controller := controller.NewAuthController(mockAuthService, mockTokenService)
-	reqBody, _ := json.Marshal(utils.AuthCredentials{
+	reqBody, err := json.Marshal(utils.AuthCredentials{
 		Username: "user1",
 		Password: "pass1",
 	})
+	if err != nil {
+		t.Fatalf("Failed to marshal request body: %v", err)
+	}
 	request := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(reqBody))
 	result := httptest.NewRecorder()
 	controller.LoginHandler(result, request)

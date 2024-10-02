@@ -14,15 +14,24 @@ type MockAuthService struct {
 }
 
 func (m *MockAuthService) Authenticate(username, password string) bool {
-	return m.AuthenticateFunc(username, password)
+	if m.AuthenticateFunc != nil {
+		return m.AuthenticateFunc(username, password)
+	}
+	return false
 }
 
 func (m *MockAuthService) Registration(username, name, password string) error {
-	return m.RegistrationFunc(username, name, password)
+	if m.RegistrationFunc != nil {
+		return m.RegistrationFunc(username, name, password)
+	}
+	return nil
 }
 
 func (m *MockAuthService) GetUserDataByUsername(username string) (utils.UserData, error) {
-	return m.GetUserDataFunc(username)
+	if m.GetUserDataFunc != nil {
+		return m.GetUserDataFunc(username)
+	}
+	return utils.UserData{}, nil
 }
 
 type MockTokenService struct {
@@ -33,19 +42,31 @@ type MockTokenService struct {
 }
 
 func (m *MockTokenService) CreateJWT(username string) (string, error) {
-	return m.CreateJWTFunc(username)
+	if m.CreateJWTFunc != nil {
+		return m.CreateJWTFunc(username)
+	}
+	return "", nil
 }
 
 func (m *MockTokenService) GetUserDataByJWT(cookies []*http.Cookie) (utils.UserData, error) {
-	return m.GetUserDataByJWTFunc(cookies)
+	if m.GetUserDataByJWTFunc != nil {
+		return m.GetUserDataByJWTFunc(cookies)
+	}
+	return utils.UserData{}, nil
 }
 
 func (m *MockTokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) {
-	return m.GetUserByJWTFunc(cookies)
+	if m.GetUserByJWTFunc != nil {
+		return m.GetUserByJWTFunc(cookies)
+	}
+	return model.User{}, nil
 }
 
 func (m *MockTokenService) IsAuthorized(cookies []*http.Cookie) error {
-	return m.IsAuthorizedFunc(cookies)
+	if m.IsAuthorizedFunc != nil {
+		return m.IsAuthorizedFunc(cookies)
+	}
+	return nil
 }
 
 type MockUserRepository struct {
@@ -54,9 +75,15 @@ type MockUserRepository struct {
 }
 
 func (m *MockUserRepository) GetUserByUsername(username string) (model.User, error) {
-	return m.GetUserByUsernameFunc(username)
+	if m.GetUserByUsernameFunc != nil {
+		return m.GetUserByUsernameFunc(username)
+	}
+	return model.User{}, nil
 }
 
 func (m *MockUserRepository) CreateUser(username, name, password string) error {
-	return m.CreateUserFunc(username, name, password)
+	if m.CreateUserFunc != nil {
+		return m.CreateUserFunc(username, name, password)
+	}
+	return nil
 }
