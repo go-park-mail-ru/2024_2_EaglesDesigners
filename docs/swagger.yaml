@@ -1,42 +1,11 @@
 basePath: /
 definitions:
-  controller.AuthCredentials:
+  controller.ErrorResponse:
     properties:
-      password:
-        example: pass1
+      error:
         type: string
-      username:
-        example: user1
-        type: string
-    type: object
-  controller.AuthResponse:
-    properties:
-      user:
-        $ref: '#/definitions/service.UserData'
-    type: object
-  controller.RegisterCredentials:
-    properties:
-      name:
-        example: Vincent Vega
-        type: string
-      password:
-        example: go_do_a_crime
-        type: string
-      username:
-        example: killer1994
-        type: string
-    type: object
-  controller.RegisterResponse:
-    properties:
-      message:
-        example: Registration successful
-        type: string
-      user:
-        $ref: '#/definitions/service.UserData'
-    type: object
-  controller.SuccessResponse:
-    properties:
-      message:
+      status:
+        example: error
         type: string
     type: object
   model.Chat:
@@ -72,7 +41,54 @@ definitions:
           $ref: '#/definitions/model.Chat'
         type: array
     type: object
-  service.UserData:
+  utils.AuthCredentials:
+    properties:
+      password:
+        example: pass1
+        type: string
+      username:
+        example: user1
+        type: string
+    type: object
+  utils.AuthResponse:
+    properties:
+      user:
+        $ref: '#/definitions/utils.UserData'
+    type: object
+  utils.ErrorResponse:
+    properties:
+      error:
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  utils.RegisterCredentials:
+    properties:
+      name:
+        example: Vincent Vega
+        type: string
+      password:
+        example: go_do_a_crime
+        type: string
+      username:
+        example: killer1994
+        type: string
+    type: object
+  utils.RegisterResponse:
+    properties:
+      message:
+        example: Registration successful
+        type: string
+      user:
+        $ref: '#/definitions/utils.UserData'
+    type: object
+  utils.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  utils.UserData:
     properties:
       id:
         example: 2
@@ -82,22 +98,6 @@ definitions:
         type: string
       username:
         example: user12
-        type: string
-    type: object
-  src_auth_controller.ErrorResponse:
-    properties:
-      error:
-        type: string
-      status:
-        example: error
-        type: string
-    type: object
-  src_chat_list_controller.ErrorResponse:
-    properties:
-      error:
-        type: string
-      status:
-        example: error
         type: string
     type: object
 externalDocs:
@@ -128,11 +128,11 @@ paths:
         "200":
           description: User data retrieved successfully
           schema:
-            $ref: '#/definitions/controller.AuthResponse'
+            $ref: '#/definitions/utils.AuthResponse'
         "401":
           description: 'Unauthorized: token is invalid'
           schema:
-            $ref: '#/definitions/src_auth_controller.ErrorResponse'
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: Authenticate a user
       tags:
       - auth
@@ -152,7 +152,7 @@ paths:
         "401":
           description: Unauthorized, no valid access token
           schema:
-            $ref: '#/definitions/src_chat_list_controller.ErrorResponse'
+            $ref: '#/definitions/controller.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get user chats
@@ -169,22 +169,22 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/controller.AuthCredentials'
+          $ref: '#/definitions/utils.AuthCredentials'
       produces:
       - application/json
       responses:
         "201":
           description: Authentication successful
           schema:
-            $ref: '#/definitions/controller.SuccessResponse'
+            $ref: '#/definitions/utils.SuccessResponse'
         "400":
           description: Invalid format JSON
           schema:
-            $ref: '#/definitions/src_auth_controller.ErrorResponse'
+            $ref: '#/definitions/utils.ErrorResponse'
         "401":
           description: Incorrect login or password
           schema:
-            $ref: '#/definitions/src_auth_controller.ErrorResponse'
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: User login
       tags:
       - auth
@@ -199,11 +199,11 @@ paths:
         "200":
           description: Logout successful
           schema:
-            $ref: '#/definitions/controller.SuccessResponse'
+            $ref: '#/definitions/utils.SuccessResponse'
         "401":
           description: No access token found
           schema:
-            $ref: '#/definitions/src_auth_controller.ErrorResponse'
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: Log out a user
       tags:
       - auth
@@ -218,22 +218,22 @@ paths:
         name: creds
         required: true
         schema:
-          $ref: '#/definitions/controller.RegisterCredentials'
+          $ref: '#/definitions/utils.RegisterCredentials'
       produces:
       - application/json
       responses:
         "201":
           description: Registration successful
           schema:
-            $ref: '#/definitions/controller.RegisterResponse'
+            $ref: '#/definitions/utils.RegisterResponse'
         "400":
           description: User failed to create
           schema:
-            $ref: '#/definitions/src_auth_controller.ErrorResponse'
+            $ref: '#/definitions/utils.ErrorResponse'
         "409":
           description: A user with that username already exists
           schema:
-            $ref: '#/definitions/src_auth_controller.ErrorResponse'
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: Register a new user
       tags:
       - auth

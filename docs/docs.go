@@ -41,13 +41,13 @@ const docTemplate = `{
                     "200": {
                         "description": "User data retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/controller.AuthResponse"
+                            "$ref": "#/definitions/utils.AuthResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized: token is invalid",
                         "schema": {
-                            "$ref": "#/definitions/src_auth_controller.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -81,7 +81,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized, no valid access token",
                         "schema": {
-                            "$ref": "#/definitions/src_chat_list_controller.ErrorResponse"
+                            "$ref": "#/definitions/controller.ErrorResponse"
                         }
                     }
                 }
@@ -107,7 +107,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.AuthCredentials"
+                            "$ref": "#/definitions/utils.AuthCredentials"
                         }
                     }
                 ],
@@ -115,19 +115,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Authentication successful",
                         "schema": {
-                            "$ref": "#/definitions/controller.SuccessResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid format JSON",
                         "schema": {
-                            "$ref": "#/definitions/src_auth_controller.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Incorrect login or password",
                         "schema": {
-                            "$ref": "#/definitions/src_auth_controller.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -150,13 +150,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Logout successful",
                         "schema": {
-                            "$ref": "#/definitions/controller.SuccessResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "No access token found",
                         "schema": {
-                            "$ref": "#/definitions/src_auth_controller.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -182,7 +182,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.RegisterCredentials"
+                            "$ref": "#/definitions/utils.RegisterCredentials"
                         }
                     }
                 ],
@@ -190,19 +190,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Registration successful",
                         "schema": {
-                            "$ref": "#/definitions/controller.RegisterResponse"
+                            "$ref": "#/definitions/utils.RegisterResponse"
                         }
                     },
                     "400": {
                         "description": "User failed to create",
                         "schema": {
-                            "$ref": "#/definitions/src_auth_controller.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "A user with that username already exists",
                         "schema": {
-                            "$ref": "#/definitions/src_auth_controller.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -210,61 +210,15 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.AuthCredentials": {
+        "controller.ErrorResponse": {
             "type": "object",
             "properties": {
-                "password": {
-                    "type": "string",
-                    "example": "pass1"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "user1"
-                }
-            }
-        },
-        "controller.AuthResponse": {
-            "type": "object",
-            "properties": {
-                "user": {
-                    "$ref": "#/definitions/service.UserData"
-                }
-            }
-        },
-        "controller.RegisterCredentials": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "Vincent Vega"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "go_do_a_crime"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "killer1994"
-                }
-            }
-        },
-        "controller.RegisterResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Registration successful"
-                },
-                "user": {
-                    "$ref": "#/definitions/service.UserData"
-                }
-            }
-        },
-        "controller.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
+                "error": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "error"
                 }
             }
         },
@@ -315,7 +269,77 @@ const docTemplate = `{
                 }
             }
         },
-        "service.UserData": {
+        "utils.AuthCredentials": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "pass1"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user1"
+                }
+            }
+        },
+        "utils.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/utils.UserData"
+                }
+            }
+        },
+        "utils.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "error"
+                }
+            }
+        },
+        "utils.RegisterCredentials": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "go_do_a_crime"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "killer1994"
+                }
+            }
+        },
+        "utils.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Registration successful"
+                },
+                "user": {
+                    "$ref": "#/definitions/utils.UserData"
+                }
+            }
+        },
+        "utils.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.UserData": {
             "type": "object",
             "properties": {
                 "id": {
@@ -329,30 +353,6 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "user12"
-                }
-            }
-        },
-        "src_auth_controller.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "error"
-                }
-            }
-        },
-        "src_chat_list_controller.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "error"
                 }
             }
         }

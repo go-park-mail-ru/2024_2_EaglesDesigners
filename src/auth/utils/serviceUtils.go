@@ -1,4 +1,4 @@
-package service
+package utils
 
 import (
 	"crypto/sha512"
@@ -9,7 +9,7 @@ func getSalt() []byte {
 	return []byte{93, 108, 25, 43, 92, 102, 255, 179, 11, 87, 186, 198, 254, 160, 164, 56}
 }
 
-func hashPassword(password string) string {
+func HashPassword(password string) string {
 	var passwordBytes = []byte(password)
 	var sha512Hasher = sha512.New()
 	passwordBytes = append(passwordBytes, getSalt()...)
@@ -19,7 +19,7 @@ func hashPassword(password string) string {
 	return hashedPasswordHex
 }
 
-func doPasswordsMatch(hashedPassword, currPassword string) bool {
-	var currPasswordHash = hashPassword(currPassword)
+func DoPasswordsMatch(hashedPassword, currPassword string) bool {
+	var currPasswordHash = HashPassword(currPassword)
 	return hashedPassword == currPasswordHash
 }
