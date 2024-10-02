@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
 	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
@@ -13,7 +12,6 @@ import (
 
 type ChatController struct {
 	service chatlist.ChatService
-	mu      sync.Mutex
 }
 
 func NewChatController(service chatlist.ChatService) *ChatController {
@@ -33,8 +31,6 @@ func NewChatController(service chatlist.ChatService) *ChatController {
 // @Failure 401 {object} ErrorResponse "Unauthorized, no valid access token"
 // @Router /chats [get]
 func (c *ChatController) Handler(w http.ResponseWriter, r *http.Request) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	w.Header().Set("Content-Type", "application/json")
 
 	log.Println("Пришёл запрос на получения чатов")
