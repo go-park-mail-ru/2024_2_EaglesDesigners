@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
-	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
+	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 	"github.com/stretchr/testify/require"
 )
 

@@ -9,13 +9,13 @@ import (
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	authController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/controller"
-	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/repository"
-	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
-	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/controller"
-	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/repository"
-	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
+	authController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/controller"
+	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/service"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/controller"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/repository"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/service"
 )
 
 // swag init

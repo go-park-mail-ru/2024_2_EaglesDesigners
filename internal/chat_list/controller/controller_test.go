@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
+	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 )
 
 // Mock service to imitate the behavior of the service layer
@@ -68,21 +68,20 @@ func TestHandler_Success(t *testing.T) {
 	}
 }
 
-
 func TestHandler_Unauthorized(t *testing.T) {
 	mockSvc := &mockService{returnChats: nil, err: errors.New("unauthorized")}
 	chatController := NewChatController(mockSvc)
-   
+
 	// Создаём запрос
 	req := httptest.NewRequest("GET", "/chats", nil)
 	rec := httptest.NewRecorder()
-   
+
 	// Вызываем обработчик
 	chatController.Handler(rec, req)
-   
+
 	// Проверяем статус-код
 	res := rec.Result()
 	if res.StatusCode != http.StatusUnauthorized {
-	 t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, res.StatusCode)
+		t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, res.StatusCode)
 	}
-   }
+}

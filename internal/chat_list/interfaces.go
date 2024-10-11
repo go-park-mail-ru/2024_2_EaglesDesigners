@@ -3,8 +3,8 @@ package chatlist
 import (
 	"net/http"
 
-	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
+	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 )
 
 type ChatRepository interface {

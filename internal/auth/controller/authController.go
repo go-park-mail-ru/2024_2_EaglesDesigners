@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
 )
 
 type AuthController struct {

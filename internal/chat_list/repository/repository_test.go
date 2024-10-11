@@ -3,9 +3,9 @@ package repository
 import (
 	"testing"
 
-	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
+	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 	"github.com/stretchr/testify/require"
-	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
 )
 
 func TestGetUser1Chats(t *testing.T) {

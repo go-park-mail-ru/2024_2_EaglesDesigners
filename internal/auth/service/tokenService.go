@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
 )
 
 type TokenService struct {

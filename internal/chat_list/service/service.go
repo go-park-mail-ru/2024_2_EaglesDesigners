@@ -5,9 +5,9 @@ import (
 
 	"net/http"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
-	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
-	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth"
+	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list"
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 )
 
 type ChatService struct {

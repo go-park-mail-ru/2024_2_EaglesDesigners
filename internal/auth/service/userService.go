@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
 )
 
 type AuthService struct {

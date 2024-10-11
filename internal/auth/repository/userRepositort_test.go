@@ -3,7 +3,7 @@ package repository
 import (
 	"testing"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
 	"github.com/stretchr/testify/require"
 )
 

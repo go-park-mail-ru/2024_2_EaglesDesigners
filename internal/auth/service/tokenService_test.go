@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/mocks"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/mocks"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/service"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
 	"github.com/stretchr/testify/assert"
 )
 

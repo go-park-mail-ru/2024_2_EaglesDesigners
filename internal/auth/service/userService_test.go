@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/mocks"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/mocks"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/service"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,7 +43,7 @@ func TestRegistration_Success(t *testing.T) {
 		},
 	}
 	authService := service.NewAuthService(mockRepo, nil)
-	err := authService.Registration("new_user", "John Doe", "pass1")
+	err := authService.Registration("new_user", "John Doe", "password1")
 
 	assert.NoError(t, err)
 }

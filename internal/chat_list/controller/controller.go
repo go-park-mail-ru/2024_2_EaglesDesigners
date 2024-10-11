@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list"
-	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
+	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list"
+	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 )
 
 type ChatController struct {

@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/controller"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/mocks"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/controller"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/mocks"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
 	"github.com/stretchr/testify/assert"
 )
 

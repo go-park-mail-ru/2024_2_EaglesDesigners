@@ -3,8 +3,8 @@ package repository
 import (
 	"log"
 
-	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/model"
-	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/models"
+	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 )
 
 var keys = map[int64][]chatModel.Chat{
