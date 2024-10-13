@@ -1,36 +1,10 @@
-package utils
+package responser
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 )
-
-// AuthCredentials represents the credentials required for authentication
-// @Schema
-type AuthCredentials struct {
-	Username string `json:"username" example:"user11"`
-	Password string `json:"password"  example:"12345678"`
-}
-
-// RegisterCredentials represents the credentials required for user registration
-// @Schema
-type RegisterCredentials struct {
-	Username string `json:"username" example:"killer1994"`
-	Name     string `json:"name" example:"Vincent Vega"`
-	Password string `json:"password" example:"go_do_a_crime"`
-}
-
-// @Schema
-type RegisterResponse struct {
-	Message string   `json:"message" example:"Registration successful"`
-	User    UserData `json:"user"`
-}
-
-// @Schema
-type AuthResponse struct {
-	User UserData `json:"user"`
-}
 
 // @Schema
 type SuccessResponse struct {
@@ -39,11 +13,6 @@ type SuccessResponse struct {
 
 // @Schema
 type ErrorResponse struct {
-	Error  string `json:"error"`
-	Status string `json:"status" example:"error"`
-}
-
-type SignupResponse struct {
 	Error  string `json:"error"`
 	Status string `json:"status" example:"error"`
 }

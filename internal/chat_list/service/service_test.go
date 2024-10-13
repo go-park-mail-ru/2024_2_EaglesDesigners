@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +16,7 @@ type tokenService struct {
 	err  error
 }
 
-func (m *tokenService) GetUserByJWT(cookies []*http.Cookie) (model.User, error) {
+func (m *tokenService) GetUserByJWT(cookies []*http.Cookie) (repository.User, error) {
 	return m.User, m.err
 }
 
@@ -24,7 +24,7 @@ func (m *tokenService) CreateJWT(username string) (string, error) {
 	return "", nil
 }
 
-func (m *tokenService) GetUserDataByJWT(cookies []*http.Cookie) (utils.UserData, error) {
+func (m *tokenService) GetUserDataByJWT(cookies []*http.Cookie) (model.UserData, error) {
 	return utils.UserData{}, nil
 }
 

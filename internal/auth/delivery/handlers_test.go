@@ -1,4 +1,4 @@
-package controller_test
+package delivery_test
 
 import (
 	"bytes"
@@ -7,25 +7,26 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/controller"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/mocks"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
+	jwtUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLoginHandler_Success(t *testing.T) {
-	mockAuthService := &mocks.MockAuthService{
+	mockUsecase := &mocks.MockUsecase{
 		AuthenticateFunc: func(username, password string) bool {
 			return username == "user1" && password == "pass1"
 		},
 	}
-	mockTokenService := &mocks.MockTokenService{
+	mockTokenService := &mocks.MockTokenUsecase{
 		CreateJWTFunc: func(username string) (string, error) {
 			return "mock_token", nil
 		},
 	}
-	controller := controller.NewAuthController(mockAuthService, mockTokenService)
-	reqBody, err := json.Marshal(utils.AuthCredentials{
+	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
+	reqBody, err := json.Marshal(delivery.AuthCredentials{
 		Username: "user1",
 		Password: "pass1",
 	})
@@ -34,7 +35,7 @@ func TestLoginHandler_Success(t *testing.T) {
 	}
 	request := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(reqBody))
 	result := httptest.NewRecorder()
-	controller.LoginHandler(result, request)
+	handler.LoginHandler(result, request)
 
 	assert.Equal(t, http.StatusCreated, result.Code)
 	assert.Contains(t, result.Header().Get("Set-Cookie"), "access_token")
@@ -42,12 +43,12 @@ func TestLoginHandler_Success(t *testing.T) {
 }
 
 func TestRegisterHandler_Success(t *testing.T) {
-	mockAuthService := &mocks.MockAuthService{
+	mockUsecase := &mocks.MockUsecase{
 		RegistrationFunc: func(username, name, password string) error {
 			return nil
 		},
-		GetUserDataFunc: func(username string) (utils.UserData, error) {
-			return utils.UserData{
+		GetUserDataFunc: func(username string) (usecase.UserData, error) {
+			return usecase.UserData{
 				ID:       1,
 				Username: username,
 				Name:     "name",
@@ -55,48 +56,48 @@ func TestRegisterHandler_Success(t *testing.T) {
 		},
 	}
 
-	mockTokenService := &mocks.MockTokenService{
+	mockTokenService := &mocks.MockTokenUsecase{
 		CreateJWTFunc: func(username string) (string, error) {
 			return "mock_token", nil
 		},
 	}
-	controller := controller.NewAuthController(mockAuthService, mockTokenService)
-	reqBody, _ := json.Marshal(utils.RegisterCredentials{
+	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
+	reqBody, _ := json.Marshal(delivery.RegisterCredentials{
 		Username: "killer1994",
 		Name:     "Vincent Vega",
 		Password: "go_do_a_crime",
 	})
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
 	res := httptest.NewRecorder()
-	controller.RegisterHandler(res, req)
+	handler.RegisterHandler(res, req)
 
 	assert.Equal(t, http.StatusCreated, res.Code)
 }
 
 func TestLogoutHandler_Success(t *testing.T) {
-	mockAuthService := &mocks.MockAuthService{}
-	mockTokenService := &mocks.MockTokenService{}
-	controller := controller.NewAuthController(mockAuthService, mockTokenService)
+	mockUsecase := &mocks.MockUsecase{}
+	mockTokenService := &mocks.MockTokenUsecase{}
+	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
 	request := httptest.NewRequest(http.MethodPost, "/logout", nil)
 	request.AddCookie(&http.Cookie{Name: "access_token", Value: "mock_token"})
 	result := httptest.NewRecorder()
-	controller.LogoutHandler(result, request)
+	handler.LogoutHandler(result, request)
 
 	assert.Equal(t, http.StatusOK, result.Code)
 }
 
 func TestAuthHandler_Success(t *testing.T) {
-	mockAuthService := &mocks.MockAuthService{}
-	mockTokenService := &mocks.MockTokenService{
-		GetUserDataByJWTFunc: func(cookies []*http.Cookie) (utils.UserData, error) {
-			return utils.UserData{Username: "user1", Name: "User One"}, nil
+	mockUsecase := &mocks.MockUsecase{}
+	mockTokenService := &mocks.MockTokenUsecase{
+		GetUserDataByJWTFunc: func(cookies []*http.Cookie) (jwtUC.UserData, error) {
+			return jwtUC.UserData{Username: "user1", Name: "User One"}, nil
 		},
 	}
-	controller := controller.NewAuthController(mockAuthService, mockTokenService)
+	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
 	request := httptest.NewRequest(http.MethodGet, "/auth", nil)
 	request.AddCookie(&http.Cookie{Name: "access_token", Value: "mock_token"})
 	result := httptest.NewRecorder()
-	controller.AuthHandler(result, request)
+	handler.AuthHandler(result, request)
 
 	assert.Equal(t, http.StatusOK, result.Code)
 

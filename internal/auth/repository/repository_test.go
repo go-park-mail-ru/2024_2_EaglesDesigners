@@ -1,13 +1,13 @@
-package repository
+package repository_test
 
 import (
 	"testing"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
+	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
 	"github.com/stretchr/testify/require"
 )
 
-var usersT = map[string]model.User{
+var usersT = map[string]repo.User{
 	"user11": {
 		ID:       1,
 		Username: "user11",
@@ -39,7 +39,7 @@ var usersT = map[string]model.User{
 }
 
 func TestGetAllStoredUsers(t *testing.T) {
-	rep := NewUserRepository()
+	rep := repo.NewRepository()
 	for _, usr := range usersT {
 		userFromStorage, err := rep.GetUserByUsername(usr.Username)
 
@@ -52,7 +52,7 @@ func TestGetAllStoredUsers(t *testing.T) {
 }
 
 func TestGetUnstoredUser(t *testing.T) {
-	rep := NewUserRepository()
+	rep := repo.NewRepository()
 	username := "aboba"
 
 	_, err := rep.GetUserByUsername(username)
@@ -68,7 +68,7 @@ func TestAddNewUser(t *testing.T) {
 	name := "Oleg Kizaru"
 	password := "12345678"
 
-	rep := NewUserRepository()
+	rep := repo.NewRepository()
 	err := rep.CreateUser(username, name, password)
 
 	if err != nil {
@@ -89,7 +89,7 @@ func TestAddDuplicateUserFail(t *testing.T) {
 	name := "Oleg Kizaru"
 	password := "12345678"
 
-	rep := NewUserRepository()
+	rep := repo.NewRepository()
 	err := rep.CreateUser(username, name, password)
 	if err != nil {
 		t.Fail()

@@ -9,13 +9,14 @@ import (
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	authController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/controller"
-	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
-	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
+	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
+	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/controller"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/repository"
 	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/service"
+	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 )
 
 // swag init
@@ -42,15 +43,15 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	router.MethodNotAllowedHandler = http.HandlerFunc(utils.MethodNotAllowedHandler)
+	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
-	userRepo := userRepository.NewUserRepository()
-	tokenService := userService.NewTokenService(userRepo)
-	authService := userService.NewAuthService(userRepo, tokenService)
-	auth := authController.NewAuthController(authService, tokenService)
+	authRepo := authRepo.NewRepository()
+	tokenUC := tokenUC.NewUsecase(authRepo)
+	authUC := authUC.NewUsecase(authRepo, tokenUC)
+	auth := authDelivery.NewDelivery(authUC, tokenUC)
 
 	chatRepo := chatRepository.NewChatRepository()
-	chatService := chatService.NewChatService(tokenService, chatRepo)
+	chatService := chatService.NewChatService(tokenUC, chatRepo)
 	chat := chatController.NewChatController(chatService)
 
 	router.HandleFunc("/", auth.AuthHandler).Methods("GET", "OPTIONS")

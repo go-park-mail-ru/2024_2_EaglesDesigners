@@ -3,18 +3,16 @@ package repository
 import (
 	"errors"
 	"log"
-
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
 )
 
-type UserRepository struct {
+type Repository struct {
 }
 
-func NewUserRepository() *UserRepository {
-	return &UserRepository{}
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
-var users = map[string]model.User{
+var users = map[string]User{
 	"user11": {
 		ID:       1,
 		Username: "user11",
@@ -45,7 +43,7 @@ var users = map[string]model.User{
 	},
 }
 
-func (r *UserRepository) GetUserByUsername(username string) (model.User, error) {
+func (r *Repository) GetUserByUsername(username string) (User, error) {
 	user, exists := users[username]
 	if !exists {
 		log.Println("Пользователь не найден в базе данных")
@@ -55,11 +53,11 @@ func (r *UserRepository) GetUserByUsername(username string) (model.User, error) 
 	return user, nil
 }
 
-func (r *UserRepository) CreateUser(username, name, password string) error {
+func (r *Repository) CreateUser(username, name, password string) error {
 	if _, exists := users[username]; exists {
 		return errors.New("the user already exists")
 	}
-	users[username] = model.User{ID: int64(len(users)) + 1, Username: username, Name: name, Password: password, Version: 0}
+	users[username] = User{ID: int64(len(users)) + 1, Username: username, Name: name, Password: password, Version: 0}
 	log.Println("created user:", users[username].ID, users[username].Username, users[username].Name)
 
 	return nil

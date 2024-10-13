@@ -1,4 +1,4 @@
-package model
+package repository
 
 // @Schema
 type User struct {

@@ -1,4 +1,4 @@
-package service_test
+package usecase_test
 
 import (
 	"encoding/base64"
@@ -8,17 +8,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/mocks"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/model"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
+	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/mocks"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateJWT_Success(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{
-		GetUserByUsernameFunc: func(username string) (model.User, error) {
-			return model.User{
+	mockRepo := &mocks.MockRepository{
+		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+			return repo.User{
 				ID:       1,
 				Username: username,
 				Name:     "John Doe",
@@ -26,36 +25,36 @@ func TestCreateJWT_Success(t *testing.T) {
 			}, nil
 		},
 	}
-	tokenService := service.NewTokenService(mockRepo)
-	token, err := tokenService.CreateJWT("user1")
+	tokenUC := usecase.NewUsecase(mockRepo)
+	token, err := tokenUC.CreateJWT("user1")
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 }
 
 func TestCreateJWT_UserNotFound(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{
-		GetUserByUsernameFunc: func(username string) (model.User, error) {
-			return model.User{}, errors.New("user not found")
+	mockRepo := &mocks.MockRepository{
+		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+			return repo.User{}, errors.New("user not found")
 		},
 	}
-	tokenService := service.NewTokenService(mockRepo)
-	token, err := tokenService.CreateJWT("unknown_user")
+	tokenUC := usecase.NewUsecase(mockRepo)
+	token, err := tokenUC.CreateJWT("unknown_user")
 
 	assert.Error(t, err)
 	assert.Empty(t, token)
 }
 
 func TestIsAuthorized_Success(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{
-		GetUserByUsernameFunc: func(username string) (model.User, error) {
-			return model.User{
+	mockRepo := &mocks.MockRepository{
+		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+			return repo.User{
 				Username: "user1",
 				Version:  1,
 			}, nil
 		},
 	}
-	tokenService := service.NewTokenService(mockRepo)
+	tokenService := usecase.NewUsecase(mockRepo)
 	token, _ := tokenService.CreateJWT("user1")
 	cookie := &http.Cookie{Name: "access_token", Value: token}
 	cookies := []*http.Cookie{cookie}
@@ -65,8 +64,8 @@ func TestIsAuthorized_Success(t *testing.T) {
 }
 
 func TestIsAuthorized_InvalidToken(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{}
-	tokenService := service.NewTokenService(mockRepo)
+	mockRepo := &mocks.MockRepository{}
+	tokenService := usecase.NewUsecase(mockRepo)
 	cookie := &http.Cookie{Name: "access_token", Value: "invalid_token"}
 	cookies := []*http.Cookie{cookie}
 	err := tokenService.IsAuthorized(cookies)
@@ -76,28 +75,28 @@ func TestIsAuthorized_InvalidToken(t *testing.T) {
 }
 
 func TestIsAuthorized_TokenExpired(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{
-		GetUserByUsernameFunc: func(username string) (model.User, error) {
-			return model.User{
+	mockRepo := &mocks.MockRepository{
+		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+			return repo.User{
 				Username: username,
 				Version:  1,
 			}, nil
 		},
 	}
-	tokenService := service.NewTokenService(mockRepo)
-	expiredPayload := utils.Payload{
+	tokenService := usecase.NewUsecase(mockRepo)
+	expiredPayload := usecase.Payload{
 		Sub:     "user1",
 		Name:    "John Doe",
 		ID:      1,
 		Version: 1,
 		Exp:     time.Now().Add(-time.Hour).Unix(), // Expired 1 hour ago
 	}
-	header := utils.Header{Alg: "HS256", Typ: "JWT"}
+	header := usecase.Header{Alg: "HS256", Typ: "JWT"}
 	headerJSON, _ := json.Marshal(header)
 	headerEncoded := base64.RawURLEncoding.EncodeToString(headerJSON)
 	payloadJSON, _ := json.Marshal(expiredPayload)
 	payloadEncoded := base64.RawURLEncoding.EncodeToString(payloadJSON)
-	expiredToken, _ := utils.GeneratorJWT(headerEncoded, payloadEncoded)
+	expiredToken, _ := usecase.GeneratorJWT(headerEncoded, payloadEncoded)
 	cookie := &http.Cookie{Name: "access_token", Value: expiredToken}
 	cookies := []*http.Cookie{cookie}
 	err := tokenService.IsAuthorized(cookies)
@@ -107,16 +106,16 @@ func TestIsAuthorized_TokenExpired(t *testing.T) {
 }
 
 func TestGetUserByJWT_Success(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{
-		GetUserByUsernameFunc: func(username string) (model.User, error) {
-			return model.User{
+	mockRepo := &mocks.MockRepository{
+		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+			return repo.User{
 				ID:       1,
 				Username: username,
 				Name:     "John Doe",
 			}, nil
 		},
 	}
-	tokenService := service.NewTokenService(mockRepo)
+	tokenService := usecase.NewUsecase(mockRepo)
 	token, _ := tokenService.CreateJWT("user1")
 	cookie := &http.Cookie{Name: "access_token", Value: token}
 	cookies := []*http.Cookie{cookie}
@@ -127,12 +126,12 @@ func TestGetUserByJWT_Success(t *testing.T) {
 }
 
 func TestGetUserByJWT_UserNotFound(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{
-		GetUserByUsernameFunc: func(username string) (model.User, error) {
-			return model.User{}, errors.New("user not found")
+	mockRepo := &mocks.MockRepository{
+		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+			return repo.User{}, errors.New("user not found")
 		},
 	}
-	tokenService := service.NewTokenService(mockRepo)
+	tokenService := usecase.NewUsecase(mockRepo)
 	token, _ := tokenService.CreateJWT("some_test_user")
 	cookie := &http.Cookie{Name: "access_token", Value: token}
 	cookies := []*http.Cookie{cookie}
@@ -142,16 +141,16 @@ func TestGetUserByJWT_UserNotFound(t *testing.T) {
 }
 
 func TestGetUserDataByJWT_Success(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{
-		GetUserByUsernameFunc: func(username string) (model.User, error) {
-			return model.User{
+	mockRepo := &mocks.MockRepository{
+		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+			return repo.User{
 				ID:       1,
 				Username: username,
 				Name:     "John Doe",
 			}, nil
 		},
 	}
-	tokenService := service.NewTokenService(mockRepo)
+	tokenService := usecase.NewUsecase(mockRepo)
 	token, _ := tokenService.CreateJWT("user1")
 	cookie := &http.Cookie{Name: "access_token", Value: token}
 	cookies := []*http.Cookie{cookie}
@@ -163,8 +162,8 @@ func TestGetUserDataByJWT_Success(t *testing.T) {
 }
 
 func TestGetUserDataByJWT_InvalidToken(t *testing.T) {
-	mockRepo := &mocks.MockUserRepository{}
-	tokenService := service.NewTokenService(mockRepo)
+	mockRepo := &mocks.MockRepository{}
+	tokenService := usecase.NewUsecase(mockRepo)
 	cookie := &http.Cookie{Name: "access_token", Value: "invalid_token"}
 	cookies := []*http.Cookie{cookie}
 	_, err := tokenService.GetUserDataByJWT(cookies)
