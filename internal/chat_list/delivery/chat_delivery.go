@@ -1,4 +1,4 @@
-package controller
+package delivery
 
 import (
 	"encoding/json"
@@ -10,12 +10,12 @@ import (
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/usecase"
 )
 
-type ChatController struct {
+type ChatDelivery struct {
 	service chatlist.ChatUsecase
 }
 
-func NewChatController(service chatlist.ChatUsecase) *ChatController {
-	return &ChatController{
+func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
+	return &ChatDelivery{
 		service: service,
 	}
 }
@@ -30,7 +30,7 @@ func NewChatController(service chatlist.ChatUsecase) *ChatController {
 // @Success 200 {object} model.ChatsDTO "List of chats"
 // @Failure 401 {object} ErrorResponse "Unauthorized, no valid access token"
 // @Router /chats [get]
-func (c *ChatController) Handler(w http.ResponseWriter, r *http.Request) {
+func (c *ChatDelivery) Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	log.Println("Пришёл запрос на получения чатов")

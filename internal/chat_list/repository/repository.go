@@ -3,8 +3,8 @@ package repository
 import (
 	"log"
 
-	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
+	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 )
 
 var keys = map[int64][]chatModel.Chat{
@@ -120,7 +120,6 @@ type ChatRepositoryImpl struct {
 func NewChatRepository() ChatRepository {
 	return &ChatRepositoryImpl{}
 }
-   
 
 func (r *ChatRepositoryImpl) GetUserChats(user *userModel.User) []chatModel.Chat {
 	log.Printf("Поиск чатов пользователя %d", user.ID)

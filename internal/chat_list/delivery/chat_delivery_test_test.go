@@ -1,4 +1,4 @@
-package controller
+package delivery
 
 import (
 	"encoding/json"
@@ -42,7 +42,7 @@ func TestHandler_Success(t *testing.T) {
 	}
 
 	mockSvc := &mockUsecase{returnChats: expectedChats, err: nil}
-	chatController := NewChatController(mockSvc)
+	chatController := NewChatDelivery(mockSvc)
 
 	// Создаём запрос
 	req := httptest.NewRequest("GET", "/chats", nil)
@@ -70,7 +70,7 @@ func TestHandler_Success(t *testing.T) {
 
 func TestHandler_Unauthorized(t *testing.T) {
 	mockSvc := &mockUsecase{returnChats: nil, err: errors.New("unauthorized")}
-	chatController := NewChatController(mockSvc)
+	chatController := NewChatDelivery(mockSvc)
 
 	// Создаём запрос
 	req := httptest.NewRequest("GET", "/chats", nil)
