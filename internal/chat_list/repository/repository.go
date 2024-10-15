@@ -3,7 +3,7 @@ package repository
 import (
 	"log"
 
-	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	userModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
 )
 
