@@ -11,12 +11,12 @@ import (
 )
 
 // Mock service to imitate the behavior of the service layer
-type mockService struct {
+type mockUsecase struct {
 	returnChats []models.Chat // Пример чата
 	err         error         // Ошибка, которую нужно вернуть
 }
 
-func (m *mockService) GetChats(cookies []*http.Cookie) ([]models.Chat, error) {
+func (m *mockUsecase) GetChats(cookies []*http.Cookie) ([]models.Chat, error) {
 	return m.returnChats, m.err
 }
 
@@ -41,7 +41,7 @@ func TestHandler_Success(t *testing.T) {
 		},
 	}
 
-	mockSvc := &mockService{returnChats: expectedChats, err: nil}
+	mockSvc := &mockUsecase{returnChats: expectedChats, err: nil}
 	chatController := NewChatController(mockSvc)
 
 	// Создаём запрос
@@ -69,7 +69,7 @@ func TestHandler_Success(t *testing.T) {
 }
 
 func TestHandler_Unauthorized(t *testing.T) {
-	mockSvc := &mockService{returnChats: nil, err: errors.New("unauthorized")}
+	mockSvc := &mockUsecase{returnChats: nil, err: errors.New("unauthorized")}
 	chatController := NewChatController(mockSvc)
 
 	// Создаём запрос

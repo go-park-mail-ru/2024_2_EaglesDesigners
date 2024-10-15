@@ -14,7 +14,7 @@ import (
 	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/controller"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/repository"
-	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/service"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 )
@@ -51,7 +51,7 @@ func main() {
 	auth := authDelivery.NewDelivery(authUC, tokenUC)
 
 	chatRepo := chatRepository.NewChatRepository()
-	chatService := chatService.NewChatService(tokenUC, chatRepo)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
 	chat := chatController.NewChatController(chatService)
 
 	router.HandleFunc("/", auth.AuthHandler).Methods("GET", "OPTIONS")

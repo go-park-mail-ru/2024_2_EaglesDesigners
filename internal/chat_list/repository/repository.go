@@ -114,14 +114,15 @@ var keys = map[int64][]chatModel.Chat{
 	},
 }
 
-type ChatRepository struct {
+type ChatRepositoryImpl struct {
 }
 
-func NewChatRepository() *ChatRepository {
-	return &ChatRepository{}
+func NewChatRepository() ChatRepository {
+	return &ChatRepositoryImpl{}
 }
+   
 
-func (r *ChatRepository) GetUserChats(user *userModel.User) []chatModel.Chat {
+func (r *ChatRepositoryImpl) GetUserChats(user *userModel.User) []chatModel.Chat {
 	log.Printf("Поиск чатов пользователя %d", user.ID)
 
 	chats, ok := keys[user.ID]

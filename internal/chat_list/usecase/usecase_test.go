@@ -1,4 +1,4 @@
-package service
+package usecase
 
 import (
 	"errors"
@@ -77,7 +77,7 @@ func TestSuccess(t *testing.T) {
 		chats: chats,
 	}
 
-	serv := NewChatService(ts, cr)
+	serv := NewChatUsecase(ts, cr)
 	chats, err := serv.GetChats([]*http.Cookie{})
 
 	if err != nil {
@@ -94,7 +94,7 @@ func TestUnauthorized(t *testing.T) {
 	}
 	cr := &chatRepositoryMoc{}
 
-	serv := NewChatService(ts, cr)
+	serv := NewChatUsecase(ts, cr)
 
 	_, err := serv.GetChats([]*http.Cookie{})
 

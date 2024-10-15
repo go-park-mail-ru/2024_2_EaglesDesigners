@@ -6,15 +6,15 @@ import (
 	"log"
 	"net/http"
 
-	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list"
 	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/models"
+	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/usecase"
 )
 
 type ChatController struct {
-	service chatlist.ChatService
+	service chatlist.ChatUsecase
 }
 
-func NewChatController(service chatlist.ChatService) *ChatController {
+func NewChatController(service chatlist.ChatUsecase) *ChatController {
 	return &ChatController{
 		service: service,
 	}
