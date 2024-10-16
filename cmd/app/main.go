@@ -12,9 +12,9 @@ import (
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
 	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
 	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
-	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/controller"
-	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/repository"
-	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/usecase"
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 )
@@ -52,7 +52,7 @@ func main() {
 
 	chatRepo := chatRepository.NewChatRepository()
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
-	chat := chatController.NewChatController(chatService)
+	chat := chatController.NewChatDelivery(chatService)
 
 	router.HandleFunc("/", auth.AuthHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")
