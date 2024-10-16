@@ -1,21 +1,24 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	authController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/controller"
-	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
-	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/utils"
-	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/controller"
-	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/repository"
-	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chat_list/service"
+	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
+	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 )
 
 // swag init
@@ -40,18 +43,26 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
+	pool, err := pgxpool.Connect(context.Background(), "postgres://postgres:postgres@localhost:5432/patifon")
+	if err != nil {
+	  log.Fatalf("Unable to connection to database: %v\n", err)
+	}
+	defer pool.Close()
+	log.Println("База данных подключена")
+
+
 	router := mux.NewRouter()
 
-	router.MethodNotAllowedHandler = http.HandlerFunc(utils.MethodNotAllowedHandler)
+	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
-	userRepo := userRepository.NewUserRepository()
-	tokenService := userService.NewTokenService(userRepo)
-	authService := userService.NewAuthService(userRepo, tokenService)
-	auth := authController.NewAuthController(authService, tokenService)
+	authRepo := authRepo.NewRepository()
+	tokenUC := tokenUC.NewUsecase(authRepo)
+	authUC := authUC.NewUsecase(authRepo, tokenUC)
+	auth := authDelivery.NewDelivery(authUC, tokenUC)
 
 	chatRepo := chatRepository.NewChatRepository()
-	chatService := chatService.NewChatService(tokenService, chatRepo)
-	chat := chatController.NewChatController(chatService)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
+	chat := chatController.NewChatDelivery(chatService)
 
 	router.HandleFunc("/", auth.AuthHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")
