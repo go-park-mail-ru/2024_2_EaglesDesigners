@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
@@ -41,6 +43,14 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
+	pool, err := pgxpool.Connect(context.Background(), "postgres://postgres:postgres@localhost:5432/patifon")
+	if err != nil {
+	  log.Fatalf("Unable to connection to database: %v\n", err)
+	}
+	defer pool.Close()
+	log.Println("База данных подключена")
+
+
 	router := mux.NewRouter()
 
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
