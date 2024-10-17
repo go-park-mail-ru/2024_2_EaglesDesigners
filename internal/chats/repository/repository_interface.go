@@ -8,4 +8,5 @@ import (
 type ChatRepository interface {
 	GetUserChats(user *userModel.User) []chatModel.Chat
 	IsUserInChat(userId int, chatId int) bool
+	CreateNewChat(chat chatModel.Chat) error
 }
