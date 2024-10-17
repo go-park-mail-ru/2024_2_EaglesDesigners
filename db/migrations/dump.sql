@@ -136,8 +136,8 @@ ALTER TABLE public.user_role ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 CREATE TABLE public."profile" (
 	user_id uuid NOT NULL,
-    email text NOT NULL,
     name text NOT NULL,
+    bio text NOT NULL,
     birthdate timestamp with time zone,
     avatar_path path,
     id uuid NOT NULL
@@ -204,14 +204,6 @@ ALTER TABLE ONLY public.message_payload
 
 ALTER TABLE ONLY public.message
     ADD CONSTRAINT message_pkey PRIMARY KEY (id);
-
-
---
--- Name: profile uniq_email; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."profile"
-    ADD CONSTRAINT uniq_email UNIQUE (email);
 
 
 --
