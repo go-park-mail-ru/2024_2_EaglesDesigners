@@ -6,7 +6,7 @@ import (
 )
 
 type ChatRepository interface {
-	GetUserChats(user *userModel.User) []chatModel.Chat
-	IsUserInChat(userId int, chatId int) bool
+	GetUserChats(user *userModel.User, pageSize int) []chatModel.Chat
+	IsUserInChat(userId int, chatId int) (bool, error)
 	CreateNewChat(chat chatModel.Chat) error
 }
