@@ -43,13 +43,12 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	pool, err := pgxpool.Connect(context.Background(), "postgres://postgres:postgres@localhost:5432/patifon")
+	pool, err := pgxpool.Connect(context.Background(), "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
-	  log.Fatalf("Unable to connection to database: %v\n", err)
+		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
 	defer pool.Close()
 	log.Println("База данных подключена")
-
 
 	router := mux.NewRouter()
 

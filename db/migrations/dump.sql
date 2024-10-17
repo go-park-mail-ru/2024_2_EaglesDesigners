@@ -97,12 +97,8 @@ ALTER TABLE public.message_payload OWNER TO postgres;
 --
 
 CREATE TABLE public."user" (
-    email text NOT NULL,
     username text NOT NULL,
     password text NOT NULL,
-    name text NOT NULL,
-    birthdate timestamp with time zone,
-    avatar_path path,
     id uuid NOT NULL
 );
 
@@ -133,6 +129,22 @@ ALTER TABLE public.user_role ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
     NO MAXVALUE
     CACHE 1
 );
+
+--
+-- Name: profile; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."profile" (
+	user_id uuid NOT NULL,
+    email text NOT NULL,
+    name text NOT NULL,
+    birthdate timestamp with time zone,
+    avatar_path path,
+    id uuid NOT NULL
+);
+
+
+ALTER TABLE public."profile" OWNER TO postgres;
 
 ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT chat_id_and_user_id_uniq UNIQUE (chat_id, user_id);
@@ -195,10 +207,10 @@ ALTER TABLE ONLY public.message
 
 
 --
--- Name: user uniq_email; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: profile uniq_email; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public."user"
+ALTER TABLE ONLY public."profile"
     ADD CONSTRAINT uniq_email UNIQUE (email);
 
 
@@ -216,6 +228,13 @@ ALTER TABLE ONLY public."user"
 
 ALTER TABLE ONLY public."user"
     ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+   
+--
+-- Name: profile profile_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."profile"
+    ADD CONSTRAINT profile_pkey PRIMARY KEY (id);
 
 
 --
@@ -290,6 +309,13 @@ ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT user_role_id_fk_chat_users_chat_id_pk_user_roles FOREIGN KEY (user_role_id) REFERENCES public.user_role(id);
 
 
+--
+-- Name: profile profile_fk_user_pk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.profile
+    ADD CONSTRAINT profile_fk_user_pk FOREIGN KEY (user_id) REFERENCES public.user(id);
+   
 --
 -- PostgreSQL database dump complete
 --
