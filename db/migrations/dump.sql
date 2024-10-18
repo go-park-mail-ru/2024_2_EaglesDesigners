@@ -151,6 +151,10 @@ ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT chat_id_and_user_id_uniq UNIQUE (chat_id, user_id);
 
 
+ALTER TABLE ONLY public.chat
+    ADD CONSTRAINT chat_link_name_uniq UNIQUE (chat_link_name);
+
+
 --
 -- Name: chat chat_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
