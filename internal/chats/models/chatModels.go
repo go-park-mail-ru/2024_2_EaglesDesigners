@@ -1,8 +1,6 @@
 package model
 
 import (
-	"path"
-
 	"github.com/google/uuid"
 )
 
@@ -11,15 +9,14 @@ type Chat struct {
 	ChatId   uuid.UUID
 	ChatName string
 	// @Enum [personalMessages, group, channel]
-	ChatType    string 
-	AvatarURL   string 
+	ChatType    string
+	AvatarURL   string	
 	ChatURLName string
 }
 
-
 type ChatDTO struct {
-	ChatName string `json:"chatName" example:"Чат с пользователем 2"`
-	CountOfUsers int `json:"countOfUsers"`
+	ChatName     string `json:"chatName" example:"Чат с пользователем 2"`
+	CountOfUsers int    `json:"countOfUsers"`
 	// @Enum [personalMessages, group, channel]
 	ChatType    string `json:"chatType" example:"personalMessages"`
 	LastMessage string `json:"lastMessage" example:"Когда за кофе?"`
@@ -27,15 +24,13 @@ type ChatDTO struct {
 }
 
 type ChatDAO struct {
-	ChatId uuid.UUID
-	ChatName string
-	ChatTypeId int
-	AvatarURL string
+	ChatId      uuid.UUID
+	ChatName    string
+	ChatTypeId  int
+	AvatarURL   string
 	ChatURLName string
 }
-
 
 type ChatsDTO struct {
 	Chats []ChatDTO `json:"chats"`
 }
-
