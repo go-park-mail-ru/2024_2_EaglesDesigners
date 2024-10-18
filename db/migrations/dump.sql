@@ -98,6 +98,7 @@ ALTER TABLE public.message_payload OWNER TO postgres;
 
 CREATE TABLE public."user" (
     username text NOT NULL,
+    version integer NOT NULL,
     password text NOT NULL,
     id uuid NOT NULL
 );

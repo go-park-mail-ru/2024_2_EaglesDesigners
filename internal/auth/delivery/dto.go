@@ -1,5 +1,7 @@
 package delivery
 
+import "github.com/google/uuid"
+
 // @Schema
 type AuthCredentials struct {
 	Username string `json:"username" example:"user11"`
@@ -32,15 +34,15 @@ type SignupResponse struct {
 
 // @Schema
 type User struct {
-	ID       int64  `json:"id" example:"1"`
-	Username string `json:"username" example:"mavrodi777"`
-	Name     string `json:"name" example:"Мафиозник"`
-	Password string `json:"password" example:"1234567890"`
-	Version  int64  `json:"version" example:"1"`
+	ID       uuid.UUID `json:"id" example:"1"`
+	Username string    `json:"username" example:"mavrodi777"`
+	Name     string    `json:"name" example:"Мафиозник"`
+	Password string    `json:"password" example:"1234567890"`
+	Version  int64     `json:"version" example:"1"`
 }
 
 type UserData struct {
-	ID       int64  `json:"id" example:"2"`
-	Username string `json:"username" example:"user12"`
-	Name     string `json:"name" example:"Dr Peper"`
+	ID       uuid.UUID `json:"id" example:"2"`
+	Username string    `json:"username" example:"user12"`
+	Name     string    `json:"name" example:"Dr Peper"`
 }
