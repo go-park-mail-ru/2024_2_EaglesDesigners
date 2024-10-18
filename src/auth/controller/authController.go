@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
@@ -193,10 +192,9 @@ func (c *AuthController) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "access_token",
 		Value:    "t",
 		Path:     "/",
-		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	})
 
@@ -222,10 +220,9 @@ func (c *AuthController) setToken(w http.ResponseWriter, username string) error 
 		Name:     "access_token",
 		Value:    token,
 		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
 		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   7 * 24 * 60 * 60,
 	})
 
