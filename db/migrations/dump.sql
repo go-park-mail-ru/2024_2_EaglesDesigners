@@ -138,7 +138,7 @@ ALTER TABLE public.user_role ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 CREATE TABLE public."profile" (
 	user_id uuid NOT NULL,
     name text NOT NULL,
-    bio text NOT NULL,
+    bio text,
     birthdate timestamp with time zone,
     avatar_path path,
     id uuid NOT NULL
@@ -327,3 +327,24 @@ INSERT INTO  public.user_role ( value) VALUES
 ('none'),
 ('owner'),
 ( 'dmin');
+
+
+--
+-- Insert test data to user
+--
+
+INSERT INTO public."user" (id, username, version, password) VALUES
+    (gen_random_uuid(), 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648'),
+    (gen_random_uuid(), 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648'),
+    (gen_random_uuid(), 'user33', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648'),
+    (gen_random_uuid(), 'user44', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648');
+
+--
+-- Insert test data to profile
+--
+
+INSERT INTO public."profile" (id, user_id, name) VALUES
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), 'Бал Матье'),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), 'Жабка Пепе'),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user33'), 'Dr Peper'),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user44'), 'Vincent Vega');
