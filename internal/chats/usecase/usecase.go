@@ -29,8 +29,8 @@ func (s *ChatUsecaseImpl) GetChats(cookie []*http.Cookie) ([]chatModel.Chat, err
 	if err != nil {
 		return []chatModel.Chat{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
-	
-	return s.repository.GetUserChats(&user), nil
+
+	return s.repository.GetUserChats(&user.ID), nil
 }
 
 func (s *ChatUsecaseImpl) CanUserWriteInChat(userId int, chatId int) bool {
@@ -47,4 +47,3 @@ func (s *ChatUsecaseImpl) CanUserWriteInChat(userId int, chatId int) bool {
 
 	return true
 }
-
