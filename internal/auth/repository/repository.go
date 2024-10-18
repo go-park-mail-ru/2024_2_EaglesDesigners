@@ -24,70 +24,109 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 }
 
 func (r *Repository) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	user, exists := users[username]
-	if !exists {
-		log.Println("Пользователь не найден в базе данных")
+	query := `SELECT 
+			  	  u.id,
+			  	  u.username,
+				  u.password,
+				  u.version,
+			  	  p.name 
+			  FROM public."user" u 
+			  JOIN public.profile p ON p.user_id = u.id
+			  WHERE username = $1;`
+
+	var user User
+
+	row := r.db.QueryRow(
+		ctx,
+		query,
+		username,
+	)
+
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.Version,
+		&user.Name,
+	)
+
+	if err != nil {
+		log.Printf("Пользователь не найден в базе данных: %v\n", err)
 		return user, errors.New("user does not exist")
 	}
-	log.Printf("Пользователь c id %d найден", user.ID)
+
+	log.Printf("Пользователь c id %s найден", user.ID.String())
 	return user, nil
 }
 
 func (r *Repository) CreateUser(ctx context.Context, username, name, password string) error {
-	query := `INSERT INTO public.user
-							(
-									id
-									username,
-									version,
-									password
-							) VALUES ($1, $2, $3, $4) RETURNING id;`
-
-	uuid := uuid.New()
-	version := 0
-	row := r.db.QueryRow(
-		ctx,
-		query,
-		uuid,
-		version,
-		username,
-		password,
-	)
-
-	var id uint64
-	err := row.Scan(&id)
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		log.Printf("Unable to INSERT: %v\n", err)
+		log.Printf("Unable to begin transaction: %v\n", err)
 		return err
 	}
 
-	log.Println("created user:", uuid.String(), username)
+	// rollback если произойдет ошибка
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	firstQuery := `INSERT INTO public.user
+				   (
+				   	   id,
+				   	   username,
+				   	   version,
+				   	   password
+				   ) VALUES ($1, $2, $3, $4) RETURNING id;`
+
+	uuidNew := uuid.New()
+	version := 0
+	row := tx.QueryRow(
+		ctx,
+		firstQuery,
+		uuidNew,
+		username,
+		version,
+		password,
+	)
+
+	var user_id uuid.UUID
+	err = row.Scan(&user_id)
+	if err != nil {
+		log.Printf("Unable to INSERT in TABLE user: %v\n", err)
+		return err
+	}
+
+	secondQuery := `INSERT INTO public.profile
+					(
+						id,
+						name,
+						user_id
+					) VALUES ($1, $2, $3);`
+
+	uuidNew = uuid.New()
+
+	_, err = tx.Exec(
+		ctx,
+		secondQuery,
+		uuidNew,
+		name,
+		user_id,
+	)
+
+	if err != nil {
+		log.Printf("Unable to INSERT in TABLE profile: %v\n", err)
+		return err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Printf("Unable to commit transaction: %v\n", err)
+		return err
+	}
+
+	log.Println("created user:", uuidNew.String(), username)
 
 	return nil
-}
-
-var users = map[string]User{
-	"user11": {
-		Username: "user11",
-		Name:     "Бал Матье",
-		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
-		Version:  0,
-	},
-	"user22": {
-		Username: "user22",
-		Name:     "Жабка Пепе",
-		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
-		Version:  0,
-	},
-	"user33": {
-		Username: "user33",
-		Name:     "Dr Peper",
-		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
-		Version:  0,
-	},
-	"user44": {
-		Username: "user44",
-		Name:     "Vincent Vega",
-		Password: "e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648",
-		Version:  0,
-	},
 }
