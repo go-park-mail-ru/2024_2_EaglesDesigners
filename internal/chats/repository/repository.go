@@ -16,6 +16,8 @@ type ChatRepositoryImpl struct {
 	chat_types map[string]int
 }
 
+const pageSize = 25
+
 // readChatTypes подгружает id чатов из бд
 func readChatTypes(p *pgxpool.Pool) (map[string]int, error) {
 	var chat_types map[string]int = map[string]int{}
@@ -132,7 +134,9 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageSize int) (chats []chatModel.ChatDAO, err error) {
+func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) (chats []chatModel.ChatDAO, err error) {
+	chats = []chatModel.ChatDAO{}
+
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		log.Printf("Unable to acquire a database connection: %v\n", err)
@@ -145,9 +149,11 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageSize int) (chats
 		FROM chat_user AS cu
 		JOIN chat AS c ON c.id = cu.chat_id
 		WHERE cu.user_id = $1
-		LIMIT $2;`,
+		LIMIT $2
+		OFFSET $3;`,
 		userId,
 		pageSize,
+		pageSize*pageNum,
 	)
 	if err != nil {
 		log.Printf("Unable to SELECT chats: %v\n", err)
