@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -13,16 +14,16 @@ import (
 )
 
 type usecase interface {
-	Authenticate(username, password string) bool
-	Registration(username, name, password string) error
-	GetUserDataByUsername(username string) (usecaseDto.UserData, error)
+	Authenticate(ctx context.Context, username, password string) bool
+	Registration(ctx context.Context, username, name, password string) error
+	GetUserDataByUsername(ctx context.Context, username string) (usecaseDto.UserData, error)
 }
 
 type token interface {
-	CreateJWT(username string) (string, error)
+	CreateJWT(ctx context.Context, username string) (string, error)
 	GetUserDataByJWT(cookies []*http.Cookie) (jwt.UserData, error)
-	GetUserByJWT(cookies []*http.Cookie) (jwt.User, error)
-	IsAuthorized(cookies []*http.Cookie) error
+	GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
+	IsAuthorized(ctx context.Context, cookies []*http.Cookie) error
 }
 
 type Delivery struct {
@@ -50,14 +51,15 @@ func NewDelivery(usecase usecase, token token) *Delivery {
 // @Failure 401 {object} responser.ErrorResponse "Incorrect login or password"
 // @Router /login [post]
 func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var creds AuthCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		responser.SendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
 		return
 	}
 
-	if d.usecase.Authenticate(creds.Username, creds.Password) {
-		err := d.setToken(w, creds.Username)
+	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
+		err := d.setToken(w, r, creds.Username)
 		if err != nil {
 			responser.SendErrorResponse(w, "Invalid format JSON", http.StatusUnauthorized)
 			return
@@ -84,6 +86,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	ctx := r.Context()
 
 	log.Println("Пришел запрос на регистрацию")
 
@@ -98,11 +101,11 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := d.usecase.Registration(creds.Username, creds.Name, creds.Password); err != nil {
+	if err := d.usecase.Registration(ctx, creds.Username, creds.Name, creds.Password); err != nil {
 		responser.SendErrorResponse(w, "A user with that username already exists", http.StatusConflict)
 	} else {
-		d.setToken(w, creds.Username)
-		userDataUC, err := d.usecase.GetUserDataByUsername(creds.Username)
+		d.setToken(w, r, creds.Username)
+		userDataUC, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
 		if err != nil {
 			responser.SendErrorResponse(w, "User failed to create", http.StatusBadRequest)
 			return
@@ -134,7 +137,8 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized: token is invalid"
 // @Router /auth [get]
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
-	err := d.token.IsAuthorized(r.Cookies())
+	ctx := r.Context()
+	err := d.token.IsAuthorized(ctx, r.Cookies())
 	if err != nil {
 		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -165,15 +169,16 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		err := d.isAuthorized(r)
 		if err == errors.New("token expired") {
 			log.Println("token expired, create new token")
-			user, err := d.token.GetUserByJWT(r.Cookies())
+			user, err := d.token.GetUserByJWT(ctx, r.Cookies())
 			if err != nil {
 				responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
-			d.setToken(w, user.Username)
+			d.setToken(w, r, user.Username)
 		}
 		if err != nil {
 			responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
@@ -220,7 +225,8 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Delivery) isAuthorized(r *http.Request) error {
-	err := c.token.IsAuthorized(r.Cookies())
+	ctx := r.Context()
+	err := c.token.IsAuthorized(ctx, r.Cookies())
 	if err != nil {
 		return err
 	}
@@ -228,8 +234,9 @@ func (c *Delivery) isAuthorized(r *http.Request) error {
 	return nil
 }
 
-func (d *Delivery) setToken(w http.ResponseWriter, username string) error {
-	token, err := d.token.CreateJWT(username)
+func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username string) error {
+	ctx := r.Context()
+	token, err := d.token.CreateJWT(ctx, username)
 	if err != nil {
 		return err
 	}

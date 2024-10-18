@@ -14,9 +14,6 @@ import (
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
 	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
 	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
-	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
-	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
-	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 )
@@ -43,7 +40,8 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	pool, err := pgxpool.Connect(context.Background(), "postgres://postgres:postgres@localhost:5432/patefon")
+	ctx := context.Background()
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
@@ -54,7 +52,7 @@ func main() {
 
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
-	authRepo := authRepo.NewRepository()
+	authRepo := authRepo.NewRepository(pool)
 	tokenUC := tokenUC.NewUsecase(authRepo)
 	authUC := authUC.NewUsecase(authRepo, tokenUC)
 	auth := authDelivery.NewDelivery(authUC, tokenUC)
@@ -62,6 +60,13 @@ func main() {
 	chatRepo := chatRepository.NewChatRepository()
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
 	chat := chatController.NewChatDelivery(chatService)
+
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	router.HandleFunc("/", auth.AuthHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")

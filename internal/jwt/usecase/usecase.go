@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -18,8 +19,8 @@ import (
 var jwtSecret = generateJWTSecret()
 
 type repository interface {
-	GetUserByUsername(username string) (repo.User, error)
-	CreateUser(username, name, password string) error
+	GetUserByUsername(ctx context.Context, username string) (repo.User, error)
+	CreateUser(ctx context.Context, username, name, password string) error
 }
 
 type Usecase struct {
@@ -32,7 +33,7 @@ func NewUsecase(repository repository) *Usecase {
 	}
 }
 
-func (u *Usecase) IsAuthorized(cookies []*http.Cookie) error {
+func (u *Usecase) IsAuthorized(ctx context.Context, cookies []*http.Cookie) error {
 	token, err := parseCookies(cookies)
 	if err != nil {
 		return err
@@ -52,7 +53,7 @@ func (u *Usecase) IsAuthorized(cookies []*http.Cookie) error {
 		return err
 	}
 
-	user, err := u.GetUserByJWT(cookies)
+	user, err := u.GetUserByJWT(ctx, cookies)
 	if err != nil {
 		return err
 	}
@@ -68,13 +69,13 @@ func (u *Usecase) IsAuthorized(cookies []*http.Cookie) error {
 	return nil
 }
 
-func (u *Usecase) CreateJWT(username string) (string, error) {
+func (u *Usecase) CreateJWT(ctx context.Context, username string) (string, error) {
 	header := Header{
 		Alg: "HS256",
 		Typ: "JWT",
 	}
 
-	user, err := u.repository.GetUserByUsername(username)
+	user, err := u.repository.GetUserByUsername(ctx, username)
 	if err != nil {
 		return "", err
 	}
@@ -109,7 +110,7 @@ func (u *Usecase) CreateJWT(username string) (string, error) {
 	return jwt, nil
 }
 
-func (u *Usecase) GetUserByJWT(cookies []*http.Cookie) (User, error) {
+func (u *Usecase) GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (User, error) {
 	log.Println("Запрошен поиск пользователь по jwt")
 
 	token, err := parseCookies(cookies)
@@ -124,7 +125,7 @@ func (u *Usecase) GetUserByJWT(cookies []*http.Cookie) (User, error) {
 
 	log.Println("Пользователь аутентификацирован")
 
-	repoUser, err := u.repository.GetUserByUsername(payload.Sub)
+	repoUser, err := u.repository.GetUserByUsername(ctx, payload.Sub)
 	if err != nil {
 		return User{}, err
 	}

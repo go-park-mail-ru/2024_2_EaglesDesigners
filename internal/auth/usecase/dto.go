@@ -1,7 +1,9 @@
 package usecase
 
+import "github.com/google/uuid"
+
 type User struct {
-	ID       int64
+	ID       uuid.UUID
 	Username string
 	Name     string
 	Password string
@@ -9,7 +11,7 @@ type User struct {
 }
 
 type UserData struct {
-	ID       int64
+	ID       uuid.UUID
 	Username string
 	Name     string
 }

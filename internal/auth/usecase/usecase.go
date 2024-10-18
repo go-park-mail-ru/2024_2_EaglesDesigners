@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
@@ -11,15 +12,15 @@ import (
 )
 
 type repository interface {
-	GetUserByUsername(username string) (repo.User, error)
-	CreateUser(username, name, password string) error
+	GetUserByUsername(ctx context.Context, username string) (repo.User, error)
+	CreateUser(ctx context.Context, username, name, password string) error
 }
 
 type token interface {
-	CreateJWT(username string) (string, error)
+	CreateJWT(ctx context.Context, username string) (string, error)
 	GetUserDataByJWT(cookies []*http.Cookie) (jwt.UserData, error)
-	GetUserByJWT(cookies []*http.Cookie) (jwt.User, error)
-	IsAuthorized(cookies []*http.Cookie) error
+	GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
+	IsAuthorized(ctx context.Context, cookies []*http.Cookie) error
 }
 
 type Usecase struct {
@@ -34,21 +35,21 @@ func NewUsecase(repository repository, token token) *Usecase {
 	}
 }
 
-func (u *Usecase) Authenticate(username, password string) bool {
-	user, err := u.repository.GetUserByUsername(username)
+func (u *Usecase) Authenticate(ctx context.Context, username, password string) bool {
+	user, err := u.repository.GetUserByUsername(ctx, username)
 	if err != nil {
 		return false
 	}
 	return DoPasswordsMatch(user.Password, password)
 }
 
-func (u *Usecase) Registration(username, name, password string) error {
+func (u *Usecase) Registration(ctx context.Context, username, name, password string) error {
 	if len(username) < 6 || len(password) < 8 || len(name) < 1 {
 		return errors.New("bad data")
 	}
 
 	hashed := HashPassword(password)
-	err := u.repository.CreateUser(username, name, hashed)
+	err := u.repository.CreateUser(ctx, username, name, hashed)
 	if err != nil {
 		return err
 	}
@@ -56,8 +57,8 @@ func (u *Usecase) Registration(username, name, password string) error {
 	return nil
 }
 
-func (u *Usecase) GetUserDataByUsername(username string) (UserData, error) {
-	user, err := u.repository.GetUserByUsername(username)
+func (u *Usecase) GetUserDataByUsername(ctx context.Context, username string) (UserData, error) {
+	user, err := u.repository.GetUserByUsername(ctx, username)
 	if err != nil {
 		return UserData{}, err
 	}
