@@ -134,8 +134,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) (chats []chatModel.ChatDAO, err error) {
-	chats = []chatModel.ChatDAO{}
+func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) ([]chatModel.Chat, error) {
 
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
@@ -145,9 +144,14 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) (chats 
 	defer conn.Release()
 
 	rows, err := conn.Query(context.Background(),
-		`SELECT chat_id
+		`SELECT c.id,
+		c.chat_name,
+		ch.value,
+		c.avatar_path,
+		c.chat_link_name
 		FROM chat_user AS cu
 		JOIN chat AS c ON c.id = cu.chat_id
+		JOIN chat_type AS ch ON ch.id = c.chat_type_id
 		WHERE cu.user_id = $1
 		LIMIT $2
 		OFFSET $3;`,
@@ -160,21 +164,22 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) (chats 
 		return nil, err
 	}
 
+	chats := []chatModel.Chat{}
 	for rows.Next() {
 		var chatId uuid.UUID
 		var chatName string
-		var chatTypeId int
+		var chatType string
 		var avatarURL string
 		var chatURLName string
 
-		var err = rows.Scan(&chatId, &chatName, &chatTypeId, &avatarURL, &chatURLName)
+		var err = rows.Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
 		if err != nil {
 			return nil, err
 		}
-		chats = append(chats, chatModel.ChatDAO{
+		chats = append(chats, chatModel.Chat{
 			ChatId:      chatId,
 			ChatName:    chatName,
-			ChatTypeId:  chatTypeId,
+			ChatType:    chatType,
 			AvatarURL:   avatarURL,
 			ChatURLName: chatURLName,
 		})
@@ -183,29 +188,30 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) (chats 
 	return chats, nil
 }
 
-func (r *ChatRepositoryImpl) IsUserInChat(userId uuid.UUID, chatId uuid.UUID) (bool, error) {
+func (r *ChatRepositoryImpl) GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUID) (string, error) {
 	// идем в бд по двум полям: если есть то тру
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		log.Printf("Unable to acquire a database connection: %v\n", err)
-		return false, err
+		return "", err
 	}
 	defer conn.Release()
 
-	var id uuid.UUID
+	var role string
 	err = conn.QueryRow(context.Background(),
-		`SELECT id
+		`SELECT ur.value
 		FROM chat_user AS cu
+		JOIN user_role AS ur ON ur.id = cu.user_role_id
 		WHERE cu.user_id = $1 AND cu.chat_id = $2;`,
 		userId,
 		chatId,
-	).Scan(&id)
+	).Scan(&role)
 
 	if err != nil {
-		return false, nil
+		return "", nil
 	}
 
-	return true, nil
+	return role, nil
 }
 
 func (r *ChatRepositoryImpl) AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID, userROle string) error {
