@@ -2,17 +2,15 @@ package usecase
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
-	"io/ioutil"
 	"log"
-	"os"
 
 	"net/http"
 
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
 	"github.com/google/uuid"
 )
 
@@ -20,6 +18,10 @@ const (
 	admin = "admin"
 	none  = "none"
 	owner = "owner"
+)
+
+const (
+	channel = "channel"
 )
 
 type ChatUsecaseImpl struct {
@@ -73,29 +75,43 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTO) error {
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
-		return []chatModel.Chat{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
-	photoBytes, err := base64.RawStdEncoding.DecodeString(chat.AvatarBase64)
+	photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
+
+	if err != nil {
+		log.Printf("Не удалось сохранить фото^ %v", err)
+		return err
+	}
+
+	chatId := uuid.New()
+
+	newChat := chatModel.Chat{
+		ChatId:    chatId,
+		ChatName:  chat.ChatName,
+		ChatType:  chat.ChatType,
+		AvatarURL: photoPath.String(),
+	}
+
+	if chat.ChatType == channel {
+		newChat.ChatURLName = chat.ChatName + "_" + uuid.NewString()
+	}
+
+	// создание чата
+	err = s.repository.CreateNewChat(newChat)
+	if err != nil {
+		log.Printf("Не удалось сохнанить чат: %v", err)
+		return err
+	}
+
+	// добавление владельца
+	err = s.repository.AddUserIntoChat(user.ID, chatId, owner)
+
+	if err != nil {
+		log.Printf("Не удалось добавить пользователя в чат: %v", err)
+		return err
+	}
 
 	return nil
-}
-
-func savePhotoBase64(base64Photo string) (uuid.UUID, error) {
-	photoBytes, err := base64.RawStdEncoding.DecodeString(base64Photo)
-	if err != nil {
-		log.Printf("Ну удалось расшифровать фото: %v \n", err)
-		return uuid.Nil, err
-	}
-
-	permissions := 777 // or whatever you need
-	filenameUUID := uuid.New()
-
-	err = os.WriteFile("../../images/" + filenameUUID.String(), photoBytes, permissions)
-
-	if err != nil {
-		log.Printf("Unable to write into file %v: %v", filenameUUID, err)
-		return uuid.Nil, err
-	}
-	return filenameUUID, nil
 }
