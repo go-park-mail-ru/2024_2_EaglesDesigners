@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
@@ -21,22 +22,20 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 	}
 }
 
-// ChatHandler godoc
-// @Summary Get user chats
-// @Description Retrieve the list of chats for the authenticated user based on their access token.
-// @Tags chats
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} model.ChatsDTO "List of chats"
-// @Failure 401 {object} ErrorResponse "Unauthorized, no valid access token"
-// @Router /chats [get]
-func (c *ChatDelivery) Handler(w http.ResponseWriter, r *http.Request) {
+// GetUserChatsHandler выдает чаты пользователя в query указать страницу ?page=
+func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	log.Println("Пришёл запрос на получения чатов")
+	log.Printf("Пришёл запрос на получения чатов с параметрами: %v", r.URL.Query())
+	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
 
-	_, err := c.service.GetChats(context.Background(), r.Cookies(), 0)
+	if err != nil {
+		log.Printf("Неверно указан параметр запроса page. page = %s. ERROR: %v", r.URL.Query().Get("page"), err)
+	}
+	
+
+	chats, err := c.service.GetChats(context.Background(), r.Cookies(), pageNum)
+
 	if err != nil {
 		fmt.Println(err)
 
@@ -48,7 +47,7 @@ func (c *ChatDelivery) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatsDTO := models.ChatsDTO{
-		Chats: nil,
+		Chats: chats,
 	}
 
 	jsonResp, err := json.Marshal(chatsDTO)

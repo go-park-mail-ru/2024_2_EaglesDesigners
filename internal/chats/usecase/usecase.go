@@ -36,18 +36,38 @@ func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepos
 	}
 }
 
-func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.Chat, error) {
+func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTO, error) {
 
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
-		return []chatModel.Chat{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+		return []chatModel.ChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
+
 	chats, err := s.repository.GetUserChats(user.ID, pageNum)
 	if err != nil {
 		return nil, err
 	}
 
-	return chats, nil
+	chatsDTO := []chatModel.ChatDTO{}
+
+	for _, chat := range chats {
+		countOfUsers, err := s.repository.GetCountOfUsersInChat(chat.ChatId)
+		if err != nil {
+			return nil, err
+		}
+
+		photoBase64, err := base64helper.ReadPhotoBase64(chat.AvatarURL)
+		if err != nil {
+			return nil, err
+		}
+		chatsDTO = append(chatsDTO,
+			chatModel.СhatToChatDTO(chat,
+				countOfUsers,
+				"временное последнее сообщение",
+				photoBase64))
+	}
+
+	return chatsDTO, nil
 }
 
 func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) error {

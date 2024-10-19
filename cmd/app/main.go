@@ -11,6 +11,9 @@ import (
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
 	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
 	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
@@ -57,7 +60,7 @@ func main() {
 	authUC := authUC.NewUsecase(authRepo, tokenUC)
 	auth := authDelivery.NewDelivery(authUC, tokenUC)
 
-	chatRepo := chatRepository.NewChatRepository()
+	chatRepo, _ := chatRepository.NewChatRepository(pool)
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
@@ -72,7 +75,7 @@ func main() {
 	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
