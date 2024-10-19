@@ -10,7 +10,7 @@ type Chat struct {
 	ChatName string
 	// @Enum [personalMessages, group, channel]
 	ChatType    string
-	AvatarURL   string	
+	AvatarURL   string
 	ChatURLName string
 }
 
@@ -18,9 +18,9 @@ type ChatDTO struct {
 	ChatName     string `json:"chatName" example:"Чат с пользователем 2"`
 	CountOfUsers int    `json:"countOfUsers"`
 	// @Enum [personalMessages, group, channel]
-	ChatType    string `json:"chatType" example:"personalMessages"`
-	LastMessage string `json:"lastMessage" example:"Когда за кофе?"`
-	AvatarURL   string `json:"avatarURL" example:"https://yandex-images.clstorage.net/bVLC53139/"`
+	ChatType     string `json:"chatType" example:"personalMessages"`
+	LastMessage  string `json:"lastMessage" example:"Когда за кофе?"`
+	AvatarBase64 string `json:"avatarBase64"`
 }
 
 type ChatDAO struct {
