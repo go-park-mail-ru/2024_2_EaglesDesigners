@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -35,7 +36,7 @@ func (c *ChatDelivery) Handler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Пришёл запрос на получения чатов")
 
-	chats, err := c.service.GetChats(r.Cookies())
+	_, err := c.service.GetChats(context.Background(), r.Cookies(), 0)
 	if err != nil {
 		fmt.Println(err)
 
@@ -47,7 +48,7 @@ func (c *ChatDelivery) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatsDTO := models.ChatsDTO{
-		Chats: chats,
+		Chats: nil,
 	}
 
 	jsonResp, err := json.Marshal(chatsDTO)

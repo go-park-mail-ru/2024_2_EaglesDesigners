@@ -6,8 +6,8 @@ import (
 )
 
 type ChatRepository interface {
-	GetUserChats(userId uuid.UUID, pageSize int) (chats []chatModel.ChatDAO, err error)
-	IsUserInChat(userId uuid.UUID, chatId uuid.UUID) (bool, error)
+	GetUserChats(userId uuid.UUID, pageNum int) (chats []chatModel.Chat, err error)
+	GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUID) (string, error)
 	CreateNewChat(chat chatModel.Chat) error
 	AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID, userROle string) error
 }
