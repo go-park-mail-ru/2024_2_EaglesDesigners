@@ -4,7 +4,7 @@ CREATE SCHEMA public;
 CREATE TABLE public.chat (
     chat_name text NOT NULL,
     chat_type_id integer NOT NULL,
-    avatar_path path,
+    avatar_path text,
     chat_link_name text,
     id uuid NOT NULL
 );
@@ -76,7 +76,7 @@ CREATE TABLE public.message (
     message text,
     sent_at timestamp with time zone NOT NULL,
     is_redacted boolean DEFAULT false NOT NULL,
-    sticker_path path
+    sticker_path text
 );
 
 
@@ -87,7 +87,7 @@ ALTER TABLE public.message OWNER TO postgres;
 --
 
 CREATE TABLE public.message_payload (
-    payload_path path NOT NULL,
+    payload_path text NOT NULL,
     id uuid NOT NULL,
     message_id uuid NOT NULL
 );
@@ -143,7 +143,7 @@ CREATE TABLE public."profile" (
     name text NOT NULL,
     bio text,
     birthdate timestamp with time zone,
-    avatar_path path,
+    avatar_path text,
     id uuid NOT NULL
 );
 
@@ -329,7 +329,7 @@ INSERT INTO public.chat_type (value) VALUES
 INSERT INTO  public.user_role ( value) VALUES
 ('none'),
 ('owner'),
-( 'dmin');
+('admin');
 
 
 --

@@ -43,28 +43,38 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 		return []chatModel.ChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
-	
 	chats, err := s.repository.GetUserChats(user.ID, pageNum)
 	if err != nil {
 		return nil, err
 	}
+	log.Println("Usecase: чаты получены")
 
 	chatsDTO := []chatModel.ChatDTO{}
 
 	for _, chat := range chats {
 		countOfUsers, err := s.repository.GetCountOfUsersInChat(chat.ChatId)
 		if err != nil {
+			log.Printf("Usecase: не удалось получить количество пользователей: %v", err)
 			return nil, err
+		}
+		log.Println("Usecase: количество пользователей получено")
+
+		var photoBase64 string
+		// Достаем фото из папки
+		if chat.AvatarURL != "" {
+			phId, err := uuid.Parse(chat.AvatarURL)
+			if err != nil {
+				return nil, err
+			}
+
+			photoBase64, err = base64helper.ReadPhotoBase64(phId)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		phId, err := uuid.Parse(chat.AvatarURL)
-		if err != nil {
-			return nil, err
-		}
-		photoBase64, err := base64helper.ReadPhotoBase64(phId)
-		if err != nil {
-			return nil, err
-		}
+		log.Println("Usecase: фото успешно считано и закодировано в base64")
+
 		chatsDTO = append(chatsDTO,
 			chatModel.СhatToChatDTO(chat,
 				countOfUsers,
@@ -84,6 +94,8 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	if err != nil {
 		return err
 	}
+
+	// проверяем есть ли права
 	switch role {
 	case admin, owner:
 		log.Printf("Начато добавление пользователей в чат %v пользователем %v", chat_id, user.ID)
@@ -102,7 +114,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	if err != nil {
 		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
-
+	
 	photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
 
 	if err != nil {

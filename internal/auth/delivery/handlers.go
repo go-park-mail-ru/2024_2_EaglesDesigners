@@ -188,6 +188,7 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+
 // LogoutHandler godoc
 // @Summary Log out a user
 // @Description Invalidate the user's session by clearing the access token cookie.

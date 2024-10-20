@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"log"
 
 	"github.com/google/uuid"
@@ -171,22 +172,28 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) ([]chat
 		var chatId uuid.UUID
 		var chatName string
 		var chatType string
-		var avatarURL string
-		var chatURLName string
+		var avatarURL sql.NullString
+		var chatURLName sql.NullString
 
-		var err = rows.Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
+		log.Println("Repository: поиск параметров из запроса")
+		err = rows.Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
+
 		if err != nil {
+			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
 		}
+
+
 		chats = append(chats, chatModel.Chat{
 			ChatId:      chatId,
 			ChatName:    chatName,
 			ChatType:    chatType,
-			AvatarURL:   avatarURL,
-			ChatURLName: chatURLName,
+			AvatarURL:   avatarURL.String,
+			ChatURLName: chatURLName.String,
 		})
 	}
 
+	log.Printf("Repository: чаты успешно найдеты. Количество чатов: %d", len(chats))
 	return chats, nil
 }
 

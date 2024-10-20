@@ -9,6 +9,7 @@ import (
 )
 
 func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
+
 	photoBytes, err := base64.StdEncoding.DecodeString(base64Photo)
 	if err != nil {
 		log.Printf("Ну удалось расшифровать фото: %v \n", err)
@@ -17,17 +18,20 @@ func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
 
 	filenameUUID := uuid.New()
 
-	err = os.WriteFile("../../../images/"+filenameUUID.String() + ".png", photoBytes, 0777)
+	//здесь можно fullpath. Если указывать relative, то от диркутории в которой пишете go run
+	err = os.WriteFile("images/"+filenameUUID.String()+".png", photoBytes, 0777)
 
 	if err != nil {
 		log.Printf("Unable to write into file %v: %v", filenameUUID, err)
 		return uuid.Nil, err
 	}
+
+	log.Println("Фото сохранено")
 	return filenameUUID, nil
 }
 
 func ReadPhotoBase64(pgotoId uuid.UUID) (string, error) {
-	photoBytes, err := os.ReadFile("../../../images/" + pgotoId.String())
+	photoBytes, err := os.ReadFile("images/" + pgotoId.String())
 	if err != nil {
 		log.Printf("Unable to read file %v: %v", pgotoId, err)
 		return "", err
