@@ -1,47 +1,6 @@
 basePath: /
 definitions:
-  controller.ErrorResponse:
-    properties:
-      error:
-        type: string
-      status:
-        example: error
-        type: string
-    type: object
-  model.Chat:
-    properties:
-      avatarURL:
-        example: https://yandex-images.clstorage.net/bVLC53139/667e899dbzgI/Lec3og97oM2J8jgAbwmbs1UEQ_j2WQe6H7Tz0tGHlNUDiLp06xNO9LooehtZCLyucrVfOV3bNS1vNvr_fMoMLbniE8frC6CczUKcwc_ImueU0HKs18lHz490gERWwAOWtD4IttmRuiGPuG9PrfwYeJTUCT5PeyM6mMdYuXvvucreJwTwaprjvy1RSHHf2XlUxVagbjT_Z3s54KP1tiFyt1ZNSQbbE3rzTsqefIsOGIsUYXo-bNgSKZq1WSlJDWhoz9XEo5uL4K6ts3gATet5lVTXMkxWjOY7KIFDVJZywRQU_5pGKzNLwd44T06oTSlJF8LpfEw5cni4VlkKqL3pur7HtGJr6fJM_7N44i2JKwV39mKvRF_0WggAkvaH0qM3dF3rRmhTySM-KU0umyyYWiVw2A7POeGIuvaYeurMKuh91cfSm1uT3gyRmwOOe-pFVEUzzFSupwioEVOHBbBzZ2Tv-6XKcnrQn8kvjEot-5skUlksz1lzKIsGKytJHes6zpeFgbqbE_-fI5hA_TpqVeemkPzm7qcL-UCy5NVyUTYUrfi2K2JIwT85fHzLzVhIFiBIH-9b0Xt45-m5aDwpWu_VtENpCtPcbhE7gL9aisTlNiP8hE2kW1qwEiTkwILXxe9adbgRuvDt6U59ag4qWbVyOm7eG4Nq2QW5mTveSXpcdzTz-TmS_F8iiCEc6Or0JvZy3ldd9-q7MMEWl-FS5YT_GUTZQQqiztuNzust-xr0cJjMzfuSmqqlyvuIPKlJbadlI-l7IS6vUWixLdt6p1dG0dy3bMdYunPBRcWioYYX3BsV2fP7oq26jA6YvgmLxQKqnr_IU0tJJ4greQw5Sp0HhdFYu4DeXGFbEF3JOWb3ZIJvR851WQnhM2UX8VKF983KBAoDOOK9qp1_aC9YK0WCa_8P-UGZ2Eaqy5s9C4qsNofD6Rkg3qyRGCPveNplxMSyzjbctEk5w6C2k
-        type: string
-      chatId:
-        example: 1
-        type: integer
-      chatName:
-        example: Чат с пользователем 2
-        type: string
-      chatType:
-        description: '@Enum [personalMessages, group, channel]'
-        example: personalMessages
-        type: string
-      lastMessage:
-        example: Когда за кофе?
-        type: string
-      usersId:
-        example:
-        - 1
-        - 2
-        items:
-          type: integer
-        type: array
-    type: object
-  model.ChatsDTO:
-    properties:
-      chats:
-        items:
-          $ref: '#/definitions/model.Chat'
-        type: array
-    type: object
-  utils.AuthCredentials:
+  delivery.AuthCredentials:
     properties:
       password:
         example: "12345678"
@@ -50,12 +9,12 @@ definitions:
         example: user11
         type: string
     type: object
-  utils.AuthResponse:
+  delivery.AuthResponse:
     properties:
       user:
-        $ref: '#/definitions/utils.UserData'
+        $ref: '#/definitions/delivery.UserData'
     type: object
-  utils.ErrorResponse:
+  delivery.ErrorResponse:
     properties:
       error:
         type: string
@@ -63,7 +22,7 @@ definitions:
         example: error
         type: string
     type: object
-  utils.RegisterCredentials:
+  delivery.RegisterCredentials:
     properties:
       name:
         example: Vincent Vega
@@ -75,29 +34,61 @@ definitions:
         example: killer1994
         type: string
     type: object
-  utils.RegisterResponse:
+  delivery.RegisterResponse:
     properties:
       message:
         example: Registration successful
         type: string
       user:
-        $ref: '#/definitions/utils.UserData'
+        $ref: '#/definitions/delivery.UserData'
     type: object
-  utils.SuccessResponse:
-    properties:
-      message:
-        type: string
-    type: object
-  utils.UserData:
+  delivery.UserData:
     properties:
       id:
-        example: 2
-        type: integer
+        example: "2"
+        type: string
       name:
         example: Dr Peper
         type: string
       username:
         example: user12
+        type: string
+    type: object
+  model.ChatDTO:
+    properties:
+      avatarBase64:
+        type: string
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      chatType:
+        description: '@Enum [personalMessages, group, channel]'
+        example: personalMessages
+        type: string
+      countOfUsers:
+        type: integer
+      lastMessage:
+        example: Когда за кофе?
+        type: string
+    type: object
+  model.ChatsDTO:
+    properties:
+      chats:
+        items:
+          $ref: '#/definitions/model.ChatDTO'
+        type: array
+    type: object
+  responser.ErrorResponse:
+    properties:
+      error:
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  responser.SuccessResponse:
+    properties:
+      message:
         type: string
     type: object
 externalDocs:
@@ -128,11 +119,11 @@ paths:
         "200":
           description: User data retrieved successfully
           schema:
-            $ref: '#/definitions/utils.AuthResponse'
+            $ref: '#/definitions/delivery.AuthResponse'
         "401":
           description: 'Unauthorized: token is invalid'
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Authenticate a user
       tags:
       - auth
@@ -152,7 +143,7 @@ paths:
         "401":
           description: Unauthorized, no valid access token
           schema:
-            $ref: '#/definitions/controller.ErrorResponse'
+            $ref: '#/definitions/delivery.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get user chats
@@ -169,22 +160,22 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/utils.AuthCredentials'
+          $ref: '#/definitions/delivery.AuthCredentials'
       produces:
       - application/json
       responses:
         "201":
           description: Authentication successful
           schema:
-            $ref: '#/definitions/utils.SuccessResponse'
+            $ref: '#/definitions/responser.SuccessResponse'
         "400":
           description: Invalid format JSON
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/responser.ErrorResponse'
         "401":
           description: Incorrect login or password
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: User login
       tags:
       - auth
@@ -199,11 +190,11 @@ paths:
         "200":
           description: Logout successful
           schema:
-            $ref: '#/definitions/utils.SuccessResponse'
+            $ref: '#/definitions/responser.SuccessResponse'
         "401":
           description: No access token found
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Log out a user
       tags:
       - auth
@@ -218,22 +209,22 @@ paths:
         name: creds
         required: true
         schema:
-          $ref: '#/definitions/utils.RegisterCredentials'
+          $ref: '#/definitions/delivery.RegisterCredentials'
       produces:
       - application/json
       responses:
         "201":
           description: Registration successful
           schema:
-            $ref: '#/definitions/utils.RegisterResponse'
+            $ref: '#/definitions/delivery.RegisterResponse'
         "400":
           description: User failed to create
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/responser.ErrorResponse'
         "409":
           description: A user with that username already exists
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Register a new user
       tags:
       - auth
