@@ -56,7 +56,11 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 			return nil, err
 		}
 
-		photoBase64, err := base64helper.ReadPhotoBase64(chat.AvatarURL)
+		phId, err := uuid.Parse(chat.AvatarURL)
+		if err != nil {
+			return nil, err
+		}
+		photoBase64, err := base64helper.ReadPhotoBase64(phId)
 		if err != nil {
 			return nil, err
 		}

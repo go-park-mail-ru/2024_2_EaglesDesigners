@@ -47,3 +47,9 @@ func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage string, AvatarBase6
 		AvatarBase64: AvatarBase64,
 	}
 }
+
+type AddUsersIntoChatDTO struct {
+	ChatId uuid.UUID `json:"chatId"`
+	UsersId []uuid.UUID `json:"usersId"`
+
+}
