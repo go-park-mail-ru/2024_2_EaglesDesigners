@@ -31,6 +31,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		log.Printf("Неверно указан параметр запроса page. page = %s. ERROR: %v", r.URL.Query().Get("page"), err)
+		pageNum = 0
 	}
 
 	chats, err := c.service.GetChats(context.Background(), r.Cookies(), pageNum)

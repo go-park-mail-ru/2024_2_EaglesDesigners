@@ -43,6 +43,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 		return []chatModel.ChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
+	
 	chats, err := s.repository.GetUserChats(user.ID, pageNum)
 	if err != nil {
 		return nil, err
