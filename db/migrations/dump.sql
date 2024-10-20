@@ -1,3 +1,6 @@
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+
 CREATE TABLE public.chat (
     chat_name text NOT NULL,
     chat_type_id integer NOT NULL,
