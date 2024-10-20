@@ -4,7 +4,7 @@ CREATE SCHEMA public;
 CREATE TABLE public.chat (
     chat_name text NOT NULL,
     chat_type_id integer NOT NULL,
-    avatar_path path,
+    avatar_path text,
     chat_link_name text,
     id uuid NOT NULL
 );
@@ -76,7 +76,7 @@ CREATE TABLE public.message (
     message text,
     sent_at timestamp with time zone NOT NULL,
     is_redacted boolean DEFAULT false NOT NULL,
-    sticker_path path
+    sticker_path text
 );
 
 
@@ -87,7 +87,7 @@ ALTER TABLE public.message OWNER TO postgres;
 --
 
 CREATE TABLE public.message_payload (
-    payload_path path NOT NULL,
+    payload_path text NOT NULL,
     id uuid NOT NULL,
     message_id uuid NOT NULL
 );
@@ -103,6 +103,10 @@ CREATE TABLE public."user" (
     username text NOT NULL,
     version integer NOT NULL,
     password text NOT NULL,
+    name text NOT NULL,
+    bio text,
+    birthdate timestamp with time zone,
+    avatar_path text,
     id uuid NOT NULL
 );
 
@@ -133,22 +137,6 @@ ALTER TABLE public.user_role ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
     NO MAXVALUE
     CACHE 1
 );
-
---
--- Name: profile; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public."profile" (
-	user_id uuid NOT NULL,
-    name text NOT NULL,
-    bio text,
-    birthdate timestamp with time zone,
-    avatar_path path,
-    id uuid NOT NULL
-);
-
-
-ALTER TABLE public."profile" OWNER TO postgres;
 
 ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT chat_id_and_user_id_uniq UNIQUE (chat_id, user_id);
@@ -228,13 +216,6 @@ ALTER TABLE ONLY public."user"
 
 ALTER TABLE ONLY public."user"
     ADD CONSTRAINT user_pkey PRIMARY KEY (id);
-   
---
--- Name: profile profile_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."profile"
-    ADD CONSTRAINT profile_pkey PRIMARY KEY (id);
 
 
 --
@@ -308,13 +289,6 @@ ALTER TABLE ONLY public.contact
 ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT user_role_id_fk_chat_users_chat_id_pk_user_roles FOREIGN KEY (user_role_id) REFERENCES public.user_role(id);
 
-
---
--- Name: profile profile_fk_user_pk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.profile
-    ADD CONSTRAINT profile_fk_user_pk FOREIGN KEY (user_id) REFERENCES public.user(id);
    
 --
 -- PostgreSQL database dump complete
@@ -336,18 +310,8 @@ INSERT INTO  public.user_role ( value) VALUES
 -- Insert test data to user
 --
 
-INSERT INTO public."user" (id, username, version, password) VALUES
-    (gen_random_uuid(), 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648'),
-    (gen_random_uuid(), 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648'),
-    (gen_random_uuid(), 'user33', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648'),
-    (gen_random_uuid(), 'user44', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648');
-
---
--- Insert test data to profile
---
-
-INSERT INTO public."profile" (id, user_id, name) VALUES
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), 'Бал Матье'),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), 'Жабка Пепе'),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user33'), 'Dr Peper'),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user44'), 'Vincent Vega');
+INSERT INTO public."user" (id, username, version, password, name, bio, birthdate, avatar_path) VALUES
+    (gen_random_uuid(), 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '642c5a57-ebc7-49d0-ac2d-f2f1f474bee7'),
+    (gen_random_uuid(), 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', NULL),
+    (gen_random_uuid(), 'user33', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Dr Peper', 'Люблю газированные напитки 🥤', '1988-12-01T00:00:00Z', NULL),
+    (gen_random_uuid(), 'user44', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Vincent Vega', 'Фанат кино 🎬', '1985-07-14T00:00:00Z', NULL);

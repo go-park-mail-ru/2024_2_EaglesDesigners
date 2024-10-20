@@ -25,13 +25,12 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 
 func (r *Repository) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	query := `SELECT 
-			  	  u.id,
-			  	  u.username,
-				  u.password,
-				  u.version,
-			  	  p.name 
-			  FROM public."user" u 
-			  JOIN public.profile p ON p.user_id = u.id
+			  	  id,
+			  	  username,
+				  password,
+				  version,
+			  	  name 
+			  FROM public."user"
 			  WHERE username = $1;`
 
 	var user User
@@ -60,69 +59,31 @@ func (r *Repository) GetUserByUsername(ctx context.Context, username string) (Us
 }
 
 func (r *Repository) CreateUser(ctx context.Context, username, name, password string) error {
-	tx, err := r.db.Begin(ctx)
-	if err != nil {
-		log.Printf("Unable to begin transaction: %v\n", err)
-		return err
-	}
-
-	// rollback если произойдет ошибка
-	defer func() {
-		if err != nil {
-			tx.Rollback(ctx)
-		}
-	}()
-
-	firstQuery := `INSERT INTO public.user
+	query := `INSERT INTO public.user
 				   (
 				   	   id,
 				   	   username,
 				   	   version,
-				   	   password
-				   ) VALUES ($1, $2, $3, $4) RETURNING id;`
+				   	   password,
+					   name
+				   ) VALUES ($1, $2, $3, $4, $5) RETURNING id;`
 
 	uuidNew := uuid.New()
 	version := 0
-	row := tx.QueryRow(
+	row := r.db.QueryRow(
 		ctx,
-		firstQuery,
+		query,
 		uuidNew,
 		username,
 		version,
 		password,
+		name,
 	)
 
 	var user_id uuid.UUID
-	err = row.Scan(&user_id)
+	err := row.Scan(&user_id)
 	if err != nil {
 		log.Printf("Unable to INSERT in TABLE user: %v\n", err)
-		return err
-	}
-
-	secondQuery := `INSERT INTO public.profile
-					(
-						id,
-						name,
-						user_id
-					) VALUES ($1, $2, $3);`
-
-	uuidNew = uuid.New()
-
-	_, err = tx.Exec(
-		ctx,
-		secondQuery,
-		uuidNew,
-		name,
-		user_id,
-	)
-
-	if err != nil {
-		log.Printf("Unable to INSERT in TABLE profile: %v\n", err)
-		return err
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		log.Printf("Unable to commit transaction: %v\n", err)
 		return err
 	}
 

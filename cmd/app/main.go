@@ -17,7 +17,13 @@ import (
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
 	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
 	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
+	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
+	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 )
 
@@ -55,11 +61,18 @@ func main() {
 
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
+	// auth
 	authRepo := authRepo.NewRepository(pool)
 	tokenUC := tokenUC.NewUsecase(authRepo)
 	authUC := authUC.NewUsecase(authRepo, tokenUC)
 	auth := authDelivery.NewDelivery(authUC, tokenUC)
 
+	// profile
+	profileRepo := profileRepo.New(pool)
+	profileUC := profileUC.New(profileRepo)
+	profile := profileDelivery.New(profileUC)
+
+	// chats
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
 	chat := chatController.NewChatDelivery(chatService)
@@ -78,6 +91,9 @@ func main() {
 	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/profile", profile.GetProfileHandler).Methods("GET", "OPTIONS")
+	router.HandleFunc("/profile", profile.UpdateProfileHandler).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
@@ -93,7 +109,7 @@ func main() {
 			"http://212.233.98.59:8080",
 			"https://212.233.98.59:8080"},
 		AllowCredentials:   true,
-		AllowedMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
+		AllowedMethods:     []string{"GET", "POST", "PUT", "OPTIONS", "DELETE"},
 		AllowedHeaders:     []string{"*"},
 		OptionsPassthrough: false,
 	})
