@@ -56,8 +56,7 @@ definitions:
     type: object
   model.ChatDTO:
     properties:
-      avatarURL:
-        example: https://yandex-images.clstorage.net/bVLC53139/
+      avatarBase64:
         type: string
       chatName:
         example: Чат с пользователем 2

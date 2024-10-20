@@ -292,9 +292,8 @@ const docTemplate = `{
         "model.ChatDTO": {
             "type": "object",
             "properties": {
-                "avatarURL": {
-                    "type": "string",
-                    "example": "https://yandex-images.clstorage.net/bVLC53139/"
+                "avatarBase64": {
+                    "type": "string"
                 },
                 "chatName": {
                     "type": "string",
