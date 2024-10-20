@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
@@ -21,22 +22,20 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 	}
 }
 
-// ChatHandler godoc
-// @Summary Get user chats
-// @Description Retrieve the list of chats for the authenticated user based on their access token.
-// @Tags chats
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} model.ChatsDTO "List of chats"
-// @Failure 401 {object} ErrorResponse "Unauthorized, no valid access token"
-// @Router /chats [get]
-func (c *ChatDelivery) Handler(w http.ResponseWriter, r *http.Request) {
+// GetUserChatsHandler выдает чаты пользователя в query указать страницу ?page=
+func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	log.Println("Пришёл запрос на получения чатов")
+	log.Printf("Пришёл запрос на получения чатов с параметрами: %v", r.URL.Query())
+	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
 
-	_, err := c.service.GetChats(context.Background(), r.Cookies(), 0)
+	if err != nil {
+		log.Printf("Неверно указан параметр запроса page. page = %s. ERROR: %v", r.URL.Query().Get("page"), err)
+		pageNum = 0
+	}
+
+	chats, err := c.service.GetChats(context.Background(), r.Cookies(), pageNum)
+
 	if err != nil {
 		fmt.Println(err)
 
@@ -48,17 +47,63 @@ func (c *ChatDelivery) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatsDTO := models.ChatsDTO{
-		Chats: nil,
+		Chats: chats,
 	}
 
 	jsonResp, err := json.Marshal(chatsDTO)
 
 	if err != nil {
 		log.Printf("error happened in JSON marshal. Err: %s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResp)
+}
+
+func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
+	var chatDTO models.ChatDTO
+	err := json.NewDecoder(r.Body).Decode(&chatDTO)
+
+	if err != nil {
+		log.Printf("Не удалось распарсить Json: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.service.AddNewChat(context.Background(), r.Cookies(), chatDTO)
+	if err != nil {
+		log.Printf("Не удалось добавить чат: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var usersToAdd models.AddUsersIntoChatDTO
+	err := json.NewDecoder(r.Body).Decode(&usersToAdd)
+	if err != nil {
+		log.Printf("Не удалось распарсить Json: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.service.AddUsersIntoChat(context.Background(), r.Cookies(), usersToAdd.UsersId, usersToAdd.ChatId)
+
+	if err != nil {
+		log.Printf("Не удалось добавить пользователей в чат: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return
 }
 
 type ErrorResponse struct {

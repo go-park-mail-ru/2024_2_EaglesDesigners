@@ -138,10 +138,11 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) ([]chat
 
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
-		log.Printf("Unable to acquire a database connection: %v\n", err)
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return nil, err
 	}
 	defer conn.Release()
+	log.Println("Repository: Соединение с бд установлено")
 
 	rows, err := conn.Query(context.Background(),
 		`SELECT c.id,
@@ -163,6 +164,7 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) ([]chat
 		log.Printf("Unable to SELECT chats: %v\n", err)
 		return nil, err
 	}
+	log.Println("Repository: Чаты получены")
 
 	chats := []chatModel.Chat{}
 	for rows.Next() {
@@ -192,7 +194,7 @@ func (r *ChatRepositoryImpl) GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUI
 	// идем в бд по двум полям: если есть то тру
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
-		log.Printf("Unable to acquire a database connection: %v\n", err)
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return "", err
 	}
 	defer conn.Release()
@@ -217,7 +219,7 @@ func (r *ChatRepositoryImpl) GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUI
 func (r *ChatRepositoryImpl) AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID, userROle string) error {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
-		log.Printf("Unable to acquire a database connection: %v\n", err)
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return err
 	}
 	defer conn.Release()
@@ -238,4 +240,26 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID,
 	}
 
 	return nil
+}
+
+func (r *ChatRepositoryImpl) GetCountOfUsersInChat(chatId uuid.UUID) (int, error) {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return 0, err
+	}
+	defer conn.Release()
+
+	var count int
+	err = conn.QueryRow(context.Background(),
+		`SELECT COUNT(id)
+		FROM chat_user AS cu
+		WHERE cu.chat_id = $1`,
+		chatId,
+	).Scan(&count)
+
+	if err != nil {
+		return 0, err
+	}
+	return count, err
 }

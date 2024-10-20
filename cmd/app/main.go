@@ -11,6 +11,9 @@ import (
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
 	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
 	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
@@ -85,6 +88,9 @@ func main() {
 	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
+	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", profile.GetProfileHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", profile.UpdateProfileHandler).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")

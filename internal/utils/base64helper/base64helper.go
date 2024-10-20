@@ -17,7 +17,7 @@ func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
 
 	filenameUUID := uuid.New()
 
-	err = os.WriteFile("../../images/"+filenameUUID.String(), photoBytes, 0777)
+	err = os.WriteFile("../../../images/"+filenameUUID.String() + ".png", photoBytes, 0777)
 
 	if err != nil {
 		log.Printf("Unable to write into file %v: %v", filenameUUID, err)
@@ -25,6 +25,7 @@ func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
 	}
 	return filenameUUID, nil
 }
+
 
 func ReadPhotoBase64(photoId uuid.UUID) (string, error) {
 	photoBytes, err := os.ReadFile("images/" + photoId.String() + ".png")
@@ -52,3 +53,4 @@ func RewritePhoto(base64Photo string, filename string) error {
 	}
 	return nil
 }
+

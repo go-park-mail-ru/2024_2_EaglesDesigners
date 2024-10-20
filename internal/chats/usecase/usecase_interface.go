@@ -9,7 +9,7 @@ import (
 )
 
 type ChatUsecase interface {
-	GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.Chat, error)
+	GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTO, error)
 	AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) error
 
 	// CanUserWriteInChat проверяет может ли юзер писать в чат

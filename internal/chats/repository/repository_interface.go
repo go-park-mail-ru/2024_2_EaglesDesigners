@@ -10,4 +10,5 @@ type ChatRepository interface {
 	GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUID) (string, error)
 	CreateNewChat(chat chatModel.Chat) error
 	AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID, userROle string) error
+	GetCountOfUsersInChat(chatId uuid.UUID) (int, error)
 }
