@@ -138,6 +138,7 @@ ALTER TABLE public.user_role ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
     CACHE 1
 );
 
+
 ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT chat_id_and_user_id_uniq UNIQUE (chat_id, user_id);
 
@@ -303,7 +304,7 @@ INSERT INTO public.chat_type (value) VALUES
 INSERT INTO  public.user_role ( value) VALUES
 ('none'),
 ('owner'),
-( 'dmin');
+('admin');
 
 
 --
