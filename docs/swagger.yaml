@@ -55,6 +55,7 @@ definitions:
   models.GetProfileResponseDTO:
     properties:
       avatarBase64:
+        example: this is Base64 photo
         type: string
       bio:
         example: Не люблю сети
@@ -66,6 +67,7 @@ definitions:
   models.UpdateProfileRequestDTO:
     properties:
       avatarBase64:
+        example: this is Base64 photo
         type: string
       bio:
         example: Не люблю сети

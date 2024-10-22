@@ -10,7 +10,7 @@ type UpdateProfileRequestDTO struct {
 	Username     string
 	Name         *string    `json:"name" example:"Vincent Vega"`
 	Bio          *string    `json:"bio" example:"Не люблю сети"`
-	AvatarBase64 *string    `json:"avatarBase64" example: "this is Base64 photo"`
+	AvatarBase64 *string    `json:"avatarBase64" example:"this is Base64 photo"`
 	Birthdate    *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z"`
 }
 
@@ -22,7 +22,7 @@ type GetProfileRequestDTO struct {
 // @Schema
 type GetProfileResponseDTO struct {
 	Bio          *string    `json:"bio" example:"Не люблю сети"`
-	AvatarBase64 *string    `json:"avatarBase64" example: "this is Base64 photo"`
+	AvatarBase64 *string    `json:"avatarBase64" example:"this is Base64 photo"`
 	Birthdate    *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z"`
 }
 

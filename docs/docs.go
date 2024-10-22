@@ -351,7 +351,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatarBase64": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "this is Base64 photo"
                 },
                 "bio": {
                     "type": "string",
@@ -367,7 +368,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatarBase64": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "this is Base64 photo"
                 },
                 "bio": {
                     "type": "string",
