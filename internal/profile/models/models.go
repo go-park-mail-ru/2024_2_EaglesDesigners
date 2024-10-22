@@ -7,11 +7,11 @@ import (
 
 // @Schema
 type UpdateProfileRequestDTO struct {
-	Username     string    `json:"username" example:"killer1994"`
-	Name         string    `json:"name,omitempty" example:"Vincent Vega"`
-	Bio          string    `json:"bio,omitempty" example:"Не люблю сети"`
-	AvatarBase64 string    `json:"avatarBase64,omitempty"`
-	Birthdate    time.Time `json:"birthdate,omitempty" example:"2024-04-13T08:30:00Z"`
+	Username     string
+	Name         *string    `json:"name" example:"Vincent Vega"`
+	Bio          *string    `json:"bio" example:"Не люблю сети"`
+	AvatarBase64 *string    `json:"avatarBase64" example: "this is Base64 photo"`
+	Birthdate    *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z"`
 }
 
 // @Schema
@@ -22,16 +22,16 @@ type GetProfileRequestDTO struct {
 // @Schema
 type GetProfileResponseDTO struct {
 	Bio          *string    `json:"bio" example:"Не люблю сети"`
-	AvatarBase64 *string    `json:"avatarBase64"`
+	AvatarBase64 *string    `json:"avatarBase64" example: "this is Base64 photo"`
 	Birthdate    *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z"`
 }
 
 type Profile struct {
 	Username     string
-	Name         string
-	Bio          string
-	AvatarBase64 string
-	Birthdate    time.Time
+	Name         *string
+	Bio          *string
+	AvatarBase64 *string
+	Birthdate    *time.Time
 }
 
 type ProfileData struct {
@@ -42,10 +42,10 @@ type ProfileData struct {
 
 type ProfileDAO struct {
 	Username  string
-	Name      string
-	Bio       string
-	AvatarURL string
-	Birthdate time.Time
+	Name      sql.NullString
+	Bio       sql.NullString
+	AvatarURL sql.NullString
+	Birthdate sql.NullTime
 }
 
 type ProfileDataDAO struct {
