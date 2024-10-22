@@ -14,14 +14,6 @@ definitions:
       user:
         $ref: '#/definitions/delivery.UserData'
     type: object
-  delivery.ErrorResponse:
-    properties:
-      error:
-        type: string
-      status:
-        example: error
-        type: string
-    type: object
   delivery.RegisterCredentials:
     properties:
       name:
@@ -54,29 +46,38 @@ definitions:
         example: user12
         type: string
     type: object
-  model.ChatDTO:
+  models.GetProfileRequestDTO:
+    properties:
+      username:
+        example: killer1994
+        type: string
+    type: object
+  models.GetProfileResponseDTO:
     properties:
       avatarBase64:
         type: string
-      chatName:
-        example: Чат с пользователем 2
+      bio:
+        example: Не люблю сети
         type: string
-      chatType:
-        description: '@Enum [personalMessages, group, channel]'
-        example: personalMessages
-        type: string
-      countOfUsers:
-        type: integer
-      lastMessage:
-        example: Когда за кофе?
+      birthdate:
+        example: "2024-04-13T08:30:00Z"
         type: string
     type: object
-  model.ChatsDTO:
+  models.UpdateProfileRequestDTO:
     properties:
-      chats:
-        items:
-          $ref: '#/definitions/model.ChatDTO'
-        type: array
+      avatarBase64:
+        type: string
+      bio:
+        example: Не люблю сети
+        type: string
+      birthdate:
+        example: "2024-04-13T08:30:00Z"
+        type: string
+      name:
+        example: Vincent Vega
+        type: string
+      username:
+        type: string
     type: object
   responser.ErrorResponse:
     properties:
@@ -127,28 +128,6 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
-  /chats:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve the list of chats for the authenticated user based on
-        their access token.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of chats
-          schema:
-            $ref: '#/definitions/model.ChatsDTO'
-        "401":
-          description: Unauthorized, no valid access token
-          schema:
-            $ref: '#/definitions/delivery.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get user chats
-      tags:
-      - chats
   /login:
     post:
       consumes:
@@ -198,6 +177,67 @@ paths:
       summary: Log out a user
       tags:
       - auth
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: Get bio, avatar and birthdate of user.
+      parameters:
+      - description: Credentials for get profile data
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetProfileRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile data found
+          schema:
+            $ref: '#/definitions/models.GetProfileResponseDTO'
+        "400":
+          description: Invalid format JSON
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Get profile data
+      tags:
+      - profile
+    put:
+      consumes:
+      - application/json
+      description: Update bio, avatar, name or birthdate of user.
+      parameters:
+      - description: Credentials for update profile data
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProfileRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated
+          schema:
+            $ref: '#/definitions/responser.SuccessResponse'
+        "400":
+          description: Invalid format JSON
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update profile data
+      tags:
+      - profile
   /signup:
     post:
       consumes:

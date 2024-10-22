@@ -53,40 +53,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/chats": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve the list of chats for the authenticated user based on their access token.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "chats"
-                ],
-                "summary": "Get user chats",
-                "responses": {
-                    "200": {
-                        "description": "List of chats",
-                        "schema": {
-                            "$ref": "#/definitions/model.ChatsDTO"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized, no valid access token",
-                        "schema": {
-                            "$ref": "#/definitions/delivery.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/login": {
             "post": {
                 "description": "Authenticate a user with username and password.",
@@ -155,6 +121,101 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "No access token found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "description": "Get bio, avatar and birthdate of user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get profile data",
+                "parameters": [
+                    {
+                        "description": "Credentials for get profile data",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GetProfileRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile data found",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetProfileResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid format JSON",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update bio, avatar, name or birthdate of user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Update profile data",
+                "parameters": [
+                    {
+                        "description": "Credentials for update profile data",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateProfileRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile updated",
+                        "schema": {
+                            "$ref": "#/definitions/responser.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid format JSON",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -231,18 +292,6 @@ const docTemplate = `{
                 }
             }
         },
-        "delivery.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "error"
-                }
-            }
-        },
         "delivery.RegisterCredentials": {
             "type": "object",
             "properties": {
@@ -289,38 +338,51 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ChatDTO": {
+        "models.GetProfileRequestDTO": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "example": "killer1994"
+                }
+            }
+        },
+        "models.GetProfileResponseDTO": {
             "type": "object",
             "properties": {
                 "avatarBase64": {
                     "type": "string"
                 },
-                "chatName": {
+                "bio": {
                     "type": "string",
-                    "example": "Чат с пользователем 2"
+                    "example": "Не люблю сети"
                 },
-                "chatType": {
-                    "description": "@Enum [personalMessages, group, channel]",
+                "birthdate": {
                     "type": "string",
-                    "example": "personalMessages"
-                },
-                "countOfUsers": {
-                    "type": "integer"
-                },
-                "lastMessage": {
-                    "type": "string",
-                    "example": "Когда за кофе?"
+                    "example": "2024-04-13T08:30:00Z"
                 }
             }
         },
-        "model.ChatsDTO": {
+        "models.UpdateProfileRequestDTO": {
             "type": "object",
             "properties": {
-                "chats": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.ChatDTO"
-                    }
+                "avatarBase64": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string",
+                    "example": "Не люблю сети"
+                },
+                "birthdate": {
+                    "type": "string",
+                    "example": "2024-04-13T08:30:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },

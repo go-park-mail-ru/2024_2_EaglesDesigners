@@ -9,13 +9,9 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
 )
 
-const (
-	defaultAvatarBase64Value = ""
-)
-
 type Repository interface {
 	GetProfileByUsername(ctx context.Context, username string) (models.ProfileDataDAO, error)
-	UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL string, err error)
+	UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error)
 }
 
 type Usecase struct {
@@ -31,7 +27,7 @@ func New(repo Repository) *Usecase {
 func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdateProfileRequestDTO) error {
 	var avatarChanged bool
 
-	if profileDTO.AvatarBase64 != defaultAvatarBase64Value {
+	if profileDTO.AvatarBase64 != nil {
 		avatarChanged = true
 	}
 
@@ -44,7 +40,7 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 	}
 
 	if avatarChanged {
-		err := base64helper.RewritePhoto(profileDTO.AvatarBase64, avatarURL)
+		err := base64helper.RewritePhoto(*profileDTO.AvatarBase64, *avatarURL)
 		if err != nil {
 			log.Printf("Не удалось перезаписать аватарку: %v", err)
 			return err
