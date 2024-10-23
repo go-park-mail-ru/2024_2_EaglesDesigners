@@ -18,6 +18,9 @@ import (
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/delivery"
+	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
+	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
@@ -74,6 +77,10 @@ func main() {
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
+	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo)
+	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
+
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r = r.WithContext(ctx)
@@ -94,8 +101,8 @@ func main() {
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-	router.HandleFunc("/chat")
-	
+	router.HandleFunc("/chat/{chatId}", auth.Middleware(messageDelivery.HandleConnection)).Methods("GET", "OPTIONS")
+
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
 			"http://127.0.0.1:8001",

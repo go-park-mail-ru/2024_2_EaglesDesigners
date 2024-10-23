@@ -30,8 +30,8 @@ func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
 	return filenameUUID, nil
 }
 
-func ReadPhotoBase64(pgotoId uuid.UUID) (string, error) {
-	photoBytes, err := os.ReadFile("images/" + pgotoId.String())
+func ReadPhotoBase64(photoId uuid.UUID) (string, error) {
+	photoBytes, err := os.ReadFile("images/" + photoId.String())
 
 	if err != nil {
 		log.Printf("Unable to read file %v: %v", photoId, err)

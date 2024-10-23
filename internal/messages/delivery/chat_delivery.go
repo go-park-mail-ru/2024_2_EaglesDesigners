@@ -20,7 +20,13 @@ type MessageController struct {
 	usecase usecase.MessageUsecase
 }
 
-func (h *MessageController) handleConnection(w http.ResponseWriter, r *http.Request) {
+func NewMessageController(usecase usecase.MessageUsecase) MessageController {
+	return MessageController{
+		usecase: usecase,
+	}
+}
+
+func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	chatId := mux.Vars(r)["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
@@ -49,7 +55,7 @@ func (h *MessageController) handleConnection(w http.ResponseWriter, r *http.Requ
 		close(closeChannel)
 		}()
 
-	go h.usecase.CheckIfNewMessage(messageChannel, chatUUID, errChannel, closeChannel)
+	go h.usecase.ScanForNewMessages(messageChannel, chatUUID, errChannel, closeChannel)
 
 	// история чата
 	messages, err := h.usecase.GetMessages(r.Context(), chatUUID, 0)
