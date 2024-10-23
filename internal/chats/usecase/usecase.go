@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"log"
-
 	"net/http"
 
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
+
 	"github.com/google/uuid"
 )
 
@@ -25,8 +26,9 @@ const (
 )
 
 type ChatUsecaseImpl struct {
-	tokenUsecase *usecase.Usecase
-	repository   chatlist.ChatRepository
+	tokenUsecase      *usecase.Usecase
+	messageRepository message.MessageRepository
+	repository        chatlist.ChatRepository
 }
 
 func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository) ChatUsecase {
@@ -52,6 +54,14 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	chatsDTO := []chatModel.ChatDTO{}
 
 	for _, chat := range chats {
+
+		message, err := s.messageRepository.GetLastMessage(chat.ChatId)
+		if err != nil {
+			log.Printf("Usecase: не удалось получить последнее сообщение: %v", err)
+			return nil, err
+		}
+		log.Println("Usecase: последнее сообщение получено")
+
 		countOfUsers, err := s.repository.GetCountOfUsersInChat(chat.ChatId)
 		if err != nil {
 			log.Printf("Usecase: не удалось получить количество пользователей: %v", err)
@@ -78,7 +88,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 		chatsDTO = append(chatsDTO,
 			chatModel.СhatToChatDTO(chat,
 				countOfUsers,
-				"временное последнее сообщение",
+				message,
 				photoBase64))
 	}
 
@@ -114,7 +124,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	if err != nil {
 		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
-	
+
 	photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
 
 	if err != nil {
