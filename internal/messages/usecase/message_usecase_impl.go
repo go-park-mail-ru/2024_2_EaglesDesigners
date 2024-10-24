@@ -9,8 +9,8 @@ import (
 	middleware "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
+	
 	"github.com/jackc/pgx/v4"
-
 	"github.com/google/uuid"
 )
 

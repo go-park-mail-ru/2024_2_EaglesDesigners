@@ -30,6 +30,8 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 	chatId := mux.Vars(r)["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
+	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
+
 	if err != nil {
 		//conn.400
 		log.Println("Delivery: error during connection upgrade:", err)

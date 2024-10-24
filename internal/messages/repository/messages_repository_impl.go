@@ -2,11 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
+
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -144,10 +147,13 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	var isRedacted bool
 
 	err = row.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &authorName)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return models.Message{}, nil
+	}
 	if err != nil {
 		log.Printf("Repository: unable to scan: %v", err)
 
-		// на выходе надо проверить ErrNoRows
 		return models.Message{}, err
 	}
 
