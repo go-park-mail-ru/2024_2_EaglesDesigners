@@ -54,6 +54,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
+
 	defer pool.Close()
 	log.Println("База данных подключена")
 
@@ -73,11 +74,13 @@ func main() {
 	profile := profileDelivery.New(profileUC)
 
 	// chats
+	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
+
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
-	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
+	
 	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo)
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 

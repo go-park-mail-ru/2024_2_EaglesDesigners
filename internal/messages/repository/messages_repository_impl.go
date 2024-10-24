@@ -117,7 +117,7 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 		log.Printf("Repository: не удалось установить соединение: %v", err)
 		return models.Message{}, err
 	}
-	log.Printf("Repository: соединение успешно установлено")
+	log.Println("Repository: соединение успешно установлено")
 
 	// нужно чё-то придумать со стикерами
 	row := conn.QueryRow(context.Background(),

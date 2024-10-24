@@ -53,7 +53,7 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 	defer func() {
 		closeChannel <- true
 		close(closeChannel)
-		}()
+	}()
 
 	go h.usecase.ScanForNewMessages(messageChannel, chatUUID, errChannel, closeChannel)
 
@@ -71,6 +71,7 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		IsNew:    false,
 	})
 
+	// пока соеденено
 	for {
 		var msg models.MessageDTOInput
 		err := conn.ReadJSON(&msg)

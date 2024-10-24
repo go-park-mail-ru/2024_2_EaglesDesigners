@@ -31,10 +31,11 @@ type ChatUsecaseImpl struct {
 	repository        chatlist.ChatRepository
 }
 
-func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository) ChatUsecase {
+func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository) ChatUsecase {
 	return &ChatUsecaseImpl{
-		tokenUsecase: tokenService,
-		repository:   repository,
+		tokenUsecase:      tokenService,
+		repository:        repository,
+		messageRepository: messageRepository,
 	}
 }
 
