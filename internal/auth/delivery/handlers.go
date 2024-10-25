@@ -167,13 +167,18 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
+type contextKey string
+
+const UserIDKey contextKey = "userId"
+
 func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
 		err := d.isAuthorized(r)
+		var user jwt.User
 		if err == errors.New("token expired") {
 			log.Println("token expired, create new token")
-			user, err := d.token.GetUserByJWT(ctx, r.Cookies())
+			user, err = d.token.GetUserByJWT(r.Context(), r.Cookies())
+
 			if err != nil {
 				responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 				return
@@ -184,10 +189,10 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
+
 		next(w, r)
 	}
 }
-
 
 // LogoutHandler godoc
 // @Summary Log out a user

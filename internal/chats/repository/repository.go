@@ -65,7 +65,7 @@ func NewChatRepository(pool *pgxpool.Pool) (ChatRepository, error) {
 		nil
 }
 
-func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
+func (r *ChatRepositoryImpl) CreateNewChat(ctx context.Context, chat chatModel.Chat) error {
 	chatDAO := chatModel.ChatDAO{
 		ChatId:      chat.ChatId,
 		ChatName:    chat.ChatName,
@@ -74,7 +74,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 		ChatURLName: chat.ChatURLName,
 	}
 
-	conn, err := r.pool.Acquire(context.Background())
+	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Unable to acquire a database connection: %v\n", err)
 		return err
@@ -83,7 +83,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 
 	var row pgx.Row
 	if chatDAO.ChatURLName == "" && chatDAO.AvatarURL == "" {
-		row = conn.QueryRow(context.Background(),
+		row = conn.QueryRow(ctx,
 			`INSERT INTO chat (id, chat_name, chat_type_id)
 		VALUES ($1, $2, $3)
 		RETURNING id;`,
@@ -92,7 +92,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 			chatDAO.ChatTypeId,
 		)
 	} else if chatDAO.ChatURLName == "" {
-		row = conn.QueryRow(context.Background(),
+		row = conn.QueryRow(ctx,
 			`INSERT INTO chat (id, chat_name, chat_type_id, avatar_path)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id;`,
@@ -102,7 +102,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 			chatDAO.AvatarURL,
 		)
 	} else if chatDAO.AvatarURL == "" {
-		row = conn.QueryRow(context.Background(),
+		row = conn.QueryRow(ctx,
 			`INSERT INTO chat (id, chat_name, chat_type_id, chat_link_name)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id;`,
@@ -112,7 +112,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 			chatDAO.ChatURLName,
 		)
 	} else {
-		row = conn.QueryRow(context.Background(),
+		row = conn.QueryRow(ctx,
 			`INSERT INTO chat (id, chat_name, chat_type_id, avatar_path, chat_link_name)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id;`,
@@ -135,9 +135,9 @@ func (r *ChatRepositoryImpl) CreateNewChat(chat chatModel.Chat) error {
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) ([]chatModel.Chat, error) {
+func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID, pageNum int) ([]chatModel.Chat, error) {
 
-	conn, err := r.pool.Acquire(context.Background())
+	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return nil, err
@@ -145,7 +145,7 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) ([]chat
 	defer conn.Release()
 	log.Println("Repository: Соединение с бд установлено")
 
-	rows, err := conn.Query(context.Background(),
+	rows, err := conn.Query(ctx,
 		`SELECT c.id,
 		c.chat_name,
 		ch.value,
@@ -196,9 +196,9 @@ func (r *ChatRepositoryImpl) GetUserChats(userId uuid.UUID, pageNum int) ([]chat
 	return chats, nil
 }
 
-func (r *ChatRepositoryImpl) GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUID) (string, error) {
+func (r *ChatRepositoryImpl) GetUserRoleInChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) (string, error) {
 	// идем в бд по двум полям: если есть то тру
-	conn, err := r.pool.Acquire(context.Background())
+	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return "", err
@@ -206,7 +206,7 @@ func (r *ChatRepositoryImpl) GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUI
 	defer conn.Release()
 
 	var role string
-	err = conn.QueryRow(context.Background(),
+	err = conn.QueryRow(ctx,
 		`SELECT ur.value
 		FROM chat_user AS cu
 		JOIN user_role AS ur ON ur.id = cu.user_role_id
@@ -222,8 +222,8 @@ func (r *ChatRepositoryImpl) GetUserRoleInChat(userId uuid.UUID, chatId uuid.UUI
 	return role, nil
 }
 
-func (r *ChatRepositoryImpl) AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID, userROle string) error {
-	conn, err := r.pool.Acquire(context.Background())
+func (r *ChatRepositoryImpl) AddUserIntoChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, userROle string) error {
+	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return err
@@ -231,7 +231,7 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID,
 	defer conn.Release()
 
 	var id uuid.UUID
-	err = conn.QueryRow(context.Background(),
+	err = conn.QueryRow(ctx,
 		`INSERT INTO chat_user (id, user_role_id, chat_id, user_id)
 		VALUES ($1, (SELECT id FROM user_role WHERE value = $2), $3, $4)
 		RETURNING id;`,
@@ -242,30 +242,35 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(userId uuid.UUID, chatId uuid.UUID,
 	).Scan(&id)
 
 	if err != nil {
+		log.Printf("польтзователь %v не добавлен в чат %v. Ошибка: ", userId, chatId, err)
 		return err
 	}
-
+	log.Printf("польтзователь %v добавлен в чат %v", userId, chatId)
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetCountOfUsersInChat(chatId uuid.UUID) (int, error) {
-	conn, err := r.pool.Acquire(context.Background())
+func (r *ChatRepositoryImpl) GetCountOfUsersInChat(ctx context.Context, chatId uuid.UUID) (int, error) {
+	log.Printf("Chat repository: установка количества участников чата: %v", chatId)
+
+	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return 0, err
 	}
-	defer conn.Release()
+	defer func() { conn.Release() }()
 
 	var count int
-	err = conn.QueryRow(context.Background(),
+
+	err = conn.QueryRow(ctx,
 		`SELECT COUNT(id)
 		FROM chat_user AS cu
-		WHERE cu.chat_id = $1`,
+		WHERE cu.chat_id = $1;`,
 		chatId,
 	).Scan(&count)
 
 	if err != nil {
 		return 0, err
 	}
+
 	return count, err
 }

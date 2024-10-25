@@ -21,6 +21,9 @@ import (
 	contactsRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/repository"
 	contactsUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/delivery"
+	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
+	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
@@ -48,13 +51,16 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
+
 func main() {
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
 	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
+
 	defer pool.Close()
 	log.Println("База данных подключена")
 
@@ -74,8 +80,10 @@ func main() {
 	profile := profileDelivery.New(profileUC, tokenUC)
 
 	// chats
+	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
+
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
@@ -83,9 +91,13 @@ func main() {
 	contactsUC := contactsUC.New(contactsRepo)
 	contacts := contactsDelivery.New(contactsUC, tokenUC)
 
+  // messages
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, tokenUC)
+	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
+
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(ctx)
+			// r = r.WithContext(ctx) не работает nux.Vars(r), т.к. убирается сонтекст
 			next.ServeHTTP(w, r)
 		})
 	})
@@ -97,6 +109,7 @@ func main() {
 	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
+
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.GetProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
@@ -105,6 +118,8 @@ func main() {
 	router.HandleFunc("/contacts", auth.Middleware(contacts.AddContactHandler)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+
+	router.HandleFunc("/chat/{chatId}",  messageDelivery.HandleConnection)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{

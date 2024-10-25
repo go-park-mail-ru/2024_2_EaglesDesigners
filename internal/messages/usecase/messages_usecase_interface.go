@@ -1,8 +1,15 @@
 package usecase
 
-import "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
+import (
+	"context"
+	"net/http"
 
-type MessagesUsecase interface {
-	SendMessage(userId int, chatId int) error
-	GetMessages(page int, chatId int) ([]models.MessagesArrayDTO, error)
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
+	"github.com/google/uuid"
+)
+
+type MessageUsecase interface {
+	SendMessage(ctx context.Context, cookie []*http.Cookie, chatId uuid.UUID, message models.Message) error
+	GetMessages(ctx context.Context, chatId uuid.UUID, pageId int) (models.MessagesArrayDTO, error)
+	ScanForNewMessages(channel chan<- []models.Message, chatId uuid.UUID, res chan<- error, closeChannel <-chan bool)
 }
