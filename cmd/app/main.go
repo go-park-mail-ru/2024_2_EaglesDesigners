@@ -17,6 +17,9 @@ import (
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	contactsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/delivery"
+	contactsRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/repository"
+	contactsUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
@@ -74,6 +77,11 @@ func main() {
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
+	// contacts
+	contactsRepo := contactsRepo.New(pool)
+	contactsUC := contactsUC.New(contactsRepo)
+	contacts := contactsDelivery.New(contactsUC, tokenUC)
+
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r = r.WithContext(ctx)
@@ -92,7 +100,7 @@ func main() {
 	router.HandleFunc("/profile", profile.GetProfileHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
 	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
-
+	router.HandleFunc("/contacts", auth.Middleware(contacts.GetContactsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
