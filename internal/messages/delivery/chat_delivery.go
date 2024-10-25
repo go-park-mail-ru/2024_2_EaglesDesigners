@@ -29,7 +29,7 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	chatId := mux.Vars(r)["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
-
+	
 	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
 
 	if err != nil {

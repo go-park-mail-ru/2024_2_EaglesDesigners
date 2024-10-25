@@ -48,13 +48,14 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
+
 func main() {
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
-	
+
 	defer pool.Close()
 	log.Println("База данных подключена")
 
@@ -80,13 +81,12 @@ func main() {
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
-	
 	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, tokenUC)
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(ctx)
+			// r = r.WithContext(ctx) не работает nux.Vars(r), т.к. убирается сонтекст
 			next.ServeHTTP(w, r)
 		})
 	})
@@ -104,11 +104,10 @@ func main() {
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
 	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
 
-
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-	router.HandleFunc("/chat/{chatId}", auth.Middleware(messageDelivery.HandleConnection)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}",  messageDelivery.HandleConnection)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
