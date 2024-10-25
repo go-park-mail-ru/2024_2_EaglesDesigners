@@ -34,7 +34,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 		pageNum = 0
 	}
 
-	chats, err := c.service.GetChats(context.Background(), r.Cookies(), pageNum)
+	chats, err := c.service.GetChats(r.Context(), r.Cookies(), pageNum)
 
 	if err != nil {
 		fmt.Println(err)
@@ -72,7 +72,7 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.service.AddNewChat(context.Background(), r.Cookies(), chatDTO)
+	err = c.service.AddNewChat(r.Context(), r.Cookies(), chatDTO)
 	if err != nil {
 		log.Printf("Не удалось добавить чат: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

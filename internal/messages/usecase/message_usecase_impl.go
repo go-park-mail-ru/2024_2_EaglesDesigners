@@ -4,18 +4,20 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"time"
 
-	middleware "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
-	
-	"github.com/jackc/pgx/v4"
+
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 )
 
 type MessageUsecaseImplm struct {
 	messageRepository repository.MessageRepository
+	tokenUsecase      *usecase.Usecase
 }
 
 func NewMessageUsecaseImpl(messageRepository repository.MessageRepository) MessageUsecase {
@@ -24,16 +26,22 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository) Messa
 	}
 }
 
-func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, chatId uuid.UUID, message models.Message) error {
+func (u *MessageUsecaseImplm) SendMessage(ctx context.Context,  cookie []*http.Cookie, chatId uuid.UUID, message models.Message) error {
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
+
+	user, err := u.tokenUsecase.GetUserByJWT(ctx, cookie)
+	if err != nil {
+		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+	}
+	log.Printf("Chat usecase: пришел запрос на получение всех чатов от пользователя: %v", user.ID)
 
 	message.MessageId = uuid.New()
 	message.SentAt = time.Now()
-	message.AuthorID = ctx.Value(middleware.UserIDKey).(uuid.UUID)
+	message.AuthorID = user.ID
 
 	log.Printf("Usecase: сообщение от прользователя: %v", message.AuthorID)
 
-	err := u.messageRepository.AddMessage(message, chatId)
+	err = u.messageRepository.AddMessage(message, chatId)
 	if err != nil {
 		log.Printf("Usecase: не удалось добавить сообщение: %v", err)
 		return err

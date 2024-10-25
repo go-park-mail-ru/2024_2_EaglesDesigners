@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
@@ -45,6 +46,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	if err != nil {
 		return []chatModel.ChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
+	log.Printf("Chat usecase: пришел запрос на получение всех чатов от пользователя: %v", user.ID)
 
 	chats, err := s.repository.GetUserChats(ctx, user.ID, pageNum)
 	if err != nil {
@@ -63,7 +65,9 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 		}
 		log.Println("Usecase: последнее сообщение получено")
 
+		log.Printf("Chat usecase: установка количества участников чата: %v", chat.ChatId)
 		countOfUsers, err := s.repository.GetCountOfUsersInChat(ctx, chat.ChatId)
+
 		if err != nil {
 			log.Printf("Usecase: не удалось получить количество пользователей: %v", err)
 			return nil, err
@@ -79,7 +83,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 			}
 
 			photoBase64, err = base64helper.ReadPhotoBase64(phId)
-			if err != nil {
+			if err != nil && !os.IsNotExist(err) {
 				return nil, err
 			}
 		}
@@ -155,6 +159,14 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 
 	// добавление владельца
 	err = s.repository.AddUserIntoChat(ctx, user.ID, chatId, owner)
+
+	if err != nil {
+		log.Printf("Не удалось добавить пользователя в чат: %v", err)
+		return err
+	}
+
+	log.Printf("Chat usecase: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
+	err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователя в чат: %v", err)
