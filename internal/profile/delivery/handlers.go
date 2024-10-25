@@ -47,21 +47,22 @@ func New(usecase usecase, token token) *Delivery {
 // @Tags profile
 // @Accept json
 // @Produce json
-// @Param credentials body models.GetProfileRequestDTO true "Credentials for get profile data"
+// @Security BearerAuth
 // @Success 200 {object} models.GetProfileResponseDTO "Profile data found"
 // @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
+// @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile [get]
 func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var profile models.GetProfileRequestDTO
-	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
-		responser.SendErrorResponse(w, invalidJSONError, http.StatusBadRequest)
+	user, err := d.token.GetUserByJWT(ctx, r.Cookies())
+	if err != nil {
+		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
-	username := profile.Username
+	username := user.Username
 
 	profileData, err := d.usecase.GetProfile(ctx, username)
 	if err != nil {
@@ -111,6 +112,7 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 // @Param credentials body models.UpdateProfileRequestDTO true "Credentials for update profile data"
 // @Success 200 {object} responser.SuccessResponse "Profile updated"
 // @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
+// @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile [put]
 func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
