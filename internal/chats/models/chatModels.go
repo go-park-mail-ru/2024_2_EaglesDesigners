@@ -27,6 +27,7 @@ type ChatDTO struct {
 	LastMessage messageModel.Message `json:"lastMessage"`
 	// фото в формате base64
 	AvatarBase64 string `json:"avatarBase64"`
+	UsersToAdd []uuid.UUID `json:"usersToAdd"`
 }
 
 type ChatDAO struct {

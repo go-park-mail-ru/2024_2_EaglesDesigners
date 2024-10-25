@@ -242,13 +242,16 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(ctx context.Context, userId uuid.UU
 	).Scan(&id)
 
 	if err != nil {
+		log.Printf("польтзователь %v не добавлен в чат %v. Ошибка: ", userId, chatId, err)
 		return err
 	}
-
+	log.Printf("польтзователь %v добавлен в чат %v", userId, chatId)
 	return nil
 }
 
 func (r *ChatRepositoryImpl) GetCountOfUsersInChat(ctx context.Context, chatId uuid.UUID) (int, error) {
+	log.Printf("Chat repository: установка количества участников чата: %v", chatId)
+
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
