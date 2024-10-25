@@ -31,6 +31,21 @@ run: build
 	./$(BINARY_NAME)
 
 
+# Команда для генерации сваггера
+
+swagger:
+
+	swag init -g cmd/app/main.go
+
+
+# Команда для отчета покрытия тестами
+
+test:
+
+	go test -coverprofile=coverage.out ./... ; \
+	go tool cover -func=coverage.out
+
+
 # Команда для установки зависимостей
 
 deps:
