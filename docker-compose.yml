@@ -2,6 +2,7 @@ services:
   patefon:
     container_name: patefon
     build:
+      context: .
       dockerfile: ./Dockerfile
     depends_on:
       postgres:
