@@ -50,7 +50,7 @@ import (
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
@@ -71,7 +71,7 @@ func main() {
 	// profile
 	profileRepo := profileRepo.New(pool)
 	profileUC := profileUC.New(profileRepo)
-	profile := profileDelivery.New(profileUC)
+	profile := profileDelivery.New(profileUC, tokenUC)
 
 	// chats
 	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
@@ -98,8 +98,12 @@ func main() {
 	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
-	router.HandleFunc("/profile", profile.GetProfileHandler).Methods("GET", "OPTIONS")
-	router.HandleFunc("/profile", profile.UpdateProfileHandler).Methods("PUT", "OPTIONS")
+
+	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/profile", auth.Middleware(profile.GetProfileHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
+	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
+
 
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)

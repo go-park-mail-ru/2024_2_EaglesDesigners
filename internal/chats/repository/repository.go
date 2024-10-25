@@ -183,7 +183,6 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID,
 			return nil, err
 		}
 
-
 		chats = append(chats, chatModel.Chat{
 			ChatId:      chatId,
 			ChatName:    chatName,

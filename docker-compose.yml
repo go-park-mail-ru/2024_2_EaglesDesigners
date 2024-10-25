@@ -1,0 +1,24 @@
+services:
+  patefon:
+    container_name: patefon
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      postgres:
+        condition: service_started
+    restart: always
+    ports:
+      - "8080:8080"
+  
+  postgres:
+    container_name: postgres
+    image: postgres:15.0
+    environment:
+      POSTGRES_DB: patefon
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - ./db/migrations:/docker-entrypoint-initdb.d
