@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -18,19 +19,18 @@ func New(pool *pgxpool.Pool) *Repository {
 	}
 }
 
-func (r *Repository) GetContacts(ctx context.Context, username string) (contacts []models.UserDAO, err error) {
+func (r *Repository) GetContacts(ctx context.Context, username string) (contacts []models.ContactDAO, err error) {
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Не удалось соединиться с базой данных: %v\n", err)
+		log.Printf("Repository: Не удалось соединиться с базой данных: %v\n", err)
 		return contacts, err
 	}
 	defer conn.Release()
 
-	log.Println("repo before query")
-
 	rows, err := conn.Query(
 		ctx,
-		`SELECT 
+		`SELECT
+			id,
 			username,
 			name,
 			avatar_path
@@ -44,102 +44,84 @@ func (r *Repository) GetContacts(ctx context.Context, username string) (contacts
 		username,
 	)
 	if err != nil {
-		log.Printf("Не удалось получить контакты: %v\n", err)
+		log.Printf("Repository: Не удалось получить контакты: %v\n", err)
 		return contacts, err
 	}
 	defer rows.Close()
 
-	log.Println("repo after query")
-
 	for rows.Next() {
-		var user models.UserDAO
+		var contact models.ContactDAO
 
-		if err = rows.Scan(&user.Username, &user.Name, &user.AvatarURL); err != nil {
-			log.Printf("Не удалось получить контакты: %v\n", err)
+		if err = rows.Scan(&contact.ID, &contact.Username, &contact.Name, &contact.AvatarURL); err != nil {
+			log.Printf("Repository: Не удалось получить контакты: %v\n", err)
 			return contacts, err
 		}
-		contacts = append(contacts, user)
+		contacts = append(contacts, contact)
 	}
 
-	log.Println("repo cont", contacts)
-
-	log.Println("repo done")
+	log.Println("Repository: данные получены")
 
 	return contacts, nil
 }
 
-// UPDATE public."user"
-// SET
-// name = $2,
-// bio = $3,
-// birthdate = $4,
-// avatar_path = $5
-// WHERE username = $1
-// RETURNING avatar_path;
-// func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error) {
-// 	conn, err := r.pool.Acquire(ctx)
-// 	if err != nil {
-// 		log.Printf("Не удалось соединиться с базой данных: %v\n", err)
-// 		return nil, err
-// 	}
-// 	defer conn.Release()
+func (r *Repository) AddContact(ctx context.Context, contactData models.ContactDataDAO) (models.ContactDAO, error) {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Не удалось соединиться с базой данных: %v\n", err)
+		return models.ContactDAO{}, err
+	}
+	defer conn.Release()
 
-// 	row := conn.QueryRow(
-// 		ctx,
-// 		`SELECT avatar_path
-// 		FROM public."user"
-// 		WHERE username = $1;`,
-// 		profile.Username,
-// 	)
+	tx, err := conn.Conn().Begin(ctx)
+	if err != nil {
+		log.Printf("Repository: Не удалось создать транзацию: %v\n", err)
+		return models.ContactDAO{}, err
+	}
 
-// 	err = row.Scan(&avatarURL)
-// 	if err != nil {
-// 		return nil, errors.New("не получилось получить avatarURL")
-// 	}
+	newUUID := uuid.New()
 
-// 	if avatarURL == nil {
-// 		avatarURL = new(string)
-// 		*avatarURL = uuid.New().String()
-// 	}
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO public.contact 
+		(id, 
+		user_id, 
+		contact_id
+		)
+		VALUES ($1,$2, (SELECT id FROM public."user" WHERE username = $3));`,
+		newUUID.String(),
+		contactData.UserID,
+		contactData.ContactUsername,
+	)
 
-// 	query := `UPDATE public."user" SET `
-// 	var rowsWithFields []string
+	if err != nil {
+		log.Printf("Repository: Не удалось создать контакт: %v\n", err)
+		return models.ContactDAO{}, err
+	}
 
-// 	var args []interface{}
+	var contact models.ContactDAO
 
-// 	args = append(args, profile.Username)
+	contact.Username = contactData.ContactUsername
 
-// 	if profile.Name != nil {
-// 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("name = $%d", len(args)+1))
-// 		args = append(args, profile.Name)
-// 	}
-// 	if profile.Bio != nil {
-// 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("bio = $%d", len(args)+1))
-// 		args = append(args, profile.Bio)
-// 	}
-// 	if profile.AvatarBase64 != nil {
-// 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("avatar_path = $%d", len(args)+1))
-// 		args = append(args, avatarURL)
-// 	}
-// 	if profile.Birthdate != nil {
-// 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("birthdate = $%d", len(args)+1))
-// 		args = append(args, profile.Birthdate)
-// 	}
+	err = tx.QueryRow(
+		ctx,
+		`SELECT 
+			id,
+			name,
+			avatar_path
+		FROM public."user"
+		WHERE username = $1;`,
+		contactData.ContactUsername,
+	).Scan(&contact.ID, &contact.Name, &contact.AvatarURL)
 
-// 	if len(args) == 1 {
-// 		return nil, errors.New("нет полей для обновления")
-// 	}
+	if err != nil {
+		log.Printf("Repository: Не удалось получить данные контакта: %v\n", err)
+		return models.ContactDAO{}, err
+	}
 
-// 	query += fmt.Sprintf("%s WHERE username = $1", strings.Join(rowsWithFields, ", ")) + " RETURNING avatar_path;"
+	if err = tx.Commit(ctx); err != nil {
+		log.Printf("Repository: Не удалось подтвердить транзакцию: %v\n", err)
+		return models.ContactDAO{}, err
+	}
 
-// 	log.Println(query)
-
-// 	row = conn.QueryRow(ctx, query, args...)
-
-// 	err = row.Scan(&avatarURL)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return avatarURL, nil
-// }
+	return contact, nil
+}

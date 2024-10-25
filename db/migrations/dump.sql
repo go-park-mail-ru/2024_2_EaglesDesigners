@@ -177,6 +177,22 @@ ALTER TABLE ONLY public.chat_user
 
 ALTER TABLE ONLY public.contact
     ADD CONSTRAINT contact_pkey PRIMARY KEY (id);
+   
+   
+--
+-- Name: contact unique_user_contact_pair; Type: CONSTRAINT; Schema: public; Owner: postgres
+--  
+ 
+ALTER TABLE ONLY public.contact
+	ADD CONSTRAINT unique_user_contact_pair UNIQUE (user_id, contact_id);
+
+
+--
+-- Name: contact user_contact_not_equal; Type: CONSTRAINT; Schema: public; Owner: postgres
+--  
+ 
+ALTER TABLE ONLY public.contact
+	ADD CONSTRAINT user_contact_not_equal CHECK (user_id <> contact_id);
 
 
 --
@@ -316,3 +332,16 @@ INSERT INTO public."user" (id, username, version, password, name, bio, birthdate
     (gen_random_uuid(), 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', 'd60053d3-e3a9-4a30-b9a3-cdfdc3431fde'),
     (gen_random_uuid(), 'user33', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Dr Peper', 'Люблю газированные напитки 🥤', '1988-12-01T00:00:00Z', NULL),
     (gen_random_uuid(), 'user44', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Vincent Vega', 'Фанат кино 🎬', '1985-07-14T00:00:00Z', '8027453b-fb36-452d-92dc-c356075fabef');
+
+
+--
+-- Insert test data to contacts
+--
+
+INSERT INTO contact (id, user_id, contact_id) VALUES 
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user22')),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user44')),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user11')),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user33'), (SELECT id FROM public."user" WHERE username = 'user22'));

@@ -46,6 +46,35 @@ definitions:
         example: user12
         type: string
     type: object
+  models.AddContactReqDTO:
+    properties:
+      contactUsername:
+        example: user11
+        type: string
+    type: object
+  models.ContactDTO:
+    properties:
+      avatarBase64:
+        example: this is Base64 photo
+        type: string
+      id:
+        example: 08a0f350-e122-467b-8ba8-524d2478b56e
+        type: string
+      name:
+        description: can be nil
+        example: Витек
+        type: string
+      username:
+        example: user11
+        type: string
+    type: object
+  models.GetContactsRespDTO:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/models.ContactDTO'
+        type: array
+    type: object
   models.GetProfileResponseDTO:
     properties:
       avatarBase64:
@@ -124,6 +153,66 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /contacts:
+    get:
+      consumes:
+      - application/json
+      description: Get all contacts of user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Contacts found
+          schema:
+            $ref: '#/definitions/models.GetContactsRespDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all contacts
+      tags:
+      - contacts
+    post:
+      consumes:
+      - application/json
+      description: Create a new contact for the user.
+      parameters:
+      - description: Credentials for create a new contact
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddContactReqDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Contact created
+          schema:
+            $ref: '#/definitions/models.ContactDTO'
+        "400":
+          description: Failed to create contact
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add new contact
+      tags:
+      - contacts
   /login:
     post:
       consumes:

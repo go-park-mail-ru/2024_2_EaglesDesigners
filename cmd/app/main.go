@@ -51,6 +51,7 @@ import (
 func main() {
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
+	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
@@ -101,6 +102,7 @@ func main() {
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
 	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Middleware(contacts.GetContactsHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/contacts", auth.Middleware(contacts.AddContactHandler)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 

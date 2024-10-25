@@ -127,6 +127,7 @@ func (u *Usecase) GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (Use
 
 	repoUser, err := u.repository.GetUserByUsername(ctx, payload.Sub)
 	if err != nil {
+		log.Println("Пользователь не найден: ", err)
 		return User{}, err
 	}
 

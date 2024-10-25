@@ -19,11 +19,11 @@ const (
 )
 
 type usecase interface {
-	GetContacts(ctx context.Context, username string) (contacts []models.User, err error)
+	GetContacts(ctx context.Context, username string) (contacts []models.Contact, err error)
+	AddContact(ctx context.Context, contactData models.ContactData) (models.Contact, error)
 }
 
 type token interface {
-	// GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
 	GetUserDataByJWT(cookies []*http.Cookie) (jwt.UserData, error)
 }
 
@@ -40,27 +40,29 @@ func New(usecase usecase, token token) *Delivery {
 	}
 }
 
-// LoginHandler godoc
-// @Summary Get profile data
-// @Description Get bio, avatar and birthdate of user.
-// @Tags profile
+// GetContactsHandler godoc
+// @Summary Get all contacts
+// @Description Get all contacts of user.
+// @Tags contacts
 // @Accept json
 // @Produce json
-// @Param credentials body models.GetProfileRequestDTO true "Credentials for get profile data"
-// @Success 200 {object} models.GetProfileResponseDTO "Profile data found"
-// @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
+// @Security BearerAuth
+// @Success 200 {object} models.GetContactsRespDTO "Contacts found"
+// @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
-// @Router /profile [get]
+// @Router /contacts [get]
 func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	log.Println("Пришел запрос на получение контактов")
+
+	log.Println("Получение пользователя из jwt")
 	user, err := d.token.GetUserDataByJWT(r.Cookies())
 	if err != nil {
+		log.Println("Пользователь не найден")
 		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
 		return
 	}
-
-	log.Println("hand before get con")
 
 	contacts, err := d.usecase.GetContacts(ctx, user.Username)
 	if err != nil {
@@ -68,10 +70,16 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("hand after get con")
+	log.Println("Контакты получены")
 
-	response := models.GetContactsResponseDTO{
-		Contacts: contacts,
+	var contactsDTO []models.ContactDTO
+
+	for _, contact := range contacts {
+		contactsDTO = append(contactsDTO, convertContactToDTO(contact))
+	}
+
+	response := models.GetContactsRespDTO{
+		Contacts: contactsDTO,
 	}
 
 	jsonResp, err := json.Marshal(response)
@@ -84,42 +92,71 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-// LoginHandler godoc
-// @Summary Update profile data
-// @Description Update bio, avatar, name or birthdate of user.
-// @Tags profile
+// AddContactHandler godoc
+// @Summary Add new contact
+// @Description Create a new contact for the user.
+// @Tags contacts
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param credentials body models.UpdateProfileRequestDTO true "Credentials for update profile data"
-// @Success 200 {object} responser.SuccessResponse "Profile updated"
-// @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
+// @Param credentials body models.AddContactReqDTO true "Credentials for create a new contact"
+// @Success 201 {object} models.ContactDTO "Contact created"
+// @Failure 400 {object} responser.ErrorResponse "Failed to create contact"
+// @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
-// @Router /profile [put]
+// @Router /contacts [post]
 func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	// ctx := r.Context()
+	ctx := r.Context()
 
-	// user, err := d.token.GetUserByJWT(ctx, r.Cookies())
-	// if err != nil {
-	// 	responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
-	// 	return
-	// }
+	log.Println("Пришел запрос на добавление контакта")
 
-	// var profile models.UpdateProfileRequestDTO
+	userData, err := d.token.GetUserDataByJWT(r.Cookies())
+	if err != nil {
+		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+		return
+	}
 
-	// profile.Username = user.Username
+	var contactCreds models.AddContactReqDTO
 
-	// if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
-	// 	responser.SendErrorResponse(w, invalidJSONError, http.StatusBadRequest)
-	// 	return
-	// }
+	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
+		log.Println("В теле запросе нет необходимых тегов")
+		responser.SendErrorResponse(w, invalidJSONError, http.StatusBadRequest)
+		return
+	}
 
-	// if err := d.usecase.UpdateProfile(ctx, profile); err != nil {
-	// 	responser.SendErrorResponse(w, "Failed to update profile", http.StatusBadRequest)
-	// 	return
-	// }
+	var contactData models.ContactData
 
-	// responser.SendOKResponse(w, "Profile updated", http.StatusOK)
+	contactData.UserID = userData.ID.String()
+	contactData.ContactUsername = contactCreds.Username
+
+	contact, err := d.usecase.AddContact(ctx, contactData)
+	if err != nil {
+		responser.SendErrorResponse(w, "Failed to create contact", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("Контакт создан")
+
+	response := convertContactToDTO(contact)
+
+	jsonResp, err := json.Marshal(response)
+	if err != nil {
+		responser.SendErrorResponse(w, responseError, http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(jsonResp)
+}
+
+func convertContactToDTO(contact models.Contact) models.ContactDTO {
+	return models.ContactDTO{
+		ID:           contact.ID,
+		Username:     contact.Username,
+		Name:         contact.Name,
+		AvatarBase64: contact.AvatarBase64,
+	}
 }
