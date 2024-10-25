@@ -46,12 +46,6 @@ definitions:
         example: user12
         type: string
     type: object
-  models.GetProfileRequestDTO:
-    properties:
-      username:
-        example: killer1994
-        type: string
-    type: object
   models.GetProfileResponseDTO:
     properties:
       avatarBase64:
@@ -184,13 +178,6 @@ paths:
       consumes:
       - application/json
       description: Get bio, avatar and birthdate of user.
-      parameters:
-      - description: Credentials for get profile data
-        in: body
-        name: credentials
-        required: true
-        schema:
-          $ref: '#/definitions/models.GetProfileRequestDTO'
       produces:
       - application/json
       responses:
@@ -202,10 +189,16 @@ paths:
           description: Invalid format JSON
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "404":
           description: User not found
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get profile data
       tags:
       - profile
@@ -229,6 +222,10 @@ paths:
             $ref: '#/definitions/responser.SuccessResponse'
         "400":
           description: Invalid format JSON
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
         "404":

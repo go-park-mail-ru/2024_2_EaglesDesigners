@@ -124,6 +124,11 @@
         },
         "/profile": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get bio, avatar and birthdate of user.",
                 "consumes": [
                     "application/json"
@@ -135,17 +140,6 @@
                     "profile"
                 ],
                 "summary": "Get profile data",
-                "parameters": [
-                    {
-                        "description": "Credentials for get profile data",
-                        "name": "credentials",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.GetProfileRequestDTO"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Profile data found",
@@ -155,6 +149,12 @@
                     },
                     "400": {
                         "description": "Invalid format JSON",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -204,6 +204,12 @@
                     },
                     "400": {
                         "description": "Invalid format JSON",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -329,15 +335,6 @@
                 "username": {
                     "type": "string",
                     "example": "user12"
-                }
-            }
-        },
-        "models.GetProfileRequestDTO": {
-            "type": "object",
-            "properties": {
-                "username": {
-                    "type": "string",
-                    "example": "killer1994"
                 }
             }
         },

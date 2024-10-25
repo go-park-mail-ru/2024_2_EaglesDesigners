@@ -130,6 +130,11 @@ const docTemplate = `{
         },
         "/profile": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get bio, avatar and birthdate of user.",
                 "consumes": [
                     "application/json"
@@ -141,17 +146,6 @@ const docTemplate = `{
                     "profile"
                 ],
                 "summary": "Get profile data",
-                "parameters": [
-                    {
-                        "description": "Credentials for get profile data",
-                        "name": "credentials",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.GetProfileRequestDTO"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Profile data found",
@@ -161,6 +155,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid format JSON",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -210,6 +210,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid format JSON",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -335,15 +341,6 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "user12"
-                }
-            }
-        },
-        "models.GetProfileRequestDTO": {
-            "type": "object",
-            "properties": {
-                "username": {
-                    "type": "string",
-                    "example": "killer1994"
                 }
             }
         },
