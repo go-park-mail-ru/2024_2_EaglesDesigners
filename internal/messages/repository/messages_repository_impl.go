@@ -31,6 +31,8 @@ func (r *MessageRepositoryImpl) GetMessages(page int, chatId uuid.UUID) ([]model
 		log.Printf("Repository: не удалось установить соединение: %v", err)
 		return nil, err
 	}
+	defer conn.Release()
+
 	log.Printf("Repository: соединение успешно установлено")
 
 	rows, err := conn.Query(context.Background(),
@@ -92,6 +94,7 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 		log.Printf("Repository: не удалось установить соединение: %v", err)
 		return err
 	}
+	defer conn.Release()
 	log.Printf("Repository: соединение успешно установлено")
 
 	// нужно чё-то придумать со стикерами
@@ -120,6 +123,8 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 		log.Printf("Repository: не удалось установить соединение: %v", err)
 		return models.Message{}, err
 	}
+	defer conn.Release()
+
 	log.Println("Repository: соединение успешно установлено")
 
 	// нужно чё-то придумать со стикерами
@@ -175,6 +180,7 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time
 		log.Printf("Repository: не удалось установить соединение: %v", err)
 		return nil, err
 	}
+	defer conn.Release()
 	log.Printf("Repository: соединение успешно установлено")
 
 	rows, err := conn.Query(context.Background(),

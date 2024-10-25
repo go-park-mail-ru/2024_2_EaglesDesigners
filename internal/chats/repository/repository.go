@@ -257,18 +257,20 @@ func (r *ChatRepositoryImpl) GetCountOfUsersInChat(ctx context.Context, chatId u
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
 		return 0, err
 	}
-	defer conn.Release()
+	defer func() { conn.Release() }()
 
 	var count int
+
 	err = conn.QueryRow(ctx,
 		`SELECT COUNT(id)
 		FROM chat_user AS cu
-		WHERE cu.chat_id = $1`,
+		WHERE cu.chat_id = $1;`,
 		chatId,
 	).Scan(&count)
 
 	if err != nil {
 		return 0, err
 	}
+
 	return count, err
 }

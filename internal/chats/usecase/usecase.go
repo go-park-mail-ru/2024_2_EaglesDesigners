@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
@@ -66,6 +67,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 
 		log.Printf("Chat usecase: установка количества участников чата: %v", chat.ChatId)
 		countOfUsers, err := s.repository.GetCountOfUsersInChat(ctx, chat.ChatId)
+
 		if err != nil {
 			log.Printf("Usecase: не удалось получить количество пользователей: %v", err)
 			return nil, err
@@ -81,7 +83,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 			}
 
 			photoBase64, err = base64helper.ReadPhotoBase64(phId)
-			if err != nil {
+			if err != nil && !os.IsNotExist(err) {
 				return nil, err
 			}
 		}

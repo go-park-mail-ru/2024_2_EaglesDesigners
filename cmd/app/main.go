@@ -54,7 +54,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
-
+	
 	defer pool.Close()
 	log.Println("База данных подключена")
 
