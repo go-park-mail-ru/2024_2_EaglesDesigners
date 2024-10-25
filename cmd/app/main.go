@@ -18,6 +18,9 @@ import (
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/delivery"
+	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
+	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
@@ -51,6 +54,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
+
 	defer pool.Close()
 	log.Println("База данных подключена")
 
@@ -70,9 +74,15 @@ func main() {
 	profile := profileDelivery.New(profileUC, tokenUC)
 
 	// chats
+	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
+
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
 	chat := chatController.NewChatDelivery(chatService)
+
+	
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo)
+	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -88,13 +98,17 @@ func main() {
 	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
+
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.GetProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
 	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
 
+
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+
+	router.HandleFunc("/chat/{chatId}", auth.Middleware(messageDelivery.HandleConnection)).Methods("GET", "OPTIONS")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{

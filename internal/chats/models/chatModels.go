@@ -2,6 +2,8 @@ package model
 
 import (
 	"github.com/google/uuid"
+
+	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 )
 
 // @Schema
@@ -17,11 +19,12 @@ type Chat struct {
 }
 
 type ChatDTO struct {
-	ChatName     string `json:"chatName" example:"Чат с пользователем 2"`
-	CountOfUsers int    `json:"countOfUsers"`
+	ChatId       uuid.UUID `json:"chatId"`
+	ChatName     string    `json:"chatName" example:"Чат с пользователем 2"`
+	CountOfUsers int       `json:"countOfUsers"`
 	// @Enum [personalMessages, group, channel]
-	ChatType    string `json:"chatType" example:"personalMessages"`
-	LastMessage string `json:"lastMessage" example:"Когда за кофе?"`
+	ChatType    string               `json:"chatType" example:"personalMessages"`
+	LastMessage messageModel.Message `json:"lastMessage"`
 	// фото в формате base64
 	AvatarBase64 string `json:"avatarBase64"`
 }
@@ -38,8 +41,9 @@ type ChatsDTO struct {
 	Chats []ChatDTO `json:"chats"`
 }
 
-func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage string, AvatarBase64 string) ChatDTO {
+func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage messageModel.Message, AvatarBase64 string) ChatDTO {
 	return ChatDTO{
+		ChatId:       chat.ChatId,
 		ChatName:     chat.ChatName,
 		CountOfUsers: countOfUsers,
 		ChatType:     chat.ChatType,
@@ -49,7 +53,6 @@ func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage string, AvatarBase6
 }
 
 type AddUsersIntoChatDTO struct {
-	ChatId uuid.UUID `json:"chatId"`
+	ChatId  uuid.UUID   `json:"chatId"`
 	UsersId []uuid.UUID `json:"usersId"`
-
 }
