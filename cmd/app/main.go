@@ -81,7 +81,7 @@ func main() {
 	chat := chatController.NewChatDelivery(chatService)
 
 	
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, tokenUC)
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
 	router.Use(func(next http.Handler) http.Handler {

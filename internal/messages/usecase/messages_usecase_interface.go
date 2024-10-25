@@ -11,6 +11,5 @@ import (
 type MessageUsecase interface {
 	SendMessage(ctx context.Context, cookie []*http.Cookie, chatId uuid.UUID, message models.Message) error
 	GetMessages(ctx context.Context, chatId uuid.UUID, pageId int) (models.MessagesArrayDTO, error)
-	ScanForNewMessages(channel chan <- []models.Message, chatId uuid.UUID, res chan <- error, closeChannel <- chan bool)
-	
+	ScanForNewMessages(channel chan<- []models.Message, chatId uuid.UUID, res chan<- error, closeChannel <-chan bool)
 }
