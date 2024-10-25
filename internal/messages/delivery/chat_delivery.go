@@ -3,6 +3,7 @@ package delivery
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
@@ -29,7 +30,7 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	chatId := mux.Vars(r)["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
-	
+
 	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
 
 	if err != nil {
@@ -45,6 +46,7 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer log.Println("Message delivery: websocket is closing")
 	defer conn.Close()
 
 	// Здесь можно хранить список старых сообщений (например, в массиве или в базе данных)
@@ -57,9 +59,8 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		close(closeChannel)
 	}()
 
-	go h.usecase.ScanForNewMessages(messageChannel, chatUUID, errChannel, closeChannel)
-
 	// история чата
+	log.Println("Chat delivery: поиск старых сообщений")
 	messages, err := h.usecase.GetMessages(r.Context(), chatUUID, 0)
 
 	if err != nil {
@@ -73,55 +74,33 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		IsNew:    false,
 	})
 
+	go h.usecase.ScanForNewMessages(messageChannel, chatUUID, errChannel, closeChannel)
+
 	// пока соеденено
+	duration := 500 * time.Millisecond
+
 	for {
-		var msg models.MessageDTOInput
-		err := conn.ReadJSON(&msg)
+		select {
+		case err = <-errChannel:
 
-		// сообщение кривого формата
-		if err != nil {
-			log.Println("Error reading message:", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		// отправили запрос на дисконект
-		if msg.Disconnect {
-			log.Println("Delivery: close connection 200")
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		if msg.Message != "" {
-			// если есть сообщение
-
-			message := models.Message{
-				Message: msg.Message,
-			}
-
-			err = h.usecase.SendMessage(r.Context(),r.Cookies(),  chatUUID, message)
 			if err != nil {
-				log.Printf("Delivery: не удолось отправить сообщение: %v", err)
+				log.Printf("Delivery: ошибка в поиске новых сообщений: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			log.Println("Delivery: сообщение успешно добавлено")
+		case messages := <-messageChannel:
+			// запись новых сообщений
+			log.Println("Message delivery websocket: получены новые сообщения")
+
+			if len(messages) > 0 {
+				conn.WriteJSON(models.MessagesArrayDTOOutput{
+					Messages: messages,
+					IsNew:    true,
+				})
+			}
+		default:
+			time.Sleep(duration)
 		}
 
-		err = <-errChannel
-		if err != nil {
-			log.Printf("Delivery: ошибка в поиске новых сообщений: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		messages := <-messageChannel
-
-		if len(messages) > 0 {
-			conn.WriteJSON(models.MessagesArrayDTOOutput{
-				Messages: messages,
-				IsNew:    true,
-			})
-		}
 	}
 }

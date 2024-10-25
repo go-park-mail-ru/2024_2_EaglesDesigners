@@ -73,6 +73,7 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(channel chan<- []models.Message
 		close(res)
 	}()
 
+	log.Println("Message usecase: начат поиск новых сообщений")
 	startMessage, err := u.messageRepository.GetLastMessage(chatId)
 
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -82,29 +83,35 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(channel chan<- []models.Message
 	duration := 500 * time.Millisecond
 
 	for {
-
-		if <-closeChannel {
+		select {
+		case <-closeChannel:
+			log.Println("Message usecase: scanning stoped")
 			return
-		}
+		default:
 
-		time.Sleep(duration)
+			time.Sleep(duration)
 
-		newMessage, err := u.messageRepository.GetLastMessage(chatId)
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			res <- err
-			continue
-		}
 
-		if newMessage.MessageId != startMessage.MessageId {
-			messages, err := u.messageRepository.GetAllMessagesAfter(chatId, startMessage.SentAt, startMessage.MessageId)
-
-			if err != nil {
+			newMessage, err := u.messageRepository.GetLastMessage(chatId)
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				res <- err
-				return
+				log.Printf("Message usecase: scanning stoped: %v", err)
+				continue
 			}
-			channel <- messages
 
-			startMessage = newMessage
+			if newMessage.MessageId != startMessage.MessageId {
+				log.Println("Message usecase: поступили новые сообщения")
+				messages, err := u.messageRepository.GetAllMessagesAfter(chatId, startMessage.SentAt, startMessage.MessageId)
+
+				if err != nil {
+					res <- err
+					log.Printf("Message usecase: scanning stoped: %v", err)
+					return
+				}
+				channel <- messages
+				log.Println("Message usecase: новые сообщения добавлены в канал")
+				startMessage = newMessage
+			}
 		}
 	}
 }

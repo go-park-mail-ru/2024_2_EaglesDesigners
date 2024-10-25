@@ -43,7 +43,7 @@ func (r *MessageRepositoryImpl) GetMessages(page int, chatId uuid.UUID) ([]model
 	m.sent_at, 
 	m.is_redacted,
 	u.username
-	FROM public.messages AS m
+	FROM public.message AS m
 	JOIN public.user AS u ON u.id = m.author_id
 	WHERE m.chat_id = $1
 	ORDER BY sent_at DESC
@@ -125,7 +125,6 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	}
 	defer conn.Release()
 
-	log.Println("Repository: соединение успешно установлено")
 
 	// нужно чё-то придумать со стикерами
 	row := conn.QueryRow(context.Background(),
@@ -191,7 +190,7 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time
 	m.sent_at, 
 	m.is_redacted,
 	u.username
-	FROM public.messages AS m
+	FROM public.message AS m
 	JOIN public.user AS u ON u.id = m.author_id
 	WHERE m.chat_id = $1 AND m.sent_at >= $2 AND m.id != $3
 	ORDER BY sent_at DESC;`,
