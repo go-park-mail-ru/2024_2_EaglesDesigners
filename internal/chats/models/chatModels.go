@@ -19,8 +19,9 @@ type Chat struct {
 }
 
 type ChatDTO struct {
-	ChatName     string `json:"chatName" example:"Чат с пользователем 2"`
-	CountOfUsers int    `json:"countOfUsers"`
+	ChatId       uuid.UUID `json:"chatId"`
+	ChatName     string    `json:"chatName" example:"Чат с пользователем 2"`
+	CountOfUsers int       `json:"countOfUsers"`
 	// @Enum [personalMessages, group, channel]
 	ChatType    string               `json:"chatType" example:"personalMessages"`
 	LastMessage messageModel.Message `json:"lastMessage"`
@@ -42,6 +43,7 @@ type ChatsDTO struct {
 
 func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage messageModel.Message, AvatarBase64 string) ChatDTO {
 	return ChatDTO{
+		ChatId:       chat.ChatId,
 		ChatName:     chat.ChatName,
 		CountOfUsers: countOfUsers,
 		ChatType:     chat.ChatType,
