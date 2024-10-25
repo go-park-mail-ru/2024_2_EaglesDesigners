@@ -20,13 +20,14 @@ type MessageUsecaseImplm struct {
 	tokenUsecase      *usecase.Usecase
 }
 
-func NewMessageUsecaseImpl(messageRepository repository.MessageRepository) MessageUsecase {
+func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, tokenUsecase *usecase.Usecase) MessageUsecase {
 	return &MessageUsecaseImplm{
 		messageRepository: messageRepository,
+		tokenUsecase:      tokenUsecase,
 	}
 }
 
-func (u *MessageUsecaseImplm) SendMessage(ctx context.Context,  cookie []*http.Cookie, chatId uuid.UUID, message models.Message) error {
+func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, cookie []*http.Cookie, chatId uuid.UUID, message models.Message) error {
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
 
 	user, err := u.tokenUsecase.GetUserByJWT(ctx, cookie)

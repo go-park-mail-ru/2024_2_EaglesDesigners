@@ -99,7 +99,7 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 				Message: msg.Message,
 			}
 
-			err = h.usecase.SendMessage(r.Context(), chatUUID, message)
+			err = h.usecase.SendMessage(r.Context(),r.Cookies(),  chatUUID, message)
 			if err != nil {
 				log.Printf("Delivery: не удолось отправить сообщение: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)

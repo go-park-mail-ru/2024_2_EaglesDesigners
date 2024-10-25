@@ -25,6 +25,6 @@ type MessagesArrayDTOOutput struct {
 }
 
 type MessageDTOInput struct {
-	Disconnect bool `json:"disconnect"`
-	Message  string `json:"message"`
+	Disconnect bool   `json:"disconnect"`
+	Message    string `json:"message"`
 }
