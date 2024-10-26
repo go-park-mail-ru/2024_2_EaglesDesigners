@@ -54,7 +54,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 
 	if err != nil {
@@ -124,8 +124,8 @@ func main() {
 	// router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
 	// 	tmpl.Execute(w, nil)
 	// })
-
-	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages))
+	
+	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}", auth.Middleware(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{

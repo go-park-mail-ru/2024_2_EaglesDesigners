@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	"github.com/google/uuid"
@@ -28,10 +29,18 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 	}
 }
 
-
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
-	chatId := mux.Vars(r)["chatId"]
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+
+	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
+
+	log.Println(mapVars["chatId"])
 	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
 
 	if err != nil {
@@ -41,14 +50,13 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	
 	messages, err := h.usecase.GetMessages(r.Context(), chatUUID, 0)
 	if err != nil {
 		log.Println("Error reading message:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	
+
 	jsonResp, err := json.Marshal(messages)
 
 	if err != nil {
@@ -61,11 +69,18 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	w.Write(jsonResp)
 }
 
-
 func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
-	chatId := mux.Vars(r)["chatId"]
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	
+	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
+	log.Println(mapVars["chatId"])
 	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
 
 	if err != nil {
