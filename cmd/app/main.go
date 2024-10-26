@@ -91,7 +91,7 @@ func main() {
 	contactsUC := contactsUC.New(contactsRepo)
 	contacts := contactsDelivery.New(contactsUC, tokenUC)
 
-  // messages
+	// messages
 	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, tokenUC)
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
@@ -124,8 +124,9 @@ func main() {
 	// router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
 	// 	tmpl.Execute(w, nil)
 	// })
-	
+
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}", auth.Middleware(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{

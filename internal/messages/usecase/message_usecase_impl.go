@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
@@ -27,22 +26,16 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, token
 	}
 }
 
-func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, cookie []*http.Cookie, chatId uuid.UUID, message models.Message) error {
+func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, message models.Message) error {
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
-
-	user, err := u.tokenUsecase.GetUserByJWT(ctx, cookie)
-	if err != nil {
-		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
-	}
-	log.Printf("Chat usecase: пришел запрос на получение всех чатов от пользователя: %v", user.ID)
 
 	message.MessageId = uuid.New()
 	message.SentAt = time.Now()
-	message.AuthorID = user.ID
+	message.AuthorID = userId
 
 	log.Printf("Usecase: сообщение от прользователя: %v", message.AuthorID)
 
-	err = u.messageRepository.AddMessage(message, chatId)
+	err := u.messageRepository.AddMessage(message, chatId)
 	if err != nil {
 		log.Printf("Usecase: не удалось добавить сообщение: %v", err)
 		return err
@@ -90,7 +83,6 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(channel chan<- []models.Message
 		default:
 
 			time.Sleep(duration)
-
 
 			newMessage, err := u.messageRepository.GetLastMessage(chatId)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {

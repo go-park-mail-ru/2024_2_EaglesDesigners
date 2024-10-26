@@ -9,8 +9,9 @@ import (
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
@@ -29,6 +30,54 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 	}
 }
 
+func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request) {
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	chatId := mapVars["chatId"]
+	chatUUID, err := uuid.Parse(chatId)
+
+	log.Println(mapVars["chatId"])
+	log.Printf("Message Delivery: starting adding new message for chat: %v", chatUUID)
+
+	if err != nil {
+		//conn.400
+		log.Println("Delivery: error during connection upgrade:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	log.Println(user)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+
+	var messageDTO models.Message
+	err = json.NewDecoder(r.Body).Decode(&messageDTO)
+
+	if err != nil {
+		log.Printf("Не удалось распарсить Json: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.usecase.SendMessage(r.Context(), user.ID, chatUUID, messageDTO)
+
+	if err != nil {
+		log.Printf("Не удалось добавить сообщение: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
@@ -36,12 +85,11 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
 	log.Println(mapVars["chatId"])
-	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
+	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
 
 	if err != nil {
 		//conn.400
@@ -76,7 +124,6 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
