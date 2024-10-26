@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -26,6 +27,40 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 		usecase: usecase,
 	}
 }
+
+
+func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
+	chatId := mux.Vars(r)["chatId"]
+	chatUUID, err := uuid.Parse(chatId)
+	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
+
+	if err != nil {
+		//conn.400
+		log.Println("Delivery: error during connection upgrade:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	
+	messages, err := h.usecase.GetMessages(r.Context(), chatUUID, 0)
+	if err != nil {
+		log.Println("Error reading message:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	
+	jsonResp, err := json.Marshal(messages)
+
+	if err != nil {
+		log.Printf("error happened in JSON marshal. Err: %s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResp)
+}
+
 
 func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	chatId := mux.Vars(r)["chatId"]

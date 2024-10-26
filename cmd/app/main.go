@@ -127,6 +127,7 @@ func main() {
 	// 	tmpl.Execute(w, nil)
 	// })
 
+	router.HandleFunc("/chat/messages/{chatId}", auth.Middleware(messageDelivery.GetAllMessages))
 	router.HandleFunc("/chat/{chatId}", auth.Middleware(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
