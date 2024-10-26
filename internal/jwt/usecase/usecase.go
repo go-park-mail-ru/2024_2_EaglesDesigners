@@ -33,40 +33,40 @@ func NewUsecase(repository repository) *Usecase {
 	}
 }
 
-func (u *Usecase) IsAuthorized(ctx context.Context, cookies []*http.Cookie) error {
+func (u *Usecase) IsAuthorized(ctx context.Context, cookies []*http.Cookie) (user User, err error) {
 	token, err := parseCookies(cookies)
 	if err != nil {
-		return err
+		return user, err
 	}
 
 	result, err := checkJWT(token)
 	if err != nil {
-		return err
+		return user, err
 	}
 
 	if !result {
-		return errors.New("invalid token")
+		return user, errors.New("invalid token")
 	}
 
 	payload, err := getPayloadOfJWT(token)
 	if err != nil {
-		return err
+		return user, err
 	}
 
-	user, err := u.GetUserByJWT(ctx, cookies)
+	user, err = u.GetUserByJWT(ctx, cookies)
 	if err != nil {
-		return err
+		return user, err
 	}
 
 	if payload.Version != user.Version {
-		return errors.New("token outdated")
+		return user, errors.New("token outdated")
 	}
 
 	if payload.Exp < time.Now().Unix() {
-		return errors.New("token expired")
+		return user, errors.New("token expired")
 	}
 
-	return nil
+	return user, nil
 }
 
 func (u *Usecase) CreateJWT(ctx context.Context, username string) (string, error) {

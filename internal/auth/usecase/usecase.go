@@ -20,7 +20,6 @@ type token interface {
 	CreateJWT(ctx context.Context, username string) (string, error)
 	GetUserDataByJWT(cookies []*http.Cookie) (jwt.UserData, error)
 	GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
-	IsAuthorized(ctx context.Context, cookies []*http.Cookie) error
 }
 
 type Usecase struct {
