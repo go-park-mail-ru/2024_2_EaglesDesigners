@@ -15,11 +15,6 @@ type UpdateProfileRequestDTO struct {
 }
 
 // @Schema
-type GetProfileRequestDTO struct {
-	Username string `json:"username" example:"killer1994"`
-}
-
-// @Schema
 type GetProfileResponseDTO struct {
 	Bio          *string    `json:"bio" example:"Не люблю сети"`
 	AvatarBase64 *string    `json:"avatarBase64" example:"this is Base64 photo"`

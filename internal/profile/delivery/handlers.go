@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
@@ -56,8 +57,8 @@ func New(usecase usecase, token token) *Delivery {
 func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, err := d.token.GetUserByJWT(ctx, r.Cookies())
-	if err != nil {
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
 		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
 		return
 	}

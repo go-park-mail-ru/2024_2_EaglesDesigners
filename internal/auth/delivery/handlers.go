@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	usecaseDto "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/gorilla/mux"
 )
 
 type usecase interface {
@@ -23,7 +25,7 @@ type token interface {
 	CreateJWT(ctx context.Context, username string) (string, error)
 	GetUserDataByJWT(cookies []*http.Cookie) (jwt.UserData, error)
 	GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
-	IsAuthorized(ctx context.Context, cookies []*http.Cookie) error
+	IsAuthorized(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
 }
 
 type Delivery struct {
@@ -138,7 +140,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Router /auth [get]
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	err := d.token.IsAuthorized(ctx, r.Cookies())
+	_, err := d.token.IsAuthorized(ctx, r.Cookies())
 	if err != nil {
 		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -167,14 +169,11 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-type contextKey string
-
-const UserIDKey contextKey = "userId"
-
 func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := d.isAuthorized(r)
-		var user jwt.User
+		ctx := context.Background()
+
+		user, err := d.token.IsAuthorized(ctx, r.Cookies())
 		if err == errors.New("token expired") {
 			log.Println("token expired, create new token")
 			user, err = d.token.GetUserByJWT(r.Context(), r.Cookies())
@@ -189,6 +188,11 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
+
+		ctx = context.WithValue(ctx, models.UserKey, user)
+		ctx = context.WithValue(ctx, models.MuxParamsKey, mux.Vars(r))
+
+		r = r.WithContext(ctx)
 
 		next(w, r)
 	}
@@ -232,7 +236,7 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c *Delivery) isAuthorized(r *http.Request) error {
 	ctx := r.Context()
-	err := c.token.IsAuthorized(ctx, r.Cookies())
+	_, err := c.token.IsAuthorized(ctx, r.Cookies())
 	if err != nil {
 		return err
 	}

@@ -47,6 +47,101 @@
                 }
             }
         },
+        "/contacts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all contacts of user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Get all contacts",
+                "responses": {
+                    "200": {
+                        "description": "Contacts found",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetContactsRespDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new contact for the user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Add new contact",
+                "parameters": [
+                    {
+                        "description": "Credentials for create a new contact",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddContactReqDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Contact created",
+                        "schema": {
+                            "$ref": "#/definitions/models.ContactDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create contact",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Authenticate a user with username and password.",
@@ -335,6 +430,48 @@
                 "username": {
                     "type": "string",
                     "example": "user12"
+                }
+            }
+        },
+        "models.AddContactReqDTO": {
+            "type": "object",
+            "properties": {
+                "contactUsername": {
+                    "type": "string",
+                    "example": "user11"
+                }
+            }
+        },
+        "models.ContactDTO": {
+            "type": "object",
+            "properties": {
+                "avatarBase64": {
+                    "type": "string",
+                    "example": "this is Base64 photo"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
+                },
+                "name": {
+                    "description": "can be nil",
+                    "type": "string",
+                    "example": "Витек"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user11"
+                }
+            }
+        },
+        "models.GetContactsRespDTO": {
+            "type": "object",
+            "properties": {
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ContactDTO"
+                    }
                 }
             }
         },

@@ -18,6 +18,9 @@ import (
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	contactsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/delivery"
+	contactsRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/repository"
+	contactsUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/usecase"
 	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/delivery"
 	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
@@ -52,7 +55,9 @@ import (
 
 func main() {
 	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
+	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
@@ -82,6 +87,12 @@ func main() {
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
+	// contacts
+	contactsRepo := contactsRepo.New(pool)
+	contactsUC := contactsUC.New(contactsRepo)
+	contacts := contactsDelivery.New(contactsUC, tokenUC)
+
+  // messages
 	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, tokenUC)
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
@@ -104,7 +115,8 @@ func main() {
 	router.HandleFunc("/profile", auth.Middleware(profile.GetProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
 	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
-
+	router.HandleFunc("/contacts", auth.Middleware(contacts.GetContactsHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/contacts", auth.Middleware(contacts.AddContactHandler)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
