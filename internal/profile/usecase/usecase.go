@@ -63,6 +63,14 @@ func (u *Usecase) GetProfile(ctx context.Context, username string) (models.Profi
 }
 
 func convertProfileDataFromDAO(dao models.ProfileDataDAO) models.ProfileData {
+	var name *string
+
+	if dao.Name.Valid {
+		name = &dao.Name.String
+	} else {
+		name = nil
+	}
+
 	var bio *string
 
 	if dao.Bio.Valid {
@@ -88,6 +96,7 @@ func convertProfileDataFromDAO(dao models.ProfileDataDAO) models.ProfileData {
 	}
 
 	return models.ProfileData{
+		Name:      name,
 		Bio:       bio,
 		AvatarURL: avatarBase64,
 		Birthdate: birthdate,

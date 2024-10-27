@@ -32,7 +32,8 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 
 	row := conn.QueryRow(
 		ctx,
-		`SELECT 
+		`SELECT
+			name, 
 			birthdate,
 			bio,
 			avatar_path
@@ -44,6 +45,7 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 	var profileData models.ProfileDataDAO
 
 	err = row.Scan(
+		&profileData.Name,
 		&profileData.Birthdate,
 		&profileData.Bio,
 		&profileData.AvatarURL,
