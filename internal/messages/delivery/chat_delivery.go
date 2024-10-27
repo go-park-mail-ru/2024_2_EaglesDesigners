@@ -137,6 +137,8 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// начало
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Delivery: error during connection upgrade:", err)
@@ -171,7 +173,7 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		IsNew:    false,
 	})
 
-	go h.usecase.ScanForNewMessages(messageChannel, chatUUID, errChannel, closeChannel)
+	go h.usecase.ScanForNewMessages(r.Context(), messageChannel, chatUUID, errChannel, closeChannel)
 
 	// пока соеденено
 	duration := 500 * time.Millisecond

@@ -2,27 +2,67 @@ package usecase
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 	"time"
 
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
 )
 
 type MessageUsecaseImplm struct {
 	messageRepository repository.MessageRepository
 	tokenUsecase      *usecase.Usecase
+	redisClient       *redis.Client
+	messages          chan models.Message
+	activeUsers       map[uuid.UUID]bool
 }
 
-func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, tokenUsecase *usecase.Usecase) MessageUsecase {
-	return &MessageUsecaseImplm{
+func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, tokenUsecase *usecase.Usecase, redisClient *redis.Client) MessageUsecase {
+	usecase := MessageUsecaseImplm{
 		messageRepository: messageRepository,
 		tokenUsecase:      tokenUsecase,
+		redisClient:       redisClient,
+		messages:          make(chan models.Message, 100),
+		activeUsers:       map[uuid.UUID]bool{},
+	}
+	go usecase.goBroker(context.Background())
+	return &usecase
+}
+
+func (u *MessageUsecaseImplm) publishMessageIvent(ctx context.Context, message models.Message) error {
+	log.Println("Message usecase: добавление сообщения в redis")
+
+	err := u.redisClient.XAdd(ctx, &redis.XAddArgs{
+		Stream: message.AuthorID.String(),
+		MaxLen: 0,
+		ID:     "",
+		Values: message,
+	}).Err()
+
+	return err
+}
+
+func (u *MessageUsecaseImplm) goBroker(ctx context.Context) {
+	for {
+		select {
+		case message := <-u.messages:
+			if ok := u.activeUsers[message.AuthorID]; ok {
+				err := u.publishMessageIvent(ctx, message)
+				if err != nil {
+					log.Printf("Message usecase: не удалось отправить в поток: %v", err)
+				}
+
+			}
+		default:
+		}
 	}
 }
 
@@ -40,8 +80,11 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, userId uuid.UUID,
 		log.Printf("Usecase: не удалось добавить сообщение: %v", err)
 		return err
 	}
-	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
 
+	// записываем новое сообщение в канал
+	u.messages <- message
+
+	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
 	return nil
 }
 
@@ -60,18 +103,21 @@ func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID,
 	}, nil
 }
 
-func (u *MessageUsecaseImplm) ScanForNewMessages(channel chan<- []models.Message, chatId uuid.UUID, res chan<- error, closeChannel <-chan bool) {
+func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel chan<- []models.Message, chatId uuid.UUID, res chan<- error, closeChannel <-chan bool) {
 	defer func() {
 		close(channel)
 		close(res)
 	}()
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	log.Println(user)
+	if !ok {
+		return
+	}
+
+	u.activeUsers[user.ID] = true
+	defer func() { u.activeUsers[user.ID] = false }()
 
 	log.Println("Message usecase: начат поиск новых сообщений")
-	startMessage, err := u.messageRepository.GetLastMessage(chatId)
-
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		res <- err
-	}
 
 	duration := 500 * time.Millisecond
 
@@ -81,29 +127,26 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(channel chan<- []models.Message
 			log.Println("Message usecase: scanning stoped")
 			return
 		default:
-
 			time.Sleep(duration)
+			// Чтение сообщений из Stream
+			messages, err := u.redisClient.XRead(context.Background(), &redis.XReadArgs{
+				Streams: []string{user.ID.String(), "0"}, // Начинаем с самого начала ("0")
+				Count:   5,                               // Получить 5 сообщений
+				Block:   0,                               // Блокировать до появления новых сообщений
+			}).Result()
 
-			newMessage, err := u.messageRepository.GetLastMessage(chatId)
-			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				res <- err
-				log.Printf("Message usecase: scanning stoped: %v", err)
-				continue
-			}
-
-			if newMessage.MessageId != startMessage.MessageId {
-				log.Println("Message usecase: поступили новые сообщения")
-				messages, err := u.messageRepository.GetAllMessagesAfter(chatId, startMessage.SentAt, startMessage.MessageId)
-
-				if err != nil {
-					res <- err
-					log.Printf("Message usecase: scanning stoped: %v", err)
-					return
+			// получаем новые сообщения в канал
+			for _, message := range messages {
+				fmt.Println("Стрим:", message.Stream)
+				for _, msg := range message.Messages {
+					fmt.Printf("ID: %s, Данные: %v\n", msg.ID, msg.Values)
 				}
-				channel <- messages
-				log.Println("Message usecase: новые сообщения добавлены в канал")
-				startMessage = newMessage
 			}
+
+			if err != nil {
+				fmt.Println("Ошибка при чтении сообщений:", err)
+			}
+
 		}
 	}
 }
