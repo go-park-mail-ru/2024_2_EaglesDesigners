@@ -10,7 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
@@ -35,7 +34,6 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
@@ -76,7 +74,6 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
