@@ -495,6 +495,10 @@ const docTemplate = `{
                 "birthdate": {
                     "type": "string",
                     "example": "2024-04-13T08:30:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
                 }
             }
         },
