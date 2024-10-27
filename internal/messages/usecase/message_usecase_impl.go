@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -38,13 +39,13 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, token
 }
 
 func (u *MessageUsecaseImplm) publishMessageIvent(ctx context.Context, message models.Message) error {
-	log.Println("Message usecase: добавление сообщения в redis")
-
 	err := u.redisClient.XAdd(ctx, &redis.XAddArgs{
 		Stream: message.AuthorID.String(),
 		MaxLen: 0,
 		ID:     "",
-		Values: message,
+		Values: map[string]interface{}{
+			message.MessageId.String(): message,
+		},
 	}).Err()
 
 	return err
@@ -55,11 +56,13 @@ func (u *MessageUsecaseImplm) goBroker(ctx context.Context) {
 		select {
 		case message := <-u.messages:
 			if ok := u.activeUsers[message.AuthorID]; ok {
+				log.Println("Message usecase: добавление сообщения в redis")
 				err := u.publishMessageIvent(ctx, message)
 				if err != nil {
 					log.Printf("Message usecase: не удалось отправить в поток: %v", err)
+				} else {
+					log.Println("Message usecase: сообщение добавлено в redis поток")
 				}
-
 			}
 		default:
 		}
@@ -135,16 +138,24 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 				Block:   0,                               // Блокировать до появления новых сообщений
 			}).Result()
 
+			if err != nil {
+				fmt.Println("Message usecase: Ошибка при чтении сообщений:", err)
+				continue
+			}
+			var msgIds []string
 			// получаем новые сообщения в канал
 			for _, message := range messages {
 				fmt.Println("Стрим:", message.Stream)
 				for _, msg := range message.Messages {
 					fmt.Printf("ID: %s, Данные: %v\n", msg.ID, msg.Values)
+					// channel<- m.UnmarshalBinary(msg.Values)
+		
+					msgIds = append(msgIds, msg.ID)
 				}
 			}
-
+			_, err = u.redisClient.XDel(context.Background(), user.ID.String(), msgIds...).Result()
 			if err != nil {
-				fmt.Println("Ошибка при чтении сообщений:", err)
+				log.Printf("Message usecase: не удалось удалить сообщения из redis: %v", err)
 			}
 
 		}

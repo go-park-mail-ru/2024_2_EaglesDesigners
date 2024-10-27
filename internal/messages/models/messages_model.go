@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,15 @@ type Message struct {
 	Message    string    `json:"text" example:"тут много текста"`
 	SentAt     time.Time `json:"datetime" example:"2024-04-13T08:30:00Z"`
 	IsRedacted bool      `json:"isRedacted"`
+}
+
+func (m Message) MarshalBinary() ([]byte, error) {
+	return json.Marshal(m)
+}
+
+// Custom unmarshaling for Message
+func (m *Message) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, m)
 }
 
 type MessagesArrayDTO struct {
