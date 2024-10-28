@@ -27,7 +27,9 @@ import (
 	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/redis/go-redis/v9"
 )
 
 // swag init
@@ -54,15 +56,29 @@ import (
 
 func main() {
 	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
-	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
+
+	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
-
 	defer pool.Close()
 	log.Println("База данных подключена")
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "1234",
+		DB:       0,
+	})
+	status := redisClient.Ping(context.Background())
+
+	if err := status.Err(); err != nil {
+		log.Println("Не удалось подлключить Redis")
+		return
+	}
+	defer redisClient.Close()
+	log.Println("Redis подключен")
 
 	router := mux.NewRouter()
 
@@ -92,7 +108,9 @@ func main() {
 	contacts := contactsDelivery.New(contactsUC, tokenUC)
 
 	// messages
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, tokenUC)
+
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, redisClient)
+
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
 	router.Use(func(next http.Handler) http.Handler {
@@ -126,7 +144,8 @@ func main() {
 	// })
 
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}", auth.Middleware(messageDelivery.HandleConnection))
+	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/startwebsocket", auth.Middleware(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
