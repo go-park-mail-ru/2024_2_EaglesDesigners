@@ -88,6 +88,7 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := models.GetProfileResponseDTO{
+		Name:         profileData.Name,
 		Bio:          profileData.Bio,
 		Birthdate:    profileData.Birthdate,
 		AvatarBase64: avatarBase64,
