@@ -65,12 +65,11 @@ func main() {
 	defer pool.Close()
 	log.Println("База данных подключена")
 
-
 	redisClient := redis.NewClient(&redis.Options{
-        Addr:     "localhost:6379",
-        Password: "1234",            
-        DB:       0,              
-    })
+		Addr:     "localhost:6379",
+		Password: "1234",
+		DB:       0,
+	})
 	status := redisClient.Ping(context.Background())
 
 	if err := status.Err(); err != nil {
@@ -108,7 +107,7 @@ func main() {
 	contacts := contactsDelivery.New(contactsUC, tokenUC)
 
 	// messages
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, tokenUC, redisClient)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, redisClient)
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
 	router.Use(func(next http.Handler) http.Handler {

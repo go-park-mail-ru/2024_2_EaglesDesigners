@@ -13,6 +13,7 @@ type Message struct {
 	AuthorName string    `json:"authorName"`
 	Message    string    `json:"text" example:"тут много текста"`
 	SentAt     time.Time `json:"datetime" example:"2024-04-13T08:30:00Z"`
+	ChatId     uuid.UUID `json:"chatId"`
 	IsRedacted bool      `json:"isRedacted"`
 }
 
