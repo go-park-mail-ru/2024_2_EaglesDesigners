@@ -118,25 +118,6 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
-	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	chatId := mapVars["chatId"]
-	chatUUID, err := uuid.Parse(chatId)
-
-	log.Println(mapVars["chatId"])
-	log.Printf("Message Delivery: starting websocket for chat: %v", chatUUID)
-
-	if err != nil {
-		//conn.400
-		log.Println("Delivery: error during connection upgrade:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
 	// начало
 
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -158,9 +139,6 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		close(closeChannel)
 	}()
 
-	// история чата
-	log.Println("Chat delivery: поиск старых сообщений")
-	messages, err := h.usecase.GetMessages(r.Context(), chatUUID, 0)
 
 	if err != nil {
 		log.Println("Error reading message:", err)
@@ -168,12 +146,7 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	conn.WriteJSON(models.MessagesArrayDTOOutput{
-		Messages: messages.Messages,
-		IsNew:    false,
-	})
-
-	go h.usecase.ScanForNewMessages(r.Context(), messageChannel, chatUUID, errChannel, closeChannel)
+	go h.usecase.ScanForNewMessages(r.Context(), messageChannel, errChannel, closeChannel)
 
 	// пока соеденено
 	duration := 500 * time.Millisecond

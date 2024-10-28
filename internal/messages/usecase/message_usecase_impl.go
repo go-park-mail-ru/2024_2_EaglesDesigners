@@ -175,6 +175,7 @@ func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) 
 					log.Printf("Message usecase -> chatBroker: добавлен подписчкик %v на чат %v", f.(string), chatId)
 				} else if del, ok := msg.Values[delUser]; ok {
 					delete(activeUsersInChat, del.(string))
+					log.Printf("Message usecase -> chatBroker: удалён подписчкик %v на чат %v", del.(string), chatId)
 				} else if mesInterface, ok := msg.Values[NewMessage]; ok {
 					var mes models.Message
 					mes.UnmarshalBinary([]byte(mesInterface.(string)))
@@ -263,7 +264,7 @@ func (u *MessageUsecaseImplm) deactivateUsrChats(ctx context.Context, userId uui
 }
 
 // ScanForNewMessages сканирует redis stream с именем равным id пользователя
-func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel chan<- []models.Message, chatId uuid.UUID, res chan<- error, closeChannel <-chan bool) {
+func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel chan<- []models.Message, res chan<- error, closeChannel <-chan bool) {
 	defer func() {
 		close(channel)
 		close(res)
@@ -331,7 +332,6 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 			if err != nil {
 				log.Printf("Message usecase: не удалось удалить сообщения из redis: %v", err)
 			}
-
 		}
 	}
 }
