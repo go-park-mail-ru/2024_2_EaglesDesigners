@@ -56,7 +56,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@patefon:5432/patefon")
 	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v\n", err)
