@@ -10,5 +10,5 @@ import (
 type MessageUsecase interface {
 	SendMessage(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, message models.Message) error
 	GetMessages(ctx context.Context, chatId uuid.UUID, pageId int) (models.MessagesArrayDTO, error)
-	ScanForNewMessages(ctx context.Context, channel chan<- []models.Message, res chan<- error, closeChannel <-chan bool)
+	ScanForNewMessages(ctx context.Context, channel chan<- models.WebScoketDTO, res chan<- error, closeChannel <-chan bool)
 }

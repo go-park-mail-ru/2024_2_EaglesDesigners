@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -19,9 +20,9 @@ import (
 )
 
 const (
-	feat       = "feat"
-	delUser    = "delete"
-	NewMessage = "message"
+	featNewUser = "featNewUser"
+	delUser     = "deleteUser"
+	newMessage  = "message"
 )
 
 type MessageUsecaseImplm struct {
@@ -34,7 +35,8 @@ type MessageUsecaseImplm struct {
 	activeChats       map[uuid.UUID]bool
 }
 
-func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, tokenUsecase *usecase.Usecase, redisClient *redis.Client) MessageUsecase {
+func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository,
+	tokenUsecase *usecase.Usecase, redisClient *redis.Client) MessageUsecase {
 	usecase := MessageUsecaseImplm{
 		messageRepository: messageRepository,
 		tokenUsecase:      tokenUsecase,
@@ -54,10 +56,10 @@ func (u *MessageUsecaseImplm) publishMessageTochat(ctx context.Context, message 
 		MaxLen: 0,
 		ID:     "",
 		Values: map[string]interface{}{
-			NewMessage: message,
+			newMessage: message,
 		},
 	}).Err()
-	log.Printf("publishMessageTochat: %v, %v", NewMessage, message)
+	log.Printf("publishMessageTochat: %v, %v", newMessage, message)
 	return err
 }
 
@@ -126,7 +128,7 @@ func (u *MessageUsecaseImplm) sendMessagesToUsers(ctx context.Context, message m
 			MaxLen: 0,
 			ID:     "",
 			Values: map[string]interface{}{
-				NewMessage: message,
+				newMessage: message,
 			},
 		}).Err()
 
@@ -170,13 +172,13 @@ func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) 
 			for _, msg := range message.Messages {
 				fmt.Printf("Message usecase -> chatBroker: ID: %s, Данные: %v\n", msg.ID, msg.Values)
 				// channel<- m.UnmarshalBinary(msg.Values)
-				if f, ok := msg.Values[feat]; ok {
+				if f, ok := msg.Values[featNewUser]; ok {
 					activeUsersInChat[f.(string)] = true
 					log.Printf("Message usecase -> chatBroker: добавлен подписчкик %v на чат %v", f.(string), chatId)
 				} else if del, ok := msg.Values[delUser]; ok {
 					delete(activeUsersInChat, del.(string))
 					log.Printf("Message usecase -> chatBroker: удалён подписчкик %v на чат %v", del.(string), chatId)
-				} else if mesInterface, ok := msg.Values[NewMessage]; ok {
+				} else if mesInterface, ok := msg.Values[newMessage]; ok {
 					var mes models.Message
 					mes.UnmarshalBinary([]byte(mesInterface.(string)))
 					log.Println(mes)
@@ -208,11 +210,11 @@ func (u *MessageUsecaseImplm) publishUserIntoChat(ctx context.Context, chatId uu
 		MaxLen: 0,
 		ID:     "",
 		Values: map[string]interface{}{
-			feat: userId.String(),
+			featNewUser: userId.String(),
 		},
 	}).Err()
 
-	log.Printf("publishUserIntoChat: %v, %v, %v", feat, userId.String(), chatId)
+	log.Printf("publishUserIntoChat: %v, %v, %v", featNewUser, userId.String(), chatId)
 	return err
 }
 
@@ -264,7 +266,7 @@ func (u *MessageUsecaseImplm) deactivateUsrChats(ctx context.Context, userId uui
 }
 
 // ScanForNewMessages сканирует redis stream с именем равным id пользователя
-func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel chan<- []models.Message, res chan<- error, closeChannel <-chan bool) {
+func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel chan<- models.WebScoketDTO, res chan<- error, closeChannel <-chan bool) {
 	defer func() {
 		close(channel)
 		close(res)
@@ -316,14 +318,13 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 			// получаем новые сообщения в канал
 
 			for _, message := range messages {
-				fmt.Println("Стрим:", message.Stream)
 				for _, msg := range message.Messages {
-					fmt.Printf("ID: %s, Данные: %v\n", msg.ID, msg.Values)
-
-					var mes models.Message
-					mes.UnmarshalBinary([]byte(msg.Values[NewMessage].(string)))
-
-					channel <- []models.Message{mes}
+					mes, err := u.makeWebSocketDTO(msg.Values)
+					if err != nil {
+						log.Printf("Message usecase -> websocket: не удалось получить данные и канала: %v", err)
+						continue
+					}
+					channel <- mes
 
 					msgIds = append(msgIds, msg.ID)
 				}
@@ -334,4 +335,25 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 			}
 		}
 	}
+}
+
+func (u *MessageUsecaseImplm) makeWebSocketDTO(newInfo map[string]interface{}) (models.WebScoketDTO, error) {
+	if f, ok := newInfo[featNewUser]; ok {
+		return models.WebScoketDTO{
+			MsgType: models.ChatAction,
+			Payload: f,
+		}, nil
+	} else if del, ok := newInfo[delUser]; ok {
+		return models.WebScoketDTO{
+			MsgType: models.ChatAction,
+			Payload: del,
+		}, nil
+	} else if mesInterface, ok := newInfo[newMessage]; ok {
+		return models.WebScoketDTO{
+			MsgType: models.ChatAction,
+			Payload: mesInterface,
+		}, nil
+	}
+
+	return models.WebScoketDTO{}, errors.New("No new messages")
 }
