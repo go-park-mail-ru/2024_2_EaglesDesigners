@@ -11,6 +11,9 @@ import (
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
+	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
+	"github.com/redis/go-redis/v9"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
 
 	"github.com/google/uuid"
@@ -30,21 +33,65 @@ type ChatUsecaseImpl struct {
 	tokenUsecase      *usecase.Usecase
 	messageRepository message.MessageRepository
 	repository        chatlist.ChatRepository
+	activeUsers       map[uuid.UUID]bool
+	redisClient       *redis.Client
 }
 
-func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository) ChatUsecase {
+func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository,
+	activeUsers map[uuid.UUID]bool, redisClient *redis.Client) ChatUsecase {
 	return &ChatUsecaseImpl{
 		tokenUsecase:      tokenService,
 		repository:        repository,
 		messageRepository: messageRepository,
+		activeUsers:       activeUsers,
+		redisClient:       redisClient,
 	}
 }
 
-func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTO, error) {
+func (s *ChatUsecaseImpl) createChatDTO(ctx context.Context, chat chatModel.Chat) (chatModel.ChatDTOOutput, error) {
+	message, err := s.messageRepository.GetLastMessage(chat.ChatId)
+	if err != nil {
+		log.Printf("Usecase: не удалось получить последнее сообщение: %v", err)
+		return chatModel.ChatDTOOutput{}, err
+	}
+	log.Println("Usecase: последнее сообщение получено")
+
+	log.Printf("Chat usecase: установка количества участников чата: %v", chat.ChatId)
+	countOfUsers, err := s.repository.GetCountOfUsersInChat(ctx, chat.ChatId)
+
+	if err != nil {
+		log.Printf("Usecase: не удалось получить количество пользователей: %v", err)
+		return chatModel.ChatDTOOutput{}, err
+	}
+	log.Println("Usecase: количество пользователей получено")
+
+	var photoBase64 string
+	// Достаем фото из папки
+	if chat.AvatarURL != "" {
+		phId, err := uuid.Parse(chat.AvatarURL)
+		if err != nil {
+			return chatModel.ChatDTOOutput{}, err
+		}
+
+		photoBase64, err = base64helper.ReadPhotoBase64(phId)
+		if err != nil && !os.IsNotExist(err) {
+			return chatModel.ChatDTOOutput{}, err
+		}
+	}
+
+	log.Println("Usecase: фото успешно считано и закодировано в base64")
+
+	return chatModel.СhatToChatDTO(chat,
+		countOfUsers,
+		message,
+		photoBase64), nil
+}
+
+func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTOOutput, error) {
 
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
-		return []chatModel.ChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+		return []chatModel.ChatDTOOutput{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 	log.Printf("Chat usecase: пришел запрос на получение всех чатов от пользователя: %v", user.ID)
 
@@ -54,50 +101,45 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	}
 	log.Println("Usecase: чаты получены")
 
-	chatsDTO := []chatModel.ChatDTO{}
+	chatsDTO := []chatModel.ChatDTOOutput{}
 
 	for _, chat := range chats {
 
-		message, err := s.messageRepository.GetLastMessage(chat.ChatId)
-		if err != nil {
-			log.Printf("Usecase: не удалось получить последнее сообщение: %v", err)
-			return nil, err
-		}
-		log.Println("Usecase: последнее сообщение получено")
-
-		log.Printf("Chat usecase: установка количества участников чата: %v", chat.ChatId)
-		countOfUsers, err := s.repository.GetCountOfUsersInChat(ctx, chat.ChatId)
+		chatDTO, err := s.createChatDTO(ctx, chat)
 
 		if err != nil {
-			log.Printf("Usecase: не удалось получить количество пользователей: %v", err)
+			log.Printf("Chat usecase -> GetChats: не удалось создать DTO: %v", err)
 			return nil, err
 		}
-		log.Println("Usecase: количество пользователей получено")
-
-		var photoBase64 string
-		// Достаем фото из папки
-		if chat.AvatarURL != "" {
-			phId, err := uuid.Parse(chat.AvatarURL)
-			if err != nil {
-				return nil, err
-			}
-
-			photoBase64, err = base64helper.ReadPhotoBase64(phId)
-			if err != nil && !os.IsNotExist(err) {
-				return nil, err
-			}
-		}
-
-		log.Println("Usecase: фото успешно считано и закодировано в base64")
 
 		chatsDTO = append(chatsDTO,
-			chatModel.СhatToChatDTO(chat,
-				countOfUsers,
-				message,
-				photoBase64))
+			chatDTO)
 	}
 
 	return chatsDTO, nil
+}
+
+func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uuid.UUID, chatDTO chatModel.ChatDTOOutput) error {
+	if _, ok := s.activeUsers[userId]; ok {
+
+		log.Printf("Chat usecase -> sendNotificationToUser: начата отправка уведомления пользователю: %v", userId)
+		err := s.redisClient.XAdd(ctx, &redis.XAddArgs{
+			Stream: userId.String(),
+			MaxLen: 0,
+			ID:     "",
+			Values: map[string]interface{}{
+				messageUsecase.FeatNewUser: chatDTO,
+			},
+		}).Err()
+
+		if err != nil {
+			log.Printf("Chat usecase -> sendNotificationToUser: уведомление не отправлено пользователю: %v. Ошибка: %v", userId, err)
+		}
+
+		return err
+	}
+	log.Printf("Chat usecase -> sendNotificationToUser: уведомление пользователю отправлено: %v", userId)
+	return nil
 }
 
 func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) error {
@@ -113,18 +155,32 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	// проверяем есть ли права
 	switch role {
 	case admin, owner:
-		log.Printf("Начато добавление пользователей в чат %v пользователем %v", chat_id, user.ID)
+		log.Printf("Chat usecase -> AddUsersIntoChat: начато добавление пользователей в чат %v пользователем %v", chat_id, user.ID)
+
+		chat, err := s.repository.GetChatById(ctx, chat_id)
+
+		if err != nil {
+			log.Println("Chat usecase -> AddUsersIntoChat: не удалось добавить юзера в чат^ %v", err)
+		}
+
 		for _, id := range user_ids {
 			s.repository.AddUserIntoChat(ctx, id, chat_id, none)
+			chatDTO, err := s.createChatDTO(ctx, chat)
+			if err != nil {
+				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
+			}
+			s.sendNotificationToUser(ctx, id, chatDTO)
+
 		}
-		log.Printf("Участники добавлены в чат %v пользователем %v", chat_id, user.ID)
+		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
+
 		return nil
 	}
 
 	return errors.New("Участники не добавлены")
 }
 
-func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTO) error {
+func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error {
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
 		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
@@ -133,7 +189,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
 
 	if err != nil {
-		log.Printf("Не удалось сохранить фото^ %v", err)
+		log.Printf("Chat usecase -> AddNewChat: не удалось сохранить фото: %v", err)
 		return err
 	}
 
@@ -153,7 +209,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	// создание чата
 	err = s.repository.CreateNewChat(ctx, newChat)
 	if err != nil {
-		log.Printf("Не удалось сохнанить чат: %v", err)
+		log.Printf("Chat usecase -> AddNewChat: не удалось сохнанить чат: %v", err)
 		return err
 	}
 
@@ -161,15 +217,22 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	err = s.repository.AddUserIntoChat(ctx, user.ID, chatId, owner)
 
 	if err != nil {
-		log.Printf("Не удалось добавить пользователя в чат: %v", err)
+		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
 		return err
 	}
 
-	log.Printf("Chat usecase: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
+	newChatDTO, err := s.createChatDTO(ctx, newChat)
+	if err != nil {
+		log.Printf("Chat usecase -> AddNewChat: не удалось создать DTO: %v", err)
+	}
+	// добавляем основателя в чат
+	s.sendNotificationToUser(ctx, user.ID, newChatDTO)
+
+	log.Printf("Chat usecase -> AddNewChat: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
 	err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
 
 	if err != nil {
-		log.Printf("Не удалось добавить пользователя в чат: %v", err)
+		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
 		return err
 	}
 

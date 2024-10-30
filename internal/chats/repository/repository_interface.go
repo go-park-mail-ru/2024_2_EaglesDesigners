@@ -13,4 +13,5 @@ type ChatRepository interface {
 	CreateNewChat(ctx context.Context, chat chatModel.Chat) error
 	AddUserIntoChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, userROle string) error
 	GetCountOfUsersInChat(ctx context.Context, chatId uuid.UUID) (int, error)
+	GetChatById(ctx context.Context, chatId uuid.UUID) (chatModel.Chat, error)
 }

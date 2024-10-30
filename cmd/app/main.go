@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -57,7 +58,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 
 	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
@@ -99,7 +100,10 @@ func main() {
 	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
 
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
+
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, redisClient)
+
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, messageUsecase.GetOnlineUsers(), redisClient)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
@@ -108,8 +112,6 @@ func main() {
 	contacts := contactsDelivery.New(contactsUC, tokenUC)
 
 	// messages
-
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, redisClient)
 
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
@@ -137,11 +139,11 @@ func main() {
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-	// tmpl := template.Must(template.ParseFiles("index.html"))
+	tmpl := template.Must(template.ParseFiles("index.html"))
 
-	// router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
-	// 	tmpl.Execute(w, nil)
-	// })
+	router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, nil)
+	})
 
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")

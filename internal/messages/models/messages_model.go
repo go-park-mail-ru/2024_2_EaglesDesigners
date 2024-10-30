@@ -43,8 +43,9 @@ type MessageDTOInput struct {
 type MsgType string
 
 const (
-	NewMessage MsgType = "message"
-	ChatAction MsgType = "chatAction"
+	NewMessage      MsgType = "message"
+	FeatUserInChat  MsgType = "featUserInChat"
+	DelUserFromChat MsgType = "delUserFromChat"
 )
 
 type WebScoketDTO struct {

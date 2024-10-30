@@ -8,6 +8,7 @@ import (
 	"time"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
@@ -20,9 +21,9 @@ import (
 )
 
 const (
-	featNewUser = "featNewUser"
-	delUser     = "deleteUser"
-	newMessage  = "message"
+	FeatNewUser = "featNewUser"
+	DelUser     = "deleteUser"
+	NewMessage  = "message"
 )
 
 type MessageUsecaseImplm struct {
@@ -56,10 +57,10 @@ func (u *MessageUsecaseImplm) publishMessageTochat(ctx context.Context, message 
 		MaxLen: 0,
 		ID:     "",
 		Values: map[string]interface{}{
-			newMessage: message,
+			NewMessage: message,
 		},
 	}).Err()
-	log.Printf("publishMessageTochat: %v, %v", newMessage, message)
+	log.Printf("publishMessageTochat: %v, %v", NewMessage, message)
 	return err
 }
 
@@ -68,7 +69,7 @@ func (u *MessageUsecaseImplm) goBroker(ctx context.Context) {
 	for {
 		select {
 		case message := <-u.messages:
-			if _, ok := u.activeUsers[message.AuthorID]; ok {
+			if _, ok := u.activeChats[message.ChatId]; ok {
 				log.Println("Message usecase: добавление сообщения в redis")
 				err := u.publishMessageTochat(ctx, message)
 				if err != nil {
@@ -128,7 +129,7 @@ func (u *MessageUsecaseImplm) sendMessagesToUsers(ctx context.Context, message m
 			MaxLen: 0,
 			ID:     "",
 			Values: map[string]interface{}{
-				newMessage: message,
+				NewMessage: message,
 			},
 		}).Err()
 
@@ -142,7 +143,7 @@ func (u *MessageUsecaseImplm) sendMessagesToUsers(ctx context.Context, message m
 
 // chatBroker кидает новые сообщения подписчикам
 func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) {
-	log.Printf("Message usecase -> chatBroker: броке создан для чата: %v", chatId)
+	log.Printf("Message usecase -> chatBroker: брокер создан для чата: %v", chatId)
 
 	defer func() {
 		u.activeChats[chatId] = false
@@ -170,15 +171,13 @@ func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) 
 		for _, message := range messages {
 			fmt.Println("Стрим:", message.Stream)
 			for _, msg := range message.Messages {
-				fmt.Printf("Message usecase -> chatBroker: ID: %s, Данные: %v\n", msg.ID, msg.Values)
-				// channel<- m.UnmarshalBinary(msg.Values)
-				if f, ok := msg.Values[featNewUser]; ok {
+				if f, ok := msg.Values[FeatNewUser]; ok {
 					activeUsersInChat[f.(string)] = true
 					log.Printf("Message usecase -> chatBroker: добавлен подписчкик %v на чат %v", f.(string), chatId)
-				} else if del, ok := msg.Values[delUser]; ok {
+				} else if del, ok := msg.Values[DelUser]; ok {
 					delete(activeUsersInChat, del.(string))
 					log.Printf("Message usecase -> chatBroker: удалён подписчкик %v на чат %v", del.(string), chatId)
-				} else if mesInterface, ok := msg.Values[newMessage]; ok {
+				} else if mesInterface, ok := msg.Values[NewMessage]; ok {
 					var mes models.Message
 					mes.UnmarshalBinary([]byte(mesInterface.(string)))
 					log.Println(mes)
@@ -210,11 +209,11 @@ func (u *MessageUsecaseImplm) publishUserIntoChat(ctx context.Context, chatId uu
 		MaxLen: 0,
 		ID:     "",
 		Values: map[string]interface{}{
-			featNewUser: userId.String(),
+			FeatNewUser: userId.String(),
 		},
 	}).Err()
 
-	log.Printf("publishUserIntoChat: %v, %v, %v", featNewUser, userId.String(), chatId)
+	log.Printf("publishUserIntoChat: %v, %v, %v", FeatNewUser, userId.String(), chatId)
 	return err
 }
 
@@ -245,7 +244,7 @@ func (u *MessageUsecaseImplm) deleteUserFromChat(ctx context.Context, chatId uui
 		MaxLen: 0,
 		ID:     "",
 		Values: map[string]interface{}{
-			delUser: userId.String(),
+			DelUser: userId.String(),
 		},
 	}).Err()
 
@@ -324,6 +323,16 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 						log.Printf("Message usecase -> websocket: не удалось получить данные и канала: %v", err)
 						continue
 					}
+					if mes.MsgType == models.FeatUserInChat {
+						// создаем рутины на чаты, если еще не существуют
+						err := u.initChatsForUser(ctx, user.ID)
+						if err != nil {
+							log.Println("Message usecase: не удалось инициировать чаты пользоватея: %v", err)
+							res <- err
+							return
+						}
+					}
+
 					channel <- mes
 
 					msgIds = append(msgIds, msg.ID)
@@ -338,22 +347,31 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 }
 
 func (u *MessageUsecaseImplm) makeWebSocketDTO(newInfo map[string]interface{}) (models.WebScoketDTO, error) {
-	if f, ok := newInfo[featNewUser]; ok {
+	log.Println("че-то читаем")
+	if chatInterface, ok := newInfo[FeatNewUser]; ok {
+		var chat chatModel.ChatDTOOutput
+		chat.UnmarshalBinary([]byte(chatInterface.(string)))
 		return models.WebScoketDTO{
-			MsgType: models.ChatAction,
-			Payload: f,
+			MsgType: models.FeatUserInChat,
+			Payload: chat,
 		}, nil
-	} else if del, ok := newInfo[delUser]; ok {
+	} else if del, ok := newInfo[DelUser]; ok {
 		return models.WebScoketDTO{
-			MsgType: models.ChatAction,
+			MsgType: models.FeatUserInChat,
 			Payload: del,
 		}, nil
-	} else if mesInterface, ok := newInfo[newMessage]; ok {
+	} else if messageInterface, ok := newInfo[NewMessage]; ok {
+		var message models.Message
+		message.UnmarshalBinary([]byte(messageInterface.(string)))
 		return models.WebScoketDTO{
-			MsgType: models.ChatAction,
-			Payload: mesInterface,
+			MsgType: models.NewMessage,
+			Payload: message,
 		}, nil
 	}
 
 	return models.WebScoketDTO{}, errors.New("No new messages")
+}
+
+func (u *MessageUsecaseImplm) GetOnlineUsers() map[uuid.UUID]bool {
+	return u.activeUsers
 }
