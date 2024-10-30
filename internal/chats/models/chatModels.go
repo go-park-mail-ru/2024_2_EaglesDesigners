@@ -1,6 +1,8 @@
 package model
 
 import (
+	"encoding/json"
+
 	"github.com/google/uuid"
 
 	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
@@ -18,7 +20,7 @@ type Chat struct {
 	ChatURLName string
 }
 
-type ChatDTO struct {
+type ChatDTOOutput struct {
 	ChatId       uuid.UUID `json:"chatId"`
 	ChatName     string    `json:"chatName" example:"Чат с пользователем 2"`
 	CountOfUsers int       `json:"countOfUsers"`
@@ -27,7 +29,21 @@ type ChatDTO struct {
 	LastMessage messageModel.Message `json:"lastMessage"`
 	// фото в формате base64
 	AvatarBase64 string `json:"avatarBase64"`
-	UsersToAdd []uuid.UUID `json:"usersToAdd"`
+}
+
+type ChatDTOInput struct {
+	ChatName     string      `json:"chatName" example:"Чат с пользователем 2"`
+	ChatType     string      `json:"chatType" example:"personalMessages"`
+	AvatarBase64 string      `json:"avatarBase64"`
+	UsersToAdd   []uuid.UUID `json:"usersToAdd"`
+}
+
+func (chat ChatDTOOutput) MarshalBinary() ([]byte, error) {
+	return json.Marshal(chat)
+}
+
+func (chat *ChatDTOOutput) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, chat)
 }
 
 type ChatDAO struct {
@@ -39,11 +55,11 @@ type ChatDAO struct {
 }
 
 type ChatsDTO struct {
-	Chats []ChatDTO `json:"chats"`
+	Chats []ChatDTOOutput `json:"chats"`
 }
 
-func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage messageModel.Message, AvatarBase64 string) ChatDTO {
-	return ChatDTO{
+func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage messageModel.Message, AvatarBase64 string) ChatDTOOutput {
+	return ChatDTOOutput{
 		ChatId:       chat.ChatId,
 		ChatName:     chat.ChatName,
 		CountOfUsers: countOfUsers,

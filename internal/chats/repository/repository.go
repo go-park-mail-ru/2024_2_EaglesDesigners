@@ -274,3 +274,42 @@ func (r *ChatRepositoryImpl) GetCountOfUsersInChat(ctx context.Context, chatId u
 
 	return count, err
 }
+
+func (r *ChatRepositoryImpl) GetChatById(ctx context.Context, chatId uuid.UUID) (chatModel.Chat, error) {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return chatModel.Chat{}, err
+	}
+	defer conn.Release()
+
+	var chatName string
+	var chatType string
+	var avatarURL sql.NullString
+	var chatURLName sql.NullString
+
+	err = conn.QueryRow(ctx,
+		`SELECT c.id,
+		c.chat_name,
+		ch.value,
+		c.avatar_path,
+		c.chat_link_name
+		FROM chat AS c
+		JOIN chat_type AS ch ON ch.id = c.chat_type_id
+		WHERE c.id = $1`,
+		chatId,
+	).Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
+
+	if err != nil {
+		return chatModel.Chat{}, nil
+	}
+
+	return chatModel.Chat{
+		ChatId:      chatId,
+		ChatName:    chatName,
+		ChatType:    chatType,
+		AvatarURL:   avatarURL.String,
+		ChatURLName: chatURLName.String,
+	}, nil
+
+}

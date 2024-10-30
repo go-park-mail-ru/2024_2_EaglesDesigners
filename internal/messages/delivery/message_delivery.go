@@ -7,9 +7,9 @@ import (
 	"time"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -56,7 +56,6 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 
 	var messageDTO models.Message
 	err = json.NewDecoder(r.Body).Decode(&messageDTO)
@@ -130,7 +129,7 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 	defer conn.Close()
 
 	// Здесь можно хранить список старых сообщений (например, в массиве или в базе данных)
-	messageChannel := make(chan []models.Message, 10)
+	messageChannel := make(chan models.WebScoketDTO, 10)
 	errChannel := make(chan error, 10)
 	closeChannel := make(chan bool, 1)
 
@@ -138,7 +137,6 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 		closeChannel <- true
 		close(closeChannel)
 	}()
-
 
 	if err != nil {
 		log.Println("Error reading message:", err)
@@ -160,16 +158,12 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-		case messages := <-messageChannel:
+		case message := <-messageChannel:
 			// запись новых сообщений
 			log.Println("Message delivery websocket: получены новые сообщения")
 
-			if len(messages) > 0 {
-				conn.WriteJSON(models.MessagesArrayDTOOutput{
-					Messages: messages,
-					IsNew:    true,
-				})
-			}
+			conn.WriteJSON(message)
+
 		default:
 			time.Sleep(duration)
 		}

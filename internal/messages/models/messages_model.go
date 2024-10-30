@@ -39,3 +39,16 @@ type MessageDTOInput struct {
 	Disconnect bool   `json:"disconnect"`
 	Message    string `json:"message"`
 }
+
+type MsgType string
+
+const (
+	NewMessage      MsgType = "message"
+	FeatUserInChat  MsgType = "featUserInChat"
+	DelUserFromChat MsgType = "delUserFromChat"
+)
+
+type WebScoketDTO struct {
+	MsgType MsgType     `json:"messageType"`
+	Payload interface{} `json:"payload"`
+}

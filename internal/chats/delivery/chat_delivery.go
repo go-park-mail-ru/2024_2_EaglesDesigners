@@ -63,7 +63,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
-	var chatDTO models.ChatDTO
+	var chatDTO models.ChatDTOInput
 	err := json.NewDecoder(r.Body).Decode(&chatDTO)
 
 	if err != nil {
