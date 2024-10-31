@@ -58,7 +58,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
 
 	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
