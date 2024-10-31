@@ -91,6 +91,13 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, userId uuid.UUID,
 	message.AuthorID = userId
 	message.ChatId = chatId
 
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	log.Println(user)
+	if !ok {
+		return fmt.Errorf("Message usecase -> SendMessage: user отсутствует в контексте")
+	}
+	message.AuthorName = user.Username
+
 	log.Printf("Usecase: сообщение от прользователя: %v", message.AuthorID)
 
 	err := u.messageRepository.AddMessage(message, chatId)
