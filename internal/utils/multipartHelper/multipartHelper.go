@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	uploadPath   = "uploads/"
+	uploadPath   = "/uploads/"
 	absolutePath = "/2024_2_eaglesDesigners"
 )
 
