@@ -276,7 +276,7 @@ const docTemplate = `{
                 ],
                 "description": "Update bio, avatar, name or birthdate of user.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -287,13 +287,19 @@ const docTemplate = `{
                 "summary": "Update profile data",
                 "parameters": [
                     {
-                        "description": "Credentials for update profile data",
-                        "name": "credentials",
+                        "description": "JSON representation of profile data",
+                        "name": "profile_data",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/models.UpdateProfileRequestDTO"
                         }
+                    },
+                    {
+                        "type": "file",
+                        "description": "User avatar image",
+                        "name": "avatar",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -304,7 +310,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid format JSON",
+                        "description": "Failed to update profile",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -484,9 +490,9 @@ const docTemplate = `{
         "models.GetProfileResponseDTO": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
+                "avatarURL": {
                     "type": "string",
-                    "example": "this is Base64 photo"
+                    "example": "/2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
                 },
                 "bio": {
                     "type": "string",
@@ -505,10 +511,6 @@ const docTemplate = `{
         "models.UpdateProfileRequestDTO": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
-                    "type": "string",
-                    "example": "this is Base64 photo"
-                },
                 "bio": {
                     "type": "string",
                     "example": "Не люблю сети"
@@ -520,9 +522,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Vincent Vega"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
