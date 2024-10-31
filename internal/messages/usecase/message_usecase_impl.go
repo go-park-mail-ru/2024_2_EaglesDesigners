@@ -83,19 +83,13 @@ func (u *MessageUsecaseImplm) goBroker(ctx context.Context) {
 	}
 }
 
-func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, message models.Message) error {
+func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, chatId uuid.UUID, message models.Message) error {
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
 
 	message.MessageId = uuid.New()
 	message.SentAt = time.Now()
-	message.AuthorID = userId
+	message.AuthorID = user.ID
 	message.ChatId = chatId
-
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
-	log.Println(user)
-	if !ok {
-		return fmt.Errorf("Message usecase -> SendMessage: user отсутствует в контексте")
-	}
 	message.AuthorName = user.Username
 
 	log.Printf("Usecase: сообщение от прользователя: %v", message.AuthorID)
