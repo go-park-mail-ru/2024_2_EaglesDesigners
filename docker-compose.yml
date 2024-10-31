@@ -10,6 +10,8 @@ services:
     restart: always
     ports:
       - "8080:8080"
+    volumes:
+      - ./uploads:/uploads
   
   postgres:
     container_name: postgres
@@ -22,3 +24,9 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
+
+  redis:
+    container_name: redis
+    image: redis:7.4.1
+    ports:
+      - "6380:6379"

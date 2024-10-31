@@ -3,10 +3,9 @@ package usecase
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
+	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
 )
 
 type Repository interface {
@@ -25,12 +24,6 @@ func New(repo Repository) *Usecase {
 }
 
 func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdateProfileRequestDTO) error {
-	var avatarChanged bool
-
-	if profileDTO.AvatarBase64 != nil {
-		avatarChanged = true
-	}
-
 	profile := convertProfileFromDTO(profileDTO)
 
 	avatarURL, err := u.repo.UpdateProfile(ctx, profile)
@@ -39,8 +32,8 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 		return err
 	}
 
-	if avatarChanged {
-		err := base64helper.RewritePhoto(*profileDTO.AvatarBase64, *avatarURL)
+	if profile.Avatar != nil {
+		err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarURL)
 		if err != nil {
 			log.Printf("Не удалось перезаписать аватарку: %v", err)
 			return err
@@ -57,58 +50,28 @@ func (u *Usecase) GetProfile(ctx context.Context, username string) (models.Profi
 		return models.ProfileData{}, err
 	}
 
+	log.Println("Profile usecase: данные получены")
+
 	profileData := convertProfileDataFromDAO(profileDataDAO)
 
 	return profileData, nil
 }
 
 func convertProfileDataFromDAO(dao models.ProfileDataDAO) models.ProfileData {
-	var name *string
-
-	if dao.Name.Valid {
-		name = &dao.Name.String
-	} else {
-		name = nil
-	}
-
-	var bio *string
-
-	if dao.Bio.Valid {
-		bio = &dao.Bio.String
-	} else {
-		bio = nil
-	}
-
-	var avatarBase64 *string
-
-	if dao.AvatarURL.Valid {
-		avatarBase64 = &dao.AvatarURL.String
-	} else {
-		avatarBase64 = nil
-	}
-
-	var birthdate *time.Time
-
-	if dao.Birthdate.Valid {
-		birthdate = &dao.Birthdate.Time
-	} else {
-		birthdate = nil
-	}
-
 	return models.ProfileData{
-		Name:      name,
-		Bio:       bio,
-		AvatarURL: avatarBase64,
-		Birthdate: birthdate,
+		Name:       dao.Name,
+		Bio:        dao.Bio,
+		Birthdate:  dao.Birthdate,
+		AvatarPath: dao.AvatarPath,
 	}
 }
 
 func convertProfileFromDTO(dto models.UpdateProfileRequestDTO) models.Profile {
 	return models.Profile{
-		Username:     dto.Username,
-		Name:         dto.Name,
-		Bio:          dto.Bio,
-		AvatarBase64: dto.AvatarBase64,
-		Birthdate:    dto.Birthdate,
+		Username:  dto.Username,
+		Name:      dto.Name,
+		Bio:       dto.Bio,
+		Avatar:    dto.Avatar,
+		Birthdate: dto.Birthdate,
 	}
 }

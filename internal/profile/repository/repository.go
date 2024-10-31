@@ -48,12 +48,14 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 		&profileData.Name,
 		&profileData.Birthdate,
 		&profileData.Bio,
-		&profileData.AvatarURL,
+		&profileData.AvatarPath,
 	)
 	if err != nil {
 		log.Printf("Не удалось получить данные профиля: %v\n", err)
 		return models.ProfileDataDAO{}, err
 	}
+
+	log.Println("Profile repo: данные получены")
 
 	return profileData, nil
 }
@@ -89,7 +91,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 
 	if avatarURL == nil {
 		avatarURL = new(string)
-		*avatarURL = uuid.New().String()
+		*avatarURL = "/uploads/avatar/" + uuid.New().String() + ".png"
 	}
 
 	query := `UPDATE public."user" SET `
@@ -107,7 +109,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("bio = $%d", len(args)+1))
 		args = append(args, profile.Bio)
 	}
-	if profile.AvatarBase64 != nil {
+	if profile.Avatar != nil {
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("avatar_path = $%d", len(args)+1))
 		args = append(args, avatarURL)
 	}

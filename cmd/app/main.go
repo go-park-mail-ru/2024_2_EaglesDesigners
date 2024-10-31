@@ -68,14 +68,15 @@ func main() {
 	log.Println("База данных подключена")
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr: "redis:6379",
+		// Addr:     "localhost:6379",
 		Password: "1234",
 		DB:       0,
 	})
 	status := redisClient.Ping(context.Background())
 
 	if err := status.Err(); err != nil {
-		log.Println("Не удалось подлключить Redis")
+		log.Println("Не удалось подкллючить Redis: ", err)
 		return
 	}
 	defer redisClient.Close()

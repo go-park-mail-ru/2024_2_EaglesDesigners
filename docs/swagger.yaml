@@ -77,8 +77,8 @@ definitions:
     type: object
   models.GetProfileResponseDTO:
     properties:
-      avatarBase64:
-        example: this is Base64 photo
+      avatarURL:
+        example: /2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
       bio:
         example: Не люблю сети
@@ -92,9 +92,6 @@ definitions:
     type: object
   models.UpdateProfileRequestDTO:
     properties:
-      avatarBase64:
-        example: this is Base64 photo
-        type: string
       bio:
         example: Не люблю сети
         type: string
@@ -103,8 +100,6 @@ definitions:
         type: string
       name:
         example: Vincent Vega
-        type: string
-      username:
         type: string
     type: object
   responser.ErrorResponse:
@@ -296,15 +291,19 @@ paths:
       - profile
     put:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Update bio, avatar, name or birthdate of user.
       parameters:
-      - description: Credentials for update profile data
+      - description: JSON representation of profile data
         in: body
-        name: credentials
+        name: profile_data
         required: true
         schema:
           $ref: '#/definitions/models.UpdateProfileRequestDTO'
+      - description: User avatar image
+        in: formData
+        name: avatar
+        type: file
       produces:
       - application/json
       responses:
@@ -313,7 +312,7 @@ paths:
           schema:
             $ref: '#/definitions/responser.SuccessResponse'
         "400":
-          description: Invalid format JSON
+          description: Failed to update profile
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
         "401":
