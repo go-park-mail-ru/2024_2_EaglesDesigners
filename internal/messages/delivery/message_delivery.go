@@ -66,7 +66,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = h.usecase.SendMessage(r.Context(), user.ID, chatUUID, messageDTO)
+	err = h.usecase.SendMessage(r.Context(), user, chatUUID, messageDTO)
 
 	if err != nil {
 		log.Printf("Не удалось добавить сообщение: %v", err)
