@@ -358,6 +358,40 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /uploads/{folder}/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Fetches an image from the specified folder and by filename
+      parameters:
+      - description: Folder name
+        example: '"avatar"'
+        in: path
+        name: folder
+        required: true
+        type: string
+      - description: File name
+        example: '"642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png"'
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful image retrieval
+          schema:
+            type: file
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve an image
+      tags:
+      - uploads
 securityDefinitions:
   BasicAuth:
     type: basic

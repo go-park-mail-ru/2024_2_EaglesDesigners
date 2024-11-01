@@ -375,6 +375,56 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/uploads/{folder}/{name}": {
+            "get": {
+                "description": "Fetches an image from the specified folder and by filename",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "uploads"
+                ],
+                "summary": "Retrieve an image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"avatar\"",
+                        "description": "Folder name",
+                        "name": "folder",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png\"",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful image retrieval",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
