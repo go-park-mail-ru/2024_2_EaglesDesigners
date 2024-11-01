@@ -28,6 +28,7 @@ import (
 	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
+	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/uploads/delivery"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/redis/go-redis/v9"
@@ -92,6 +93,10 @@ func main() {
 	authUC := authUC.NewUsecase(authRepo, tokenUC)
 	auth := authDelivery.NewDelivery(authUC, tokenUC)
 
+	// uploads
+
+	uploads := uploadsDelivery.New()
+
 	// profile
 	profileRepo := profileRepo.New(pool)
 	profileUC := profileUC.New(profileRepo)
@@ -130,7 +135,7 @@ func main() {
 	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
-
+	router.HandleFunc("/uploads/{folder}/{name}", uploads.GetImage).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.GetProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
