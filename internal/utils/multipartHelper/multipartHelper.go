@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	uploadPath   = "/uploads/"
-	absolutePath = "/2024_2_eaglesDesigners"
+	uploadPath = "/uploads/"
 )
 
 // mb не нужон
@@ -93,8 +92,4 @@ func IsImageFile(file multipart.File) bool {
 	}
 
 	return img != nil
-}
-
-func GetAbsolutePath(path string) string {
-	return absolutePath + path
 }

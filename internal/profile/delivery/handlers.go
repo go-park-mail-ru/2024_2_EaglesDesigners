@@ -10,7 +10,6 @@ import (
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
-	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 )
 
@@ -154,16 +153,10 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func convertProfileDataToDTO(profileData models.ProfileData) models.GetProfileResponseDTO {
-	var avatarURL *string
-	if profileData.AvatarPath != nil {
-		path := multipartHepler.GetAbsolutePath(*profileData.AvatarPath)
-		avatarURL = &path
-	}
-
 	return models.GetProfileResponseDTO{
 		Name:      profileData.Name,
 		Bio:       profileData.Bio,
-		AvatarURL: avatarURL,
+		AvatarURL: profileData.AvatarPath,
 		Birthdate: profileData.Birthdate,
 	}
 }

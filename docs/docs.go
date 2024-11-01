@@ -507,9 +507,9 @@ const docTemplate = `{
         "models.ContactDTO": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
+                "avatarURL": {
                     "type": "string",
-                    "example": "this is Base64 photo"
+                    "example": "/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png"
                 },
                 "id": {
                     "type": "string",
