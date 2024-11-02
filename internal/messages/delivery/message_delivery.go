@@ -51,6 +51,16 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 	}
 }
 
+// AddNewMessageHandler godoc
+// @Summary Add new message
+// @Tags message
+// @Accept json
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Param message body models.Message true "Message info"
+// @Success 201 "Сообщение успешно добавлено"
+// @Failure 400	"Некорректный запрос"
+// @Failure 500	"Не удалось добавить сообщение"
+// @Router /chat/{chatId}/messages [post]
 func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request) {
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
@@ -95,7 +105,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {

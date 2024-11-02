@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// @Schema
 type Message struct {
 	MessageId  uuid.UUID `json:"messageId" example:"1"`
 	AuthorID   uuid.UUID `json:"authorID" exameple:"2"`

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 )
 
@@ -23,6 +23,15 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 }
 
 // GetUserChatsHandler выдает чаты пользователя в query указать страницу ?page=
+//
+// GetUserChatsHandler godoc
+// @Summary Get chats of user
+// @Tags chat
+// @Produce json
+// @Param page query int false "Page number for pagination" default(0)
+// @Success 200 {object} model.ChatsDTO
+// @Failure 500	"Не удалось получить сообщения"
+// @Router /chats [get]
 func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -40,13 +49,13 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 		fmt.Println(err)
 
 		//вернуть 401
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		log.Printf("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
 		return
 	}
 
-	chatsDTO := models.ChatsDTO{
+	chatsDTO := model.ChatsDTO{
 		Chats: chats,
 	}
 
@@ -62,8 +71,17 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 	w.Write(jsonResp)
 }
 
+// AddNewChat godoc
+// @Summary Add new chat
+// @Tags chat
+// @Accept json
+// @Param chat body model.ChatDTOInput true "Chat info"
+// @Success 201 "Чат создан"
+// @Failure 400	"Некорректный запрос"
+// @Failure 500	"Не удалось добавить чат / группу"
+// @Router /addchat [post]
 func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
-	var chatDTO models.ChatDTOInput
+	var chatDTO model.ChatDTOInput
 	err := json.NewDecoder(r.Body).Decode(&chatDTO)
 
 	if err != nil {
@@ -79,14 +97,22 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	return
+	w.WriteHeader(http.StatusCreated)
 }
 
+// AddUsersIntoChat godoc
+// @Summary Добавить пользователей в чат
+// @Tags chat
+// @Accept json
+// @Param users body model.AddUsersIntoChatDTO true "Пользователи на добавление"
+// @Success 200 "Пользователи добавлены"
+// @Failure 400	"Некорректный запрос"
+// @Failure 500	"Не удалось добавить пользователей"
+// @Router /addusers [post]
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var usersToAdd models.AddUsersIntoChatDTO
+	var usersToAdd model.AddUsersIntoChatDTO
 	err := json.NewDecoder(r.Body).Decode(&usersToAdd)
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
@@ -103,7 +129,6 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 type ErrorResponse struct {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 )
 
 // @Schema
@@ -20,22 +20,21 @@ type Chat struct {
 	ChatURLName string
 }
 
+// @Schema
 type ChatDTOOutput struct {
-	ChatId       uuid.UUID `json:"chatId"`
-	ChatName     string    `json:"chatName" example:"Чат с пользователем 2"`
-	CountOfUsers int       `json:"countOfUsers"`
-	// @Enum [personalMessages, group, channel]
-	ChatType    string               `json:"chatType" example:"personalMessages"`
-	LastMessage messageModel.Message `json:"lastMessage"`
-	// фото в формате base64
-	AvatarBase64 string `json:"avatarBase64"`
+	ChatId       uuid.UUID      `json:"chatId"`
+	ChatName     string         `json:"chatName" example:"Чат с пользователем 2"`
+	CountOfUsers int            `json:"countOfUsers" example:"52"`
+	ChatType     string         `json:"chatType" example:"personal"`
+	LastMessage  models.Message `json:"lastMessage"`
+	AvatarBase64 string         `json:"avatarBase64"`
 }
 
 type ChatDTOInput struct {
 	ChatName     string      `json:"chatName" example:"Чат с пользователем 2"`
 	ChatType     string      `json:"chatType" example:"personalMessages"`
 	AvatarBase64 string      `json:"avatarBase64"`
-	UsersToAdd   []uuid.UUID `json:"usersToAdd"`
+	UsersToAdd   []uuid.UUID `json:"usersToAdd" example:"uuid1,uuid2"`
 }
 
 func (chat ChatDTOOutput) MarshalBinary() ([]byte, error) {
@@ -58,7 +57,7 @@ type ChatsDTO struct {
 	Chats []ChatDTOOutput `json:"chats"`
 }
 
-func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage messageModel.Message, AvatarBase64 string) ChatDTOOutput {
+func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message, AvatarBase64 string) ChatDTOOutput {
 	return ChatDTOOutput{
 		ChatId:       chat.ChatId,
 		ChatName:     chat.ChatName,
@@ -71,5 +70,5 @@ func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage messageModel.Messag
 
 type AddUsersIntoChatDTO struct {
 	ChatId  uuid.UUID   `json:"chatId"`
-	UsersId []uuid.UUID `json:"usersId"`
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
 }
