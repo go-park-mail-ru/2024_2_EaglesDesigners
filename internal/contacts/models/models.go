@@ -8,8 +8,8 @@ type ContactDTO struct {
 	Username string `json:"username" example:"user11"`
 
 	// can be nil
-	Name         *string `json:"name" example:"Витек"`
-	AvatarBase64 *string `json:"avatarBase64" example:"this is Base64 photo"`
+	Name      *string `json:"name" example:"Витек"`
+	AvatarURL *string `json:"avatarURL" example:"/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png"`
 }
 
 // @Schema
@@ -23,10 +23,10 @@ type GetContactsRespDTO struct {
 }
 
 type Contact struct {
-	ID           string
-	Username     string
-	Name         *string
-	AvatarBase64 *string
+	ID        string
+	Username  string
+	Name      *string
+	AvatarURL *string
 }
 
 type ContactData struct {

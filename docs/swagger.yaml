@@ -109,8 +109,8 @@ definitions:
     type: object
   models.ContactDTO:
     properties:
-      avatarBase64:
-        example: this is Base64 photo
+      avatarURL:
+        example: /uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png
         type: string
       id:
         example: 08a0f350-e122-467b-8ba8-524d2478b56e
@@ -132,8 +132,8 @@ definitions:
     type: object
   models.GetProfileResponseDTO:
     properties:
-      avatarBase64:
-        example: this is Base64 photo
+      avatarURL:
+        example: /2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
       bio:
         example: Не люблю сети
@@ -167,9 +167,6 @@ definitions:
     type: object
   models.UpdateProfileRequestDTO:
     properties:
-      avatarBase64:
-        example: this is Base64 photo
-        type: string
       bio:
         example: Не люблю сети
         type: string
@@ -178,8 +175,6 @@ definitions:
         type: string
       name:
         example: Vincent Vega
-        type: string
-      username:
         type: string
     type: object
   responser.ErrorResponse:
@@ -462,15 +457,19 @@ paths:
       - profile
     put:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Update bio, avatar, name or birthdate of user.
       parameters:
-      - description: Credentials for update profile data
+      - description: JSON representation of profile data
         in: body
-        name: credentials
+        name: profile_data
         required: true
         schema:
           $ref: '#/definitions/models.UpdateProfileRequestDTO'
+      - description: User avatar image
+        in: formData
+        name: avatar
+        type: file
       produces:
       - application/json
       responses:
@@ -479,7 +478,7 @@ paths:
           schema:
             $ref: '#/definitions/responser.SuccessResponse'
         "400":
-          description: Invalid format JSON
+          description: Failed to update profile
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
         "401":
@@ -525,6 +524,40 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /uploads/{folder}/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Fetches an image from the specified folder and by filename
+      parameters:
+      - description: Folder name
+        example: '"avatar"'
+        in: path
+        name: folder
+        required: true
+        type: string
+      - description: File name
+        example: '"642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png"'
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful image retrieval
+          schema:
+            type: file
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve an image
+      tags:
+      - uploads
 securityDefinitions:
   BasicAuth:
     type: basic

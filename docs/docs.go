@@ -416,7 +416,7 @@ const docTemplate = `{
                 ],
                 "description": "Update bio, avatar, name or birthdate of user.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -427,13 +427,19 @@ const docTemplate = `{
                 "summary": "Update profile data",
                 "parameters": [
                     {
-                        "description": "Credentials for update profile data",
-                        "name": "credentials",
+                        "description": "JSON representation of profile data",
+                        "name": "profile_data",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/models.UpdateProfileRequestDTO"
                         }
+                    },
+                    {
+                        "type": "file",
+                        "description": "User avatar image",
+                        "name": "avatar",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -444,7 +450,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid format JSON",
+                        "description": "Failed to update profile",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -505,6 +511,56 @@ const docTemplate = `{
                         "description": "A user with that username already exists",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/uploads/{folder}/{name}": {
+            "get": {
+                "description": "Fetches an image from the specified folder and by filename",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "uploads"
+                ],
+                "summary": "Retrieve an image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"avatar\"",
+                        "description": "Folder name",
+                        "name": "folder",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png\"",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful image retrieval",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -672,9 +728,9 @@ const docTemplate = `{
         "models.ContactDTO": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
+                "avatarURL": {
                     "type": "string",
-                    "example": "this is Base64 photo"
+                    "example": "/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png"
                 },
                 "id": {
                     "type": "string",
@@ -705,9 +761,9 @@ const docTemplate = `{
         "models.GetProfileResponseDTO": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
+                "avatarURL": {
                     "type": "string",
-                    "example": "this is Base64 photo"
+                    "example": "/2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
                 },
                 "bio": {
                     "type": "string",
@@ -755,10 +811,6 @@ const docTemplate = `{
         "models.UpdateProfileRequestDTO": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
-                    "type": "string",
-                    "example": "this is Base64 photo"
-                },
                 "bio": {
                     "type": "string",
                     "example": "Не люблю сети"
@@ -770,9 +822,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Vincent Vega"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },

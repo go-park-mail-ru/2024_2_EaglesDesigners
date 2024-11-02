@@ -154,9 +154,9 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 func convertContactToDTO(contact models.Contact) models.ContactDTO {
 	return models.ContactDTO{
-		ID:           contact.ID,
-		Username:     contact.Username,
-		Name:         contact.Name,
-		AvatarBase64: contact.AvatarBase64,
+		ID:        contact.ID,
+		Username:  contact.Username,
+		Name:      contact.Name,
+		AvatarURL: contact.AvatarURL,
 	}
 }

@@ -1,53 +1,53 @@
 package models
 
 import (
-	"database/sql"
+	"mime/multipart"
 	"time"
 )
 
 // @Schema
 type UpdateProfileRequestDTO struct {
-	Username     string
-	Name         *string    `json:"name" example:"Vincent Vega"`
-	Bio          *string    `json:"bio" example:"Не люблю сети"`
-	AvatarBase64 *string    `json:"avatarBase64" example:"this is Base64 photo"`
-	Birthdate    *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z"`
+	Username  string          `json:"-"`
+	Name      *string         `json:"name" example:"Vincent Vega"`
+	Bio       *string         `json:"bio" example:"Не люблю сети"`
+	Birthdate *time.Time      `json:"birthdate" example:"2024-04-13T08:30:00Z"`
+	Avatar    *multipart.File `json:"-"`
 }
 
 // @Schema
 type GetProfileResponseDTO struct {
-	Name         *string    `json:"name" example:"Vincent Vega"`
-	Bio          *string    `json:"bio" example:"Не люблю сети"`
-	AvatarBase64 *string    `json:"avatarBase64" example:"this is Base64 photo"`
-	Birthdate    *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z"`
+	Name      *string    `json:"name" example:"Vincent Vega"`
+	Bio       *string    `json:"bio" example:"Не люблю сети"`
+	AvatarURL *string    `json:"avatarURL" example:"/2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"`
+	Birthdate *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z"`
 }
 
 type Profile struct {
-	Username     string
-	Name         *string
-	Bio          *string
-	AvatarBase64 *string
-	Birthdate    *time.Time
-}
-
-type ProfileData struct {
+	Username  string
 	Name      *string
 	Bio       *string
-	AvatarURL *string
+	Avatar    *multipart.File
 	Birthdate *time.Time
 }
 
+type ProfileData struct {
+	Name       *string
+	Bio        *string
+	AvatarPath *string
+	Birthdate  *time.Time
+}
+
 type ProfileDAO struct {
-	Username  string
-	Name      sql.NullString
-	Bio       sql.NullString
-	AvatarURL sql.NullString
-	Birthdate sql.NullTime
+	Username   string
+	Name       *string
+	Bio        *string
+	AvatarPath *string
+	Birthdate  *time.Time
 }
 
 type ProfileDataDAO struct {
-	Name      sql.NullString
-	Bio       sql.NullString
-	AvatarURL sql.NullString
-	Birthdate sql.NullTime
+	Name       *string
+	Bio        *string
+	AvatarPath *string
+	Birthdate  *time.Time
 }
