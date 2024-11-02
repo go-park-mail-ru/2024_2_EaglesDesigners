@@ -24,6 +24,72 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/addchat": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Add new chat",
+                "parameters": [
+                    {
+                        "description": "Chat info",
+                        "name": "chat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatDTOInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Чат создан"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос"
+                    },
+                    "500": {
+                        "description": "Не удалось добавить чат / группу"
+                    }
+                }
+            }
+        },
+        "/addusers": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Добавить пользователей в чат",
+                "parameters": [
+                    {
+                        "description": "Пользователи на добавление",
+                        "name": "users",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddUsersIntoChatDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи добавлены"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос"
+                    },
+                    "500": {
+                        "description": "Не удалось добавить пользователей"
+                    }
+                }
+            }
+        },
         "/auth": {
             "get": {
                 "description": "Retrieve user data based on the JWT token present in the cookies.",
@@ -49,6 +115,80 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/messages": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message"
+                ],
+                "summary": "Add new message",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Message info",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Message"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Сообщение успешно добавлено"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос"
+                    },
+                    "500": {
+                        "description": "Не удалось добавить сообщение"
+                    }
+                }
+            }
+        },
+        "/chats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Get chats of user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Page number for pagination",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatsDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщения"
                     }
                 }
             }
@@ -439,6 +579,87 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AddUsersIntoChatDTO": {
+            "type": "object",
+            "properties": {
+                "chatId": {
+                    "type": "string"
+                },
+                "usersId": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.ChatDTOInput": {
+            "type": "object",
+            "properties": {
+                "avatarBase64": {
+                    "type": "string"
+                },
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "chatType": {
+                    "type": "string",
+                    "example": "personalMessages"
+                },
+                "usersToAdd": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.ChatDTOOutput": {
+            "type": "object",
+            "properties": {
+                "avatarBase64": {
+                    "type": "string"
+                },
+                "chatId": {
+                    "type": "string"
+                },
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "chatType": {
+                    "type": "string",
+                    "example": "personal"
+                },
+                "countOfUsers": {
+                    "type": "integer",
+                    "example": 52
+                },
+                "lastMessage": {
+                    "$ref": "#/definitions/models.Message"
+                }
+            }
+        },
+        "model.ChatsDTO": {
+            "type": "object",
+            "properties": {
+                "chats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ChatDTOOutput"
+                    }
+                }
+            }
+        },
         "models.AddContactReqDTO": {
             "type": "object",
             "properties": {
@@ -499,6 +720,35 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Vincent Vega"
+                }
+            }
+        },
+        "models.Message": {
+            "type": "object",
+            "properties": {
+                "authorID": {
+                    "type": "string"
+                },
+                "authorName": {
+                    "type": "string"
+                },
+                "chatId": {
+                    "type": "string"
+                },
+                "datetime": {
+                    "type": "string",
+                    "example": "2024-04-13T08:30:00Z"
+                },
+                "isRedacted": {
+                    "type": "boolean"
+                },
+                "messageId": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "тут много текста"
                 }
             }
         },

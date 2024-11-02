@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"html/template"
 	"log"
 	"net/http"
 
@@ -139,11 +138,11 @@ func main() {
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-	tmpl := template.Must(template.ParseFiles("index.html"))
+	// tmpl := template.Must(template.ParseFiles("index.html"))
 
-	router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, nil)
-	})
+	// router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
+	// 	tmpl.Execute(w, nil)
+	// })
 
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")

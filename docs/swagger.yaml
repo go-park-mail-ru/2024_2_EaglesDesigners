@@ -46,6 +46,61 @@ definitions:
         example: user12
         type: string
     type: object
+  model.AddUsersIntoChatDTO:
+    properties:
+      chatId:
+        type: string
+      usersId:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  model.ChatDTOInput:
+    properties:
+      avatarBase64:
+        type: string
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      chatType:
+        example: personalMessages
+        type: string
+      usersToAdd:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  model.ChatDTOOutput:
+    properties:
+      avatarBase64:
+        type: string
+      chatId:
+        type: string
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      chatType:
+        example: personal
+        type: string
+      countOfUsers:
+        example: 52
+        type: integer
+      lastMessage:
+        $ref: '#/definitions/models.Message'
+    type: object
+  model.ChatsDTO:
+    properties:
+      chats:
+        items:
+          $ref: '#/definitions/model.ChatDTOOutput'
+        type: array
+    type: object
   models.AddContactReqDTO:
     properties:
       contactUsername:
@@ -88,6 +143,26 @@ definitions:
         type: string
       name:
         example: Vincent Vega
+        type: string
+    type: object
+  models.Message:
+    properties:
+      authorID:
+        type: string
+      authorName:
+        type: string
+      chatId:
+        type: string
+      datetime:
+        example: "2024-04-13T08:30:00Z"
+        type: string
+      isRedacted:
+        type: boolean
+      messageId:
+        example: "1"
+        type: string
+      text:
+        example: тут много текста
         type: string
     type: object
   models.UpdateProfileRequestDTO:
@@ -137,6 +212,48 @@ info:
   title: Swagger Patefon API
   version: "1.0"
 paths:
+  /addchat:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Chat info
+        in: body
+        name: chat
+        required: true
+        schema:
+          $ref: '#/definitions/model.ChatDTOInput'
+      responses:
+        "201":
+          description: Чат создан
+        "400":
+          description: Некорректный запрос
+        "500":
+          description: Не удалось добавить чат / группу
+      summary: Add new chat
+      tags:
+      - chat
+  /addusers:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Пользователи на добавление
+        in: body
+        name: users
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddUsersIntoChatDTO'
+      responses:
+        "200":
+          description: Пользователи добавлены
+        "400":
+          description: Некорректный запрос
+        "500":
+          description: Не удалось добавить пользователей
+      summary: Добавить пользователей в чат
+      tags:
+      - chat
   /auth:
     get:
       consumes:
@@ -156,6 +273,55 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /chat/{chatId}/messages:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      - description: Message info
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.Message'
+      responses:
+        "201":
+          description: Сообщение успешно добавлено
+        "400":
+          description: Некорректный запрос
+        "500":
+          description: Не удалось добавить сообщение
+      summary: Add new message
+      tags:
+      - message
+  /chats:
+    get:
+      parameters:
+      - default: 0
+        description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ChatsDTO'
+        "500":
+          description: Не удалось получить сообщения
+      summary: Get chats of user
+      tags:
+      - chat
   /contacts:
     get:
       consumes:
