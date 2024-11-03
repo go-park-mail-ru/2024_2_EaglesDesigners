@@ -248,7 +248,8 @@ ALTER TABLE ONLY public.user_role
 --
 
 ALTER TABLE ONLY public.message
-    ADD CONSTRAINT author_id_fk_messages_chat_id_pk_chat_users FOREIGN KEY (author_id, chat_id) REFERENCES public.chat_user(user_id, chat_id);
+    ADD CONSTRAINT author_id_fk_messages_chat_id_pk_chat_users FOREIGN KEY (author_id, chat_id) REFERENCES public.chat_user(user_id, chat_id)
+    ON DELETE CASCADE;
 
 
 --
@@ -256,7 +257,8 @@ ALTER TABLE ONLY public.message
 --
 
 ALTER TABLE ONLY public.chat_user
-    ADD CONSTRAINT chat_id_fk_chat_users_chat_id_pk_chats FOREIGN KEY (chat_id) REFERENCES public.chat(id);
+    ADD CONSTRAINT chat_id_fk_chat_users_chat_id_pk_chats FOREIGN KEY (chat_id) REFERENCES public.chat(id)
+    ON DELETE CASCADE;
 
 
 --

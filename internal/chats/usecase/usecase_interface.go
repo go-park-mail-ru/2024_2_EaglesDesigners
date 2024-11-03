@@ -14,4 +14,6 @@ type ChatUsecase interface {
 
 	// CanUserWriteInChat проверяет может ли юзер писать в чат
 	AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error
+
+	DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error
 }

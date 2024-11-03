@@ -20,10 +20,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type Method = string
+
 const (
-	FeatNewUser = "featNewUser"
-	DelUser     = "deleteUser"
-	NewMessage  = "message"
+	FeatNewUser Method = "featNewUser"
+	DelUser     Method = "deleteUser"
+	NewMessage  Method = "message"
 )
 
 type MessageUsecaseImplm struct {
