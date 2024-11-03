@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"mime/multipart"
 
 	"github.com/google/uuid"
 
@@ -27,14 +28,14 @@ type ChatDTOOutput struct {
 	CountOfUsers int            `json:"countOfUsers" example:"52"`
 	ChatType     string         `json:"chatType" example:"personal"`
 	LastMessage  models.Message `json:"lastMessage"`
-	AvatarBase64 string         `json:"avatarBase64"`
+	AvatarPath   string         `json:"avatarPath"`
 }
 
 type ChatDTOInput struct {
-	ChatName     string      `json:"chatName" example:"Чат с пользователем 2"`
-	ChatType     string      `json:"chatType" example:"personalMessages"`
-	AvatarBase64 string      `json:"avatarBase64"`
-	UsersToAdd   []uuid.UUID `json:"usersToAdd" example:"uuid1,uuid2"`
+	ChatName   string          `json:"chatName" example:"Чат с пользователем 2"`
+	ChatType   string          `json:"chatType" example:"personalMessages"`
+	UsersToAdd []uuid.UUID     `json:"usersToAdd" example:"uuid1,uuid2"`
+	Avatar     *multipart.File `json:"-"`
 }
 
 func (chat ChatDTOOutput) MarshalBinary() ([]byte, error) {
@@ -57,17 +58,26 @@ type ChatsDTO struct {
 	Chats []ChatDTOOutput `json:"chats"`
 }
 
-func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message, AvatarBase64 string) ChatDTOOutput {
+type ChatUpdate struct {
+	ChatName string          `json:"chatName" example:"Чат с пользователем 2"`
+	Avatar   *multipart.File `json:"-"`
+}
+
+func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) ChatDTOOutput {
 	return ChatDTOOutput{
 		ChatId:       chat.ChatId,
 		ChatName:     chat.ChatName,
 		CountOfUsers: countOfUsers,
 		ChatType:     chat.ChatType,
 		LastMessage:  lastMessage,
-		AvatarBase64: AvatarBase64,
+		AvatarPath:   chat.AvatarURL,
 	}
 }
 
 type AddUsersIntoChatDTO struct {
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
+}
+
+type DeleteUsersFromChatDTO struct {
 	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
 }

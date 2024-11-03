@@ -324,7 +324,7 @@ func (r *ChatRepositoryImpl) DeleteChat(ctx context.Context, chatId uuid.UUID) e
 
 	log.Printf("Chat repository -> DeleteChat: начато удаление чата: %v", chatId)
 
-	deleteQuery := `DELETE FROM chat WHERE id = $1`
+	deleteQuery := `DELETE FROM chat WHERE id = $1;`
 
 	// Выполнение удаления
 	_, err = conn.Exec(context.Background(), deleteQuery, chatId)
@@ -333,5 +333,56 @@ func (r *ChatRepositoryImpl) DeleteChat(ctx context.Context, chatId uuid.UUID) e
 		log.Printf("Chat repository -> DeleteChat: не удалось удалить чат: %v", err)
 		return err
 	}
+	
+	return nil
+}
+
+func (r *ChatRepositoryImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatName string) error {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> UpdateChat: начато обновление чата: %v", chatId)
+
+	deleteQuery := `UPDATE TABLE chat SET
+		chat_name = $1 WHERE id = $2;`
+
+	// Выполнение удаления
+	_, err = conn.Exec(ctx, deleteQuery, chatName, chatId)
+
+
+	if err != nil {
+		log.Printf("Chat repository -> UpdateChat: не удалось обновить чат: %v", err)
+		return err
+	}
+	
+	return nil
+}
+
+
+func (r *ChatRepositoryImpl)  DeleteUserFromChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> UpdateChat: начато обновление чата: %v", chatId)
+
+	deleteQuery := `DELETE FROM chat_user WHERE chat_id = $1 AND user_id = $2;`
+
+	// Выполнение удаления
+	_, err = conn.Exec(ctx, deleteQuery, chatId, userId)
+
+
+	if err != nil {
+		log.Printf("Chat repository -> DeleteUserFromChat: не удалось обновить чат: %v", err)
+		return err
+	}
+	
 	return nil
 }

@@ -12,8 +12,6 @@ definitions:
     type: object
   model.ChatDTOInput:
     properties:
-      avatarBase64:
-        type: string
       chatName:
         example: Чат с пользователем 2
         type: string
@@ -30,7 +28,7 @@ definitions:
     type: object
   model.ChatDTOOutput:
     properties:
-      avatarBase64:
+      avatarPath:
         type: string
       chatId:
         type: string
@@ -46,6 +44,12 @@ definitions:
       lastMessage:
         $ref: '#/definitions/models.Message'
     type: object
+  model.ChatUpdate:
+    properties:
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+    type: object
   model.ChatsDTO:
     properties:
       chats:
@@ -53,6 +57,19 @@ definitions:
           $ref: '#/definitions/model.ChatDTOOutput'
         type: array
     type: object
+
+  model.DeleteUsersFromChatDTO:
+    properties:
+      usersId:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  models.AddContactReqDTO:
+
   models.AuthReqDTO:
     properties:
       password:
@@ -63,6 +80,7 @@ definitions:
         type: string
     type: object
   models.ContactReqDTO:
+
     properties:
       contactUsername:
         example: user11
@@ -245,6 +263,36 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /chat/{chatId}:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update bio, avatar, name or birthdate of user.
+      parameters:
+      - description: JSON representation of chat data
+        in: body
+        name: chat_data
+        required: true
+        schema:
+          $ref: '#/definitions/model.ChatUpdate'
+      - description: group avatar
+        in: formData
+        name: avatar
+        type: file
+      responses:
+        "200":
+          description: Чат обновлен
+        "400":
+          description: Некорректный запрос
+        "403":
+          description: Нет полномочий
+        "500":
+          description: Не удалось обновчить чат
+      security:
+      - BearerAuth: []
+      summary: Обновляем фото и имя
+      tags:
+      - profile
   /chat/{chatId}/addusers:
     post:
       consumes:
@@ -295,6 +343,35 @@ paths:
         "500":
           description: Не удалось удалить чат
       summary: Удаличть чат или группу
+      tags:
+      - chat
+  /chat/{chatId}/delusers:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Пользователи на добавление
+        in: body
+        name: users
+        required: true
+        schema:
+          $ref: '#/definitions/model.DeleteUsersFromChatDTO'
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи добавлены
+        "400":
+          description: Некорректный запрос
+        "500":
+          description: Не удалось добавить пользователей
+      summary: Удалить пользователей из чата
       tags:
       - chat
   /chat/{chatId}/messages:

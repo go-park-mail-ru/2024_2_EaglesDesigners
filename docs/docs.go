@@ -86,6 +86,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/{chatId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update bio, avatar, name or birthdate of user.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Обновляем фото и имя",
+                "parameters": [
+                    {
+                        "description": "JSON representation of chat data",
+                        "name": "chat_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatUpdate"
+                        }
+                    },
+                    {
+                        "type": "file",
+                        "description": "group avatar",
+                        "name": "avatar",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Чат обновлен"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос"
+                    },
+                    "403": {
+                        "description": "Нет полномочий"
+                    },
+                    "500": {
+                        "description": "Не удалось обновчить чат"
+                    }
+                }
+            }
+        },
         "/chat/{chatId}/addusers": {
             "post": {
                 "consumes": [
@@ -159,6 +207,49 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Не удалось удалить чат"
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/delusers": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Удалить пользователей из чата",
+                "parameters": [
+                    {
+                        "description": "Пользователи на добавление",
+                        "name": "users",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.DeleteUsersFromChatDTO"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи добавлены"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос"
+                    },
+                    "500": {
+                        "description": "Не удалось добавить пользователей"
                     }
                 }
             }
@@ -720,9 +811,6 @@ const docTemplate = `{
         "model.ChatDTOInput": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
-                    "type": "string"
-                },
                 "chatName": {
                     "type": "string",
                     "example": "Чат с пользователем 2"
@@ -746,7 +834,7 @@ const docTemplate = `{
         "model.ChatDTOOutput": {
             "type": "object",
             "properties": {
-                "avatarBase64": {
+                "avatarPath": {
                     "type": "string"
                 },
                 "chatId": {
@@ -769,6 +857,15 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ChatUpdate": {
+            "type": "object",
+            "properties": {
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                }
+            }
+        },
         "model.ChatsDTO": {
             "type": "object",
             "properties": {
@@ -780,6 +877,24 @@ const docTemplate = `{
                 }
             }
         },
+
+        "model.DeleteUsersFromChatDTO": {
+            "type": "object",
+            "properties": {
+                "usersId": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "models.AddContactReqDTO": {
+
         "models.AuthReqDTO": {
             "type": "object",
             "properties": {
@@ -794,6 +909,7 @@ const docTemplate = `{
             }
         },
         "models.ContactReqDTO": {
+
             "type": "object",
             "properties": {
                 "contactUsername": {

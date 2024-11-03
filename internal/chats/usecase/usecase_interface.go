@@ -16,4 +16,7 @@ type ChatUsecase interface {
 	AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error
 
 	DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error
+	UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) error
+
+	DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) error
 }
