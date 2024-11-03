@@ -57,7 +57,6 @@ definitions:
           $ref: '#/definitions/model.ChatDTOOutput'
         type: array
     type: object
-
   model.DeleteUsersFromChatDTO:
     properties:
       usersId:
@@ -68,8 +67,6 @@ definitions:
           type: string
         type: array
     type: object
-  models.AddContactReqDTO:
-
   models.AuthReqDTO:
     properties:
       password:
@@ -80,7 +77,6 @@ definitions:
         type: string
     type: object
   models.ContactReqDTO:
-
     properties:
       contactUsername:
         example: user11
@@ -143,6 +139,13 @@ definitions:
       text:
         example: тут много текста
         type: string
+    type: object
+  models.MessagesArrayDTO:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
     type: object
   models.RegisterReqDTO:
     properties:
@@ -239,8 +242,12 @@ paths:
           description: Чат создан
         "400":
           description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "500":
           description: Не удалось добавить чат / группу
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Add new chat
       tags:
       - chat
@@ -284,10 +291,16 @@ paths:
           description: Чат обновлен
         "400":
           description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "403":
           description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "500":
           description: Не удалось обновчить чат
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Обновляем фото и имя
@@ -317,8 +330,12 @@ paths:
           description: Пользователи добавлены
         "400":
           description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "500":
           description: Не удалось добавить пользователей
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Добавить пользователей в чат
       tags:
       - chat
@@ -338,10 +355,16 @@ paths:
           description: Чат удалён
         "400":
           description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "403":
           description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "500":
           description: Не удалось удалить чат
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Удаличть чат или группу
       tags:
       - chat
@@ -369,12 +392,46 @@ paths:
           description: Пользователи добавлены
         "400":
           description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "500":
           description: Не удалось добавить пользователей
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Удалить пользователей из чата
       tags:
       - chat
   /chat/{chatId}/messages:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      - description: Messages
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.MessagesArrayDTO'
+      responses:
+        "200":
+          description: Сообщение успешно отаправлены
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить сообщениея
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Add new message
+      tags:
+      - message
     post:
       consumes:
       - application/json
@@ -398,8 +455,12 @@ paths:
           description: Сообщение успешно добавлено
         "400":
           description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
         "500":
           description: Не удалось добавить сообщение
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
       summary: Add new message
       tags:
       - message

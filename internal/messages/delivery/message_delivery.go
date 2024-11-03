@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -10,6 +11,7 @@ import (
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -58,33 +60,34 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Param message body models.Message true "Message info"
 // @Success 201 "Сообщение успешно добавлено"
-// @Failure 400	"Некорректный запрос"
-// @Failure 500	"Не удалось добавить сообщение"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
 // @Router /chat/{chatId}/messages [post]
 func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request) {
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		responser.SendError(w, "Нет нужных параметров", http.StatusInternalServerError)
 		return
 	}
 
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
-	log.Println(mapVars["chatId"])
-	log.Printf("Message Delivery: starting adding new message for chat: %v", chatUUID)
-
 	if err != nil {
 		//conn.400
-		log.Println("Delivery: error during connection upgrade:", err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println("Delivery: error during parsing json:", err)
+		responser.SendError(w, fmt.Sprintf("Delivery: error during connection upgrade:%v", err), http.StatusBadRequest)
 		return
 	}
+
+	log.Println(mapVars["chatId"])
+	log.Printf("Message Delivery: starting adding new message for chat: %v", chatUUID)
 
 	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	log.Println(user)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println("Message delivery -> AddNewMessage: нет юзера в контексте")
+		responser.SendError(w, "Нет нужных параметров", http.StatusInternalServerError)
 		return
 	}
 
@@ -93,7 +96,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		responser.SendError(w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -101,37 +104,46 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		log.Printf("Не удалось добавить сообщение: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить сообщение: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 }
 
+// GetAllMessages godoc
+// @Summary Add new message
+// @Tags message
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Param message body models.MessagesArrayDTO true "Messages"
+// @Success 200 "Сообщение успешно отаправлены"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
+// @Router /chat/{chatId}/messages [get]
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		responser.SendError(w, "Нет нужных параметров", http.StatusInternalServerError)
 		return
 	}
 
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
 
-	log.Println(mapVars["chatId"])
-	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
-
 	if err != nil {
 		//conn.400
-		log.Println("Delivery: error during connection upgrade:", err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("Message delivery -> GetAllMessages: получен кривой Id юзера: %v", err)
+		responser.SendError(w, fmt.Sprintf("Delivery: error during connection upgrade:%v", err), http.StatusBadRequest)
 		return
 	}
+
+	log.Println(mapVars["chatId"])
+	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
 
 	messages, err := h.usecase.GetMessages(r.Context(), chatUUID, 0)
 	if err != nil {
 		log.Println("Error reading message:", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("Error reading message:%v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -139,7 +151,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		log.Printf("error happened in JSON marshal. Err: %s", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("error happened in JSON marshal. Err: %s", err), http.StatusInternalServerError)
 		return
 	}
 
