@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
@@ -14,7 +13,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
+	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -29,6 +28,8 @@ const (
 const (
 	channel = "channel"
 )
+
+const chatDir = "chat"
 
 type ChatUsecaseImpl struct {
 	tokenUsecase      *usecase.Usecase
@@ -66,26 +67,9 @@ func (s *ChatUsecaseImpl) createChatDTO(ctx context.Context, chat chatModel.Chat
 	}
 	log.Println("Usecase: количество пользователей получено")
 
-	var photoBase64 string
-	// Достаем фото из папки
-	if chat.AvatarURL != "" {
-		phId, err := uuid.Parse(chat.AvatarURL)
-		if err != nil {
-			return chatModel.ChatDTOOutput{}, err
-		}
-
-		photoBase64, err = base64helper.ReadPhotoBase64(phId)
-		if err != nil && !os.IsNotExist(err) {
-			return chatModel.ChatDTOOutput{}, err
-		}
-	}
-
-	log.Println("Usecase: фото успешно считано и закодировано в base64")
-
 	return chatModel.СhatToChatDTO(chat,
 		countOfUsers,
-		message,
-		photoBase64), nil
+		message), nil
 }
 
 func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTOOutput, error) {
@@ -187,20 +171,21 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
-	//пока без фото
-	// photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
-
-	// if err != nil {
-	// 	log.Printf("Chat usecase -> AddNewChat: не удалось сохранить фото: %v", err)
-	// 	return err
-	// }
-
 	chatId := uuid.New()
 
 	newChat := chatModel.Chat{
-		ChatId:    chatId,
-		ChatName:  chat.ChatName,
-		ChatType:  chat.ChatType,
+		ChatId:   chatId,
+		ChatName: chat.ChatName,
+		ChatType: chat.ChatType,
+	}
+
+	if chat.Avatar != nil {
+		filename, err := multipartHepler.SavePhoto(*chat.Avatar, chatDir)
+		if err != nil {
+			log.Printf("Не удалось записать аватарку: %v", err)
+			return err
+		}
+		newChat.AvatarURL = filename
 	}
 
 	if chat.ChatType == channel {
@@ -251,11 +236,15 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 	switch role {
 	case owner:
 		log.Printf("Chat usecase -> DeleteChat: удаление чата %v", chatId)
+
+		// send notification to chat
+
 		err = s.repository.DeleteChat(ctx, chatId)
 		if err != nil {
 			log.Printf("Chat usecase -> DeleteChat: не удалось удалить чат: %v", err)
 			return err
 		}
+
 		return nil
 	case none, admin:
 		return &customerror.NoPermissionError{
@@ -263,5 +252,88 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 			Area: fmt.Sprintf("чат: %v", chatId.String()),
 		}
 	}
+
 	return nil
+}
+
+func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) error {
+	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
+	if err != nil {
+		return err
+	}
+
+	// проверяем есть ли права
+	switch role {
+	case owner, admin:
+		log.Printf("Chat usecase -> UpdateChat: обновление чата %v", chatId)
+
+		// send notification to chat
+		if chatUpdate.Avatar != nil {
+			err := multipartHepler.RewritePhoto(*chatUpdate.Avatar, chatDir)
+			if err != nil {
+				log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
+				return err
+			}
+		}
+
+		err = s.repository.UpdateChat(ctx, chatId, chatUpdate.ChatName)
+		if err != nil {
+			log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
+			return err
+		}
+
+		return nil
+	case none:
+		log.Printf("Chat usecase -> UpdateChat: у пользователя %v нет привелегий", userId)
+		return &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: fmt.Sprintf("чат: %v", chatId.String()),
+		}
+	}
+
+	return nil
+}
+
+
+
+func (s *ChatUsecaseImpl)  DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) error {
+	role, err := s.repository.GetUserRoleInChat(ctx, userID, chatId)
+	if err != nil {
+		return err
+	}
+
+	// проверяем есть ли права
+	switch role {
+	case admin, owner:
+		log.Printf("Chat usecase -> AddUsersIntoChat: начато добавление пользователей в чат %v пользователем %v", chatId, userID)
+
+		chat, err := s.repository.GetChatById(ctx, chatId)
+
+		if err != nil {
+			log.Println("Chat usecase -> AddUsersIntoChat: не удалось добавить юзера в чат^ %v", err)
+		}
+
+		for _, id := range usertToDelete.UsersId {
+			userRole, err := s.repository.GetUserRoleInChat(ctx, id, chatId)
+			if (id == userID) {
+				continue
+			}
+			if (userRole == owner) {
+				continue
+			}
+
+			s.repository.DeleteUserFromChat(ctx, id, chatId)
+			chatDTO, err := s.createChatDTO(ctx, chat)
+			if err != nil {
+				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
+			}
+			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
+
+		}
+		log.Printf("Chat usecase -> AddUsersIntoChat: участники удалены из чата %v пользователем %v", chatId, userID)
+
+		return nil
+	}
+
+	return errors.New("Участники не удалены")
 }

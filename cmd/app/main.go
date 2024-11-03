@@ -58,7 +58,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
 
 	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
 	if err != nil {
@@ -68,7 +68,7 @@ func main() {
 	log.Println("База данных подключена")
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: "redis:6379",
 		// Addr:     "localhost:6379",
 		Password: "1234",
 		DB:       0,
