@@ -10,6 +10,7 @@ import (
 type Repository interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.ContactDAO, err error)
 	AddContact(ctx context.Context, contactData models.ContactDataDAO) (models.ContactDAO, error)
+	DeleteContact(ctx context.Context, contactData models.ContactDataDAO) error
 }
 
 type Usecase struct {
@@ -25,10 +26,10 @@ func New(repo Repository) *Usecase {
 func (u *Usecase) GetContacts(ctx context.Context, username string) (contacts []models.Contact, err error) {
 	contactsDAO, err := u.repo.GetContacts(ctx, username)
 	if err != nil {
-		log.Printf("Не удалось получить контакты: %v", err)
+		log.Printf("Contact usecase: не удалось получить контакты: %v", err)
 		return contacts, err
 	}
-	log.Println("Usecase: данные получены")
+	log.Println("Contact usecase: данные получены")
 
 	for _, contactDAO := range contactsDAO {
 		contact := convertContactFromDAO(contactDAO)
@@ -44,13 +45,25 @@ func (u *Usecase) AddContact(ctx context.Context, contactData models.ContactData
 
 	contactDAO, err := u.repo.AddContact(ctx, contactDataDAO)
 	if err != nil {
-		log.Println("Usecase: не получилось создать контакт: ", err)
+		log.Println("Contact usecase: не получилось создать контакт: ", err)
 		return models.Contact{}, err
 	}
 
 	contact := convertContactFromDAO(contactDAO)
 
 	return contact, nil
+}
+
+func (u *Usecase) DeleteContact(ctx context.Context, contactData models.ContactData) error {
+	contactDataDAO := convertContactDataToDAO(contactData)
+
+	err := u.repo.DeleteContact(ctx, contactDataDAO)
+	if err != nil {
+		log.Println("Contact usecase: не получилось удалить контакт: ", err)
+		return err
+	}
+
+	return nil
 }
 
 func convertContactFromDAO(dao models.ContactDAO) models.Contact {
