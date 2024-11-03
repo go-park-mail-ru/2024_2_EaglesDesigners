@@ -11,6 +11,8 @@ import (
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -21,7 +23,7 @@ const (
 
 type usecase interface {
 	UpdateProfile(ctx context.Context, profile models.UpdateProfileRequestDTO) error
-	GetProfile(ctx context.Context, username string) (models.ProfileData, error)
+	GetProfile(ctx context.Context, id uuid.UUID) (models.ProfileData, error)
 }
 
 type token interface {
@@ -41,8 +43,8 @@ func New(usecase usecase, token token) *Delivery {
 	}
 }
 
-// LoginHandler godoc
-// @Summary Get profile data
+// GetSelfProfileHandler godoc
+// @Summary Get self profile data
 // @Description Get bio, avatar and birthdate of user.
 // @Tags profile
 // @Accept json
@@ -53,7 +55,7 @@ func New(usecase usecase, token token) *Delivery {
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile [get]
-func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
+func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	log.Println("Profile delivery: пришел запрос на получение данных профиля")
@@ -64,9 +66,9 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := user.Username
+	id := user.ID
 
-	profileData, err := d.usecase.GetProfile(ctx, username)
+	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {
 		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
 		return
@@ -84,7 +86,46 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-// LoginHandler godoc
+// GetProfileHandler godoc
+// @Summary Get profile data
+// @Description Get bio, avatar and birthdate of user.
+// @Tags profile
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.GetProfileResponseDTO "Profile data found"
+// @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
+// @Failure 401 {object} responser.ErrorResponse "Unauthorized"
+// @Failure 404 {object} responser.ErrorResponse "User not found"
+// @Router /profile/{userid} [get]
+func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	log.Println("Profile delivery: пришел запрос на получение данных профиля")
+
+	vars := mux.Vars(r)
+	userid := vars["userid"]
+
+	id := uuid.MustParse(userid)
+
+	profileData, err := d.usecase.GetProfile(ctx, id)
+	if err != nil {
+		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+		return
+	}
+
+	response := convertProfileDataToDTO(profileData)
+
+	jsonResp, err := json.Marshal(response)
+	if err != nil {
+		responser.SendErrorResponse(w, responseError, http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResp)
+}
+
+// UpdateProfileHandler godoc
 // @Summary Update profile data
 // @Description Update bio, avatar, name or birthdate of user.
 // @Tags profile
@@ -119,7 +160,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	profile.Username = user.Username
+	profile.ID = user.ID
 
 	jsonString := r.FormValue("profile_data")
 	if jsonString != "" {
