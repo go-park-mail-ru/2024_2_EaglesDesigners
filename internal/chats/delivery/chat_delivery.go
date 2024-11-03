@@ -129,7 +129,7 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 	err = c.service.AddNewChat(r.Context(), r.Cookies(), chatDTO)
 	if err != nil {
 		log.Printf("Не удалось добавить чат: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить чат: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -152,13 +152,15 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		//conn.400
 		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
+		responser.SendError(w, fmt.Sprintf("Chat delivery -> AddUsersIntoChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	var usersToAdd model.AddUsersIntoChatDTO
 	err = json.NewDecoder(r.Body).Decode(&usersToAdd)
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		responser.SendError(w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -166,13 +168,12 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
-
 
 // DeleteUsersFromChat godoc
 // @Summary Удалить пользователей из чата
@@ -189,11 +190,14 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		//conn.400
-		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
+		log.Println("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid:", err)
+
+		responser.SendError(w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
 	}
 	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		responser.SendError(w, "Не переданы параметры", http.StatusInternalServerError)
 		return
 	}
 
@@ -209,7 +213,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -230,12 +234,14 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 
 	if err != nil {
 		//conn.400
-		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
+		log.Println("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid:", err)
+		responser.SendError(w, fmt.Sprintf("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		responser.SendError(w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
 	}
 
@@ -246,9 +252,10 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		if errors.As(err, &customerror.NoPermissionError{}) {
 			w.WriteHeader(http.StatusForbidden)
+			responser.SendError(w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
 			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -291,12 +298,14 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		//conn.400
-		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
+		log.Println("Chat delivery -> UpdateGroup: error parsing chat uuid:", err)
+		responser.SendError(w, fmt.Sprintf("Chat delivery -> UpdateGroup: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		responser.SendError(w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
 	}
 
