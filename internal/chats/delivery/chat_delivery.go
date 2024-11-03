@@ -1,15 +1,17 @@
 package delivery
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+
+	"github.com/google/uuid"
 )
 
 type ChatDelivery struct {
@@ -105,22 +107,40 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 // @Tags chat
 // @Accept json
 // @Param users body model.AddUsersIntoChatDTO true "Пользователи на добавление"
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Success 200 "Пользователи добавлены"
 // @Failure 400	"Некорректный запрос"
 // @Failure 500	"Не удалось добавить пользователей"
-// @Router /addusers [post]
+// @Router /chat/{chatId}/addusers [post]
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	chatId := mapVars["chatId"]
+	chatUUID, err := uuid.Parse(chatId)
+
+	log.Println(mapVars["chatId"])
+	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
+
+	if err != nil {
+		//conn.400
+		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	var usersToAdd model.AddUsersIntoChatDTO
-	err := json.NewDecoder(r.Body).Decode(&usersToAdd)
+	err = json.NewDecoder(r.Body).Decode(&usersToAdd)
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = c.service.AddUsersIntoChat(context.Background(), r.Cookies(), usersToAdd.UsersId, usersToAdd.ChatId)
+	err = c.service.AddUsersIntoChat(r.Context(), r.Cookies(), usersToAdd.UsersId, chatUUID)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
@@ -131,7 +151,6 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-type ErrorResponse struct {
-	Error  string `json:"error"`
-	Status string `json:"status" example:"error"`
+func (c *ChatDelivery) UpdateChatName(w http.ResponseWriter, r *http.Request) {
+
 }
