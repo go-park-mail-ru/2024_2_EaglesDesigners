@@ -300,7 +300,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.AddContactReqDTO"
+                            "$ref": "#/definitions/models.ContactReqDTO"
                         }
                     }
                 ],
@@ -308,7 +308,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Contact created",
                         "schema": {
-                            "$ref": "#/definitions/models.ContactDTO"
+                            "$ref": "#/definitions/models.ContactRespDTO"
                         }
                     },
                     "400": {
@@ -325,6 +325,55 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes user contact.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Delete contact",
+                "parameters": [
+                    {
+                        "description": "Credentials for delete user contact",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ContactReqDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Contact deleted",
+                        "schema": {
+                            "$ref": "#/definitions/models.ContactRespDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to delete contact",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -798,7 +847,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.AddContactReqDTO": {
+        "models.ContactReqDTO": {
             "type": "object",
             "properties": {
                 "contactUsername": {
@@ -807,7 +856,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ContactDTO": {
+        "models.ContactRespDTO": {
             "type": "object",
             "properties": {
                 "avatarURL": {
@@ -835,7 +884,7 @@ const docTemplate = `{
                 "contacts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ContactDTO"
+                        "$ref": "#/definitions/models.ContactRespDTO"
                     }
                 }
             }
@@ -911,7 +960,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "error message"
                 },
                 "status": {
                     "type": "string",
@@ -923,7 +973,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "success message"
                 }
             }
         }

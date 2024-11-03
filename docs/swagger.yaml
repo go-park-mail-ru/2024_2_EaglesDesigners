@@ -99,13 +99,13 @@ definitions:
           $ref: '#/definitions/model.ChatDTOOutput'
         type: array
     type: object
-  models.AddContactReqDTO:
+  models.ContactReqDTO:
     properties:
       contactUsername:
         example: user11
         type: string
     type: object
-  models.ContactDTO:
+  models.ContactRespDTO:
     properties:
       avatarURL:
         example: /uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png
@@ -125,7 +125,7 @@ definitions:
     properties:
       contacts:
         items:
-          $ref: '#/definitions/models.ContactDTO'
+          $ref: '#/definitions/models.ContactRespDTO'
         type: array
     type: object
   models.GetProfileResponseDTO:
@@ -178,6 +178,7 @@ definitions:
   responser.ErrorResponse:
     properties:
       error:
+        example: error message
         type: string
       status:
         example: error
@@ -186,6 +187,7 @@ definitions:
   responser.SuccessResponse:
     properties:
       message:
+        example: success message
         type: string
     type: object
 externalDocs:
@@ -347,6 +349,37 @@ paths:
       tags:
       - chat
   /contacts:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes user contact.
+      parameters:
+      - description: Credentials for delete user contact
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.ContactReqDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Contact deleted
+          schema:
+            $ref: '#/definitions/models.ContactRespDTO'
+        "400":
+          description: Failed to delete contact
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete contact
+      tags:
+      - contacts
     get:
       consumes:
       - application/json
@@ -381,14 +414,14 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/models.AddContactReqDTO'
+          $ref: '#/definitions/models.ContactReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Contact created
           schema:
-            $ref: '#/definitions/models.ContactDTO'
+            $ref: '#/definitions/models.ContactRespDTO'
         "400":
           description: Failed to create contact
           schema:

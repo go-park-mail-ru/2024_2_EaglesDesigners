@@ -138,6 +138,7 @@ func main() {
 	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Middleware(contacts.GetContactsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Middleware(contacts.AddContactHandler)).Methods("POST", "OPTIONS")
+	router.HandleFunc("/contacts", auth.Middleware(contacts.DeleteContactHandler)).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 

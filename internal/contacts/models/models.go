@@ -3,7 +3,7 @@ package models
 import "github.com/google/uuid"
 
 // @Schema
-type ContactDTO struct {
+type ContactRespDTO struct {
 	ID       string `json:"id" example:"08a0f350-e122-467b-8ba8-524d2478b56e"`
 	Username string `json:"username" example:"user11"`
 
@@ -13,13 +13,13 @@ type ContactDTO struct {
 }
 
 // @Schema
-type AddContactReqDTO struct {
+type ContactReqDTO struct {
 	Username string `json:"contactUsername" example:"user11"`
 }
 
 // @Schema
 type GetContactsRespDTO struct {
-	Contacts []ContactDTO `json:"contacts"`
+	Contacts []ContactRespDTO `json:"contacts"`
 }
 
 type Contact struct {

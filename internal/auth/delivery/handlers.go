@@ -56,21 +56,21 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var creds AuthCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		responser.SendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
+		responser.SendError(w, "Invalid format JSON", http.StatusBadRequest)
 		return
 	}
 
 	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
 		err := d.setToken(w, r, creds.Username)
 		if err != nil {
-			responser.SendErrorResponse(w, "Invalid format JSON", http.StatusUnauthorized)
+			responser.SendError(w, "Invalid format JSON", http.StatusUnauthorized)
 			return
 		}
 
-		responser.SendOKResponse(w, "Authentication successful", http.StatusCreated)
+		responser.SendOK(w, "Authentication successful", http.StatusCreated)
 
 	} else {
-		responser.SendErrorResponse(w, "Incorrect login or password", http.StatusUnauthorized)
+		responser.SendError(w, "Incorrect login or password", http.StatusUnauthorized)
 	}
 }
 
@@ -94,22 +94,22 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	var creds RegisterCredentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		responser.SendErrorResponse(w, "Invalid input data", http.StatusBadRequest)
+		responser.SendError(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
 	if len(creds.Username) < 6 || len(creds.Password) < 8 || creds.Name == "" {
-		responser.SendErrorResponse(w, "Invalid input data", http.StatusBadRequest)
+		responser.SendError(w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
 	if err := d.usecase.Registration(ctx, creds.Username, creds.Name, creds.Password); err != nil {
-		responser.SendErrorResponse(w, "A user with that username already exists", http.StatusConflict)
+		responser.SendError(w, "A user with that username already exists", http.StatusConflict)
 	} else {
 		d.setToken(w, r, creds.Username)
 		userDataUC, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
 		if err != nil {
-			responser.SendErrorResponse(w, "User failed to create", http.StatusBadRequest)
+			responser.SendError(w, "User failed to create", http.StatusBadRequest)
 			return
 		}
 
@@ -142,14 +142,14 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, err := d.token.IsAuthorized(ctx, r.Cookies())
 	if err != nil {
-		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	dataJWT, err := d.token.GetUserDataByJWT(r.Cookies())
 	log.Println("/auth cookie: ", dataJWT)
 	if err != nil {
-		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -161,7 +161,7 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
-		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -179,13 +179,13 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			user, err = d.token.GetUserByJWT(r.Context(), r.Cookies())
 
 			if err != nil {
-				responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+				responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 			d.setToken(w, r, user.Username)
 		}
 		if err != nil {
-			responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+			responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -217,7 +217,7 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !tokenExists {
-		responser.SendErrorResponse(w, "No access token found", http.StatusUnauthorized)
+		responser.SendError(w, "No access token found", http.StatusUnauthorized)
 		return
 	}
 
@@ -231,7 +231,7 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 
-	responser.SendOKResponse(w, "Logout successful", http.StatusOK)
+	responser.SendOK(w, "Logout successful", http.StatusOK)
 }
 
 func (c *Delivery) isAuthorized(r *http.Request) error {
