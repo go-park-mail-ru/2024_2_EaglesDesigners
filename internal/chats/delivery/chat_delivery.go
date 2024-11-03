@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,10 +9,13 @@ import (
 	"strconv"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type ChatDelivery struct {
@@ -113,23 +117,11 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 // @Failure 500	"Не удалось добавить пользователей"
 // @Router /chat/{chatId}/addusers [post]
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
-	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	chatId := mapVars["chatId"]
-	chatUUID, err := uuid.Parse(chatId)
-
-	log.Println(mapVars["chatId"])
-	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
+	chatUUID, err := getChatIdFromContext(r.Context())
 
 	if err != nil {
 		//conn.400
 		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
 	}
 
 	var usersToAdd model.AddUsersIntoChatDTO
@@ -151,6 +143,60 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *ChatDelivery) UpdateChatName(w http.ResponseWriter, r *http.Request) {
+// DeleteChatOrGroup godoc
+// @Summary Удаличть чат или группу
+// @Tags chat
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Success 200 "Чат удалён"
+// @Failure 400	"Некорректный запрос"
+// @Failure 403	"Нет полномочий"
+// @Failure 500	"Не удалось удалить чат"
+// @Router /chat/{chatId}/delete [delete]
+func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request) {
+	chatUUID, err := getChatIdFromContext(r.Context())
 
+	if err != nil {
+		//conn.400
+		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Chat delivery -> DeleteChatOrGroup: пришёл запрос на удаление чата %v от пользователя %v", chatUUID, user.ID)
+
+	err = c.service.DeleteChat(r.Context(), chatUUID, user.ID)
+
+	if err != nil {
+		if errors.As(err, &customerror.NoPermissionError{}) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
+	mapVars, ok := ctx.Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		return uuid.UUID{}, errors.New("Не удалось достать переменные из контекста")
+	}
+
+	chatId := mapVars["chatId"]
+	chatUUID, err := uuid.Parse(chatId)
+
+
+	log.Println(mapVars["chatId"])
+	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
+
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return chatUUID, nil
 }

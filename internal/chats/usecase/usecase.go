@@ -3,20 +3,21 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
-	"github.com/redis/go-redis/v9"
-
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
 
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -119,7 +120,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	return chatsDTO, nil
 }
 
-func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uuid.UUID, chatDTO chatModel.ChatDTOOutput) error {
+func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uuid.UUID, chatDTO chatModel.ChatDTOOutput, method string) error {
 	if _, ok := s.activeUsers[userId]; ok {
 
 		log.Printf("Chat usecase -> sendNotificationToUser: начата отправка уведомления пользователю: %v", userId)
@@ -128,7 +129,7 @@ func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uui
 			MaxLen: 0,
 			ID:     "",
 			Values: map[string]interface{}{
-				messageUsecase.FeatNewUser: chatDTO,
+				method: chatDTO,
 			},
 		}).Err()
 
@@ -169,7 +170,7 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 			if err != nil {
 				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
 			}
-			s.sendNotificationToUser(ctx, id, chatDTO)
+			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
 
 		}
 		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
@@ -186,12 +187,13 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
-	photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
+	//пока без фото
+	// photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
 
-	if err != nil {
-		log.Printf("Chat usecase -> AddNewChat: не удалось сохранить фото: %v", err)
-		return err
-	}
+	// if err != nil {
+	// 	log.Printf("Chat usecase -> AddNewChat: не удалось сохранить фото: %v", err)
+	// 	return err
+	// }
 
 	chatId := uuid.New()
 
@@ -199,7 +201,6 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		ChatId:    chatId,
 		ChatName:  chat.ChatName,
 		ChatType:  chat.ChatType,
-		AvatarURL: photoPath.String(),
 	}
 
 	if chat.ChatType == channel {
@@ -225,8 +226,9 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось создать DTO: %v", err)
 	}
+
 	// добавляем основателя в чат
-	s.sendNotificationToUser(ctx, user.ID, newChatDTO)
+	s.sendNotificationToUser(ctx, user.ID, newChatDTO, messageUsecase.FeatNewUser)
 
 	log.Printf("Chat usecase -> AddNewChat: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
 	err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
@@ -236,5 +238,30 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		return err
 	}
 
+	return nil
+}
+
+func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error {
+	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
+	if err != nil {
+		return err
+	}
+
+	// проверяем есть ли права
+	switch role {
+	case owner:
+		log.Printf("Chat usecase -> DeleteChat: удаление чата %v", chatId)
+		err = s.repository.DeleteChat(ctx, chatId)
+		if err != nil {
+			log.Printf("Chat usecase -> DeleteChat: не удалось удалить чат: %v", err)
+			return err
+		}
+		return nil
+	case none, admin:
+		return &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: fmt.Sprintf("чат: %v", chatId.String()),
+		}
+	}
 	return nil
 }

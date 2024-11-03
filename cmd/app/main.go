@@ -69,7 +69,7 @@ func main() {
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
-		// Addr:     "localhost:6379",	
+		// Addr:     "localhost:6379",
 		Password: "1234",
 		DB:       0,
 	})
@@ -131,9 +131,6 @@ func main() {
 	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
-	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/uploads/{folder}/{name}", uploads.GetImage).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.GetProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Middleware(profile.UpdateProfileHandler)).Methods("PUT", "OPTIONS")
@@ -149,6 +146,11 @@ func main() {
 	// router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
 	// 	tmpl.Execute(w, nil)
 	// })
+
+	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/delete", auth.Middleware(chat.DeleteChatOrGroup)).Methods("DELETE", "OPTIONS")
 
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")

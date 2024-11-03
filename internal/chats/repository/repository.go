@@ -313,3 +313,25 @@ func (r *ChatRepositoryImpl) GetChatById(ctx context.Context, chatId uuid.UUID) 
 	}, nil
 
 }
+
+func (r *ChatRepositoryImpl) DeleteChat(ctx context.Context, chatId uuid.UUID) error {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> DeleteChat: начато удаление чата: %v", chatId)
+
+	deleteQuery := `DELETE FROM chat WHERE id = $1`
+
+	// Выполнение удаления
+	_, err = conn.Exec(context.Background(), deleteQuery, chatId)
+
+	if err != nil {
+		log.Printf("Chat repository -> DeleteChat: не удалось удалить чат: %v", err)
+		return err
+	}
+	return nil
+}
