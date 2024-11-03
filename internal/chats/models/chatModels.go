@@ -69,6 +69,5 @@ func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message, Ava
 }
 
 type AddUsersIntoChatDTO struct {
-	ChatId  uuid.UUID   `json:"chatId"`
 	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
 }
