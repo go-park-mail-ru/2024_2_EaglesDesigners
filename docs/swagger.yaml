@@ -458,7 +458,7 @@ paths:
             $ref: '#/definitions/responser.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get profile data
+      summary: Get self profile data
       tags:
       - profile
     put:
@@ -498,6 +498,33 @@ paths:
       security:
       - BearerAuth: []
       summary: Update profile data
+      tags:
+      - profile
+  /profile/{userid}:
+    get:
+      consumes:
+      - application/json
+      description: Get bio, avatar and birthdate of user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile data found
+          schema:
+            $ref: '#/definitions/models.GetProfileResponseDTO'
+        "400":
+          description: Invalid format JSON
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Get profile data
       tags:
       - profile
   /signup:

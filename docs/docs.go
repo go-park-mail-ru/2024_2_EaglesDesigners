@@ -390,7 +390,7 @@ const docTemplate = `{
                 "tags": [
                     "profile"
                 ],
-                "summary": "Get profile data",
+                "summary": "Get self profile data",
                 "responses": {
                     "200": {
                         "description": "Profile data found",
@@ -461,6 +461,47 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Failed to update profile",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/{userid}": {
+            "get": {
+                "description": "Get bio, avatar and birthdate of user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get profile data",
+                "responses": {
+                    "200": {
+                        "description": "Profile data found",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetProfileResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid format JSON",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }

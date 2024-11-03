@@ -6,10 +6,11 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
+	"github.com/google/uuid"
 )
 
 type Repository interface {
-	GetProfileByUsername(ctx context.Context, username string) (models.ProfileDataDAO, error)
+	GetProfileByUsername(ctx context.Context, id uuid.UUID) (models.ProfileDataDAO, error)
 	UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error)
 }
 
@@ -43,8 +44,8 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 	return nil
 }
 
-func (u *Usecase) GetProfile(ctx context.Context, username string) (models.ProfileData, error) {
-	profileDataDAO, err := u.repo.GetProfileByUsername(ctx, username)
+func (u *Usecase) GetProfile(ctx context.Context, id uuid.UUID) (models.ProfileData, error) {
+	profileDataDAO, err := u.repo.GetProfileByUsername(ctx, id)
 	if err != nil {
 		log.Printf("Не удалось получить профиль: %v", err)
 		return models.ProfileData{}, err
@@ -68,7 +69,7 @@ func convertProfileDataFromDAO(dao models.ProfileDataDAO) models.ProfileData {
 
 func convertProfileFromDTO(dto models.UpdateProfileRequestDTO) models.Profile {
 	return models.Profile{
-		Username:  dto.Username,
+		ID:        dto.ID,
 		Name:      dto.Name,
 		Bio:       dto.Bio,
 		Avatar:    dto.Avatar,
