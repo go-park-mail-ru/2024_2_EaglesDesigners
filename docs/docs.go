@@ -877,7 +877,6 @@ const docTemplate = `{
                 }
             }
         },
-
         "model.DeleteUsersFromChatDTO": {
             "type": "object",
             "properties": {
@@ -893,8 +892,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.AddContactReqDTO": {
-
         "models.AuthReqDTO": {
             "type": "object",
             "properties": {
@@ -909,7 +906,6 @@ const docTemplate = `{
             }
         },
         "models.ContactReqDTO": {
-
             "type": "object",
             "properties": {
                 "contactUsername": {

@@ -870,7 +870,7 @@
                     }
                 }
             }
-
+        },
         "model.DeleteUsersFromChatDTO": {
             "type": "object",
             "properties": {
@@ -886,8 +886,6 @@
                 }
             }
         },
-        "models.AddContactReqDTO": {
-
         "models.AuthReqDTO": {
             "type": "object",
             "properties": {
@@ -902,7 +900,6 @@
             }
         },
         "models.ContactReqDTO": {
-
             "type": "object",
             "properties": {
                 "contactUsername": {

@@ -57,7 +57,6 @@ definitions:
           $ref: '#/definitions/model.ChatDTOOutput'
         type: array
     type: object
-
   model.DeleteUsersFromChatDTO:
     properties:
       usersId:
@@ -68,8 +67,6 @@ definitions:
           type: string
         type: array
     type: object
-  models.AddContactReqDTO:
-
   models.AuthReqDTO:
     properties:
       password:
@@ -80,7 +77,6 @@ definitions:
         type: string
     type: object
   models.ContactReqDTO:
-
     properties:
       contactUsername:
         example: user11
