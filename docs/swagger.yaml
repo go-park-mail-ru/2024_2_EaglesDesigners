@@ -274,6 +274,29 @@ paths:
       summary: Добавить пользователей в чат
       tags:
       - chat
+  /chat/{chatId}/delete:
+    delete:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Чат удалён
+        "400":
+          description: Некорректный запрос
+        "403":
+          description: Нет полномочий
+        "500":
+          description: Не удалось удалить чат
+      summary: Удаличть чат или группу
+      tags:
+      - chat
   /chat/{chatId}/messages:
     post:
       consumes:

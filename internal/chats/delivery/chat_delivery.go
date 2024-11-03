@@ -161,11 +161,12 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 	}
 
 	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
-	log.Println(user)
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("Chat delivery -> DeleteChatOrGroup: пришёл запрос на удаление чата %v от пользователя %v", chatUUID, user.ID)
 
 	err = c.service.DeleteChat(r.Context(), chatUUID, user.ID)
 
@@ -188,6 +189,7 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
+
 
 	log.Println(mapVars["chatId"])
 	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)

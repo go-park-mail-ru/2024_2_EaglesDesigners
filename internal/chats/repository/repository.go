@@ -322,9 +322,9 @@ func (r *ChatRepositoryImpl) DeleteChat(ctx context.Context, chatId uuid.UUID) e
 	}
 	defer conn.Release()
 
-	log.Printf("Chat repository -> DeleteChat: начато удаление чата: %v", err)
+	log.Printf("Chat repository -> DeleteChat: начато удаление чата: %v", chatId)
 
-	deleteQuery := `DELETE FROM chat WHERE id = = $1`
+	deleteQuery := `DELETE FROM chat WHERE id = $1`
 
 	// Выполнение удаления
 	_, err = conn.Exec(context.Background(), deleteQuery, chatId)

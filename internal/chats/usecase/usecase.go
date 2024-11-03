@@ -187,12 +187,13 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
-	photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
+	//пока без фото
+	// photoPath, err := base64helper.SavePhotoBase64(chat.AvatarBase64)
 
-	if err != nil {
-		log.Printf("Chat usecase -> AddNewChat: не удалось сохранить фото: %v", err)
-		return err
-	}
+	// if err != nil {
+	// 	log.Printf("Chat usecase -> AddNewChat: не удалось сохранить фото: %v", err)
+	// 	return err
+	// }
 
 	chatId := uuid.New()
 
@@ -200,7 +201,6 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		ChatId:    chatId,
 		ChatName:  chat.ChatName,
 		ChatType:  chat.ChatType,
-		AvatarURL: photoPath.String(),
 	}
 
 	if chat.ChatType == channel {
@@ -250,6 +250,7 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 	// проверяем есть ли права
 	switch role {
 	case owner:
+		log.Printf("Chat usecase -> DeleteChat: удаление чата %v", chatId)
 		err = s.repository.DeleteChat(ctx, chatId)
 		if err != nil {
 			log.Printf("Chat usecase -> DeleteChat: не удалось удалить чат: %v", err)

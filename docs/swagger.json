@@ -123,6 +123,40 @@
                 }
             }
         },
+        "/chat/{chatId}/delete": {
+            "delete": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Удаличть чат или группу",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Чат удалён"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос"
+                    },
+                    "403": {
+                        "description": "Нет полномочий"
+                    },
+                    "500": {
+                        "description": "Не удалось удалить чат"
+                    }
+                }
+            }
+        },
         "/chat/{chatId}/messages": {
             "post": {
                 "consumes": [
