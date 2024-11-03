@@ -90,8 +90,8 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 // @Accept json
 // @Param chat body model.ChatDTOInput true "Chat info"
 // @Success 201 "Чат создан"
-// @Failure 400	"Некорректный запрос"
-// @Failure 500	"Не удалось добавить чат / группу"
+// @Failure 400 {object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 500 {object} responser.ErrorResponse "Не удалось добавить чат / группу"
 // @Router /addchat [post]
 func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 
@@ -143,8 +143,8 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 // @Param users body model.AddUsersIntoChatDTO true "Пользователи на добавление"
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Success 200 "Пользователи добавлены"
-// @Failure 400	"Некорректный запрос"
-// @Failure 500	"Не удалось добавить пользователей"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/addusers [post]
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -182,8 +182,8 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 // @Param users body model.DeleteUsersFromChatDTO true "Пользователи на добавление"
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Success 200 "Пользователи добавлены"
-// @Failure 400	"Некорректный запрос"
-// @Failure 500	"Не удалось добавить пользователей"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/delusers [post]
 func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Request) {
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -225,9 +225,9 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 // @Tags chat
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Success 200 "Чат удалён"
-// @Failure 400	"Некорректный запрос"
-// @Failure 403	"Нет полномочий"
-// @Failure 500	"Не удалось удалить чат"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось удалить чат"
 // @Router /chat/{chatId}/delete [delete]
 func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request) {
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -289,9 +289,9 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 // @Param chat_data body model.ChatUpdate true "JSON representation of chat data"
 // @Param avatar formData file false "group avatar" example:"/2024_2_eaglesDesigners/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
 // @Success 200 "Чат обновлен"
-// @Failure 400	"Некорректный запрос"
-// @Failure 403	"Нет полномочий"
-// @Failure 500	"Не удалось обновчить чат"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось обновчить чат"
 // @Router /chat/{chatId} [put]
 func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -340,10 +340,10 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if errors.As(err, &customerror.NoPermissionError{}) {
-			w.WriteHeader(http.StatusForbidden)
+			responser.SendError(w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
 			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
+		responser.SendError(w, fmt.Sprintf("Внутренняя ошибка: %v", err), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

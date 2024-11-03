@@ -49,10 +49,16 @@ const docTemplate = `{
                         "description": "Чат создан"
                     },
                     "400": {
-                        "description": "Некорректный запрос"
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Не удалось добавить чат / группу"
+                        "description": "Не удалось добавить чат / группу",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -123,13 +129,22 @@ const docTemplate = `{
                         "description": "Чат обновлен"
                     },
                     "400": {
-                        "description": "Некорректный запрос"
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "403": {
-                        "description": "Нет полномочий"
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Не удалось обновчить чат"
+                        "description": "Не удалось обновчить чат",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -169,10 +184,16 @@ const docTemplate = `{
                         "description": "Пользователи добавлены"
                     },
                     "400": {
-                        "description": "Некорректный запрос"
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Не удалось добавить пользователей"
+                        "description": "Не удалось добавить пользователей",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -200,13 +221,22 @@ const docTemplate = `{
                         "description": "Чат удалён"
                     },
                     "400": {
-                        "description": "Некорректный запрос"
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "403": {
-                        "description": "Нет полномочий"
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Не удалось удалить чат"
+                        "description": "Не удалось удалить чат",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -246,15 +276,65 @@ const docTemplate = `{
                         "description": "Пользователи добавлены"
                     },
                     "400": {
-                        "description": "Некорректный запрос"
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Не удалось добавить пользователей"
+                        "description": "Не удалось добавить пользователей",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     }
                 }
             }
         },
         "/chat/{chatId}/messages": {
+            "get": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "Add new message",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Messages",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно отаправлены"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщениея",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -289,10 +369,16 @@ const docTemplate = `{
                         "description": "Сообщение успешно добавлено"
                     },
                     "400": {
-                        "description": "Некорректный запрос"
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Не удалось добавить сообщение"
+                        "description": "Не удалось добавить сообщение",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -994,6 +1080,17 @@ const docTemplate = `{
                 "text": {
                     "type": "string",
                     "example": "тут много текста"
+                }
+            }
+        },
+        "models.MessagesArrayDTO": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Message"
+                    }
                 }
             }
         },
