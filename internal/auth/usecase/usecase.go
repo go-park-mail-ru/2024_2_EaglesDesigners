@@ -45,14 +45,18 @@ func (u *Usecase) Authenticate(ctx context.Context, username, password string) b
 
 func (u *Usecase) Registration(ctx context.Context, username, name, password string) error {
 	if len(username) < 6 || len(password) < 8 || len(name) < 1 {
+		log.Println("Registration usecase: не удалось создать юзера: данные не прошли валидацию")
 		return errors.New("bad data")
 	}
 
 	hashed := HashPassword(password)
 	err := u.repository.CreateUser(ctx, username, name, hashed)
 	if err != nil {
+		log.Println("Registration usecase: не удалось создать юзера: ", err)
 		return err
 	}
+
+	log.Println("Registration usecase: пользователь создан")
 
 	return nil
 }

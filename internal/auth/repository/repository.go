@@ -52,8 +52,6 @@ func (r *Repository) GetUserByUsername(ctx context.Context, username string) (mo
 		&user.AvatarURL,
 	)
 
-	log.Println(*user.AvatarURL)
-
 	if err != nil {
 		log.Printf("Пользователь не найден в базе данных: %v\n", err)
 		return user, errors.New("пользователь не найден")
@@ -93,7 +91,7 @@ func (r *Repository) CreateUser(ctx context.Context, username, name, password st
 		return err
 	}
 
-	log.Println("created user:", uuidNew.String(), username)
+	log.Println("Register repo: пользователь успешно создан: ", uuidNew.String(), username)
 
 	return nil
 }

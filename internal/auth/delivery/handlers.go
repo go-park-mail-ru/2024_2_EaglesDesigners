@@ -97,7 +97,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	defer d.mu.Unlock()
 	ctx := r.Context()
 
-	log.Println("Пришел запрос на регистрацию")
+	log.Println("Register delivery: Пришел запрос на регистрацию")
 
 	var creds models.RegisterReqDTO
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
@@ -112,28 +112,30 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := d.usecase.Registration(ctx, creds.Username, creds.Name, creds.Password); err != nil {
 		responser.SendError(w, "A user with that username already exists", http.StatusConflict)
-	} else {
-		d.setToken(w, r, creds.Username)
-		userDataUC, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
-		if err != nil {
-			responser.SendError(w, "User failed to create", http.StatusBadRequest)
-			return
-		}
-
-		userData := convertUserDataToDTO(userDataUC)
-
-		response := models.RegisterRespDTO{
-			Message: "Registration successful",
-			User:    userData,
-		}
-
-		log.Println("Пользователь успешно зарегистрирован")
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		jsonResp, _ := json.Marshal(response)
-		w.Write(jsonResp)
+		return
 	}
+
+	log.Println("Register delivery: получение данных пользователя")
+
+	d.setToken(w, r, creds.Username)
+	userData, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
+	if err != nil {
+		responser.SendError(w, "User failed to create", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("Register delivery: новый пользователь получен")
+
+	userDataDTO := convertUserDataToDTO(userData)
+
+	response := models.RegisterRespDTO{
+		Message: "Registration successful",
+		User:    userDataDTO,
+	}
+
+	log.Println("Register delivery: Пользователь успешно зарегистрирован")
+
+	responser.SendStruct(w, response, http.StatusCreated)
 }
 
 // AuthHandler godoc
@@ -277,6 +279,7 @@ func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username str
 }
 
 func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
+	log.Println("конверт")
 	return models.UserDataRespDTO{
 		ID:        userData.ID,
 		Username:  userData.Username,
