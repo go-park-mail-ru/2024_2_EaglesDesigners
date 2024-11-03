@@ -46,7 +46,7 @@ func NewDelivery(usecase usecase, token token) *Delivery {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param credentials body AuthCredentials true "Credentials for login, including username and password"
+// @Param credentials body models.AuthReqDTO true "Credentials for login, including username and password"
 // @Success 201 {object} responser.SuccessResponse "Authentication successful"
 // @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
 // @Failure 401 {object} responser.ErrorResponse "Incorrect login or password"
@@ -86,8 +86,8 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param creds body RegisterCredentials true "Registration information"
-// @Success 201 {object} RegisterResponse "Registration successful"
+// @Param creds body models.RegisterReqDTO true "Registration information"
+// @Success 201 {object} models.RegisterRespDTO "Registration successful"
 // @Failure 400 {object} responser.ErrorResponse "Invalid input data"
 // @Failure 409 {object} responser.ErrorResponse "A user with that username already exists"
 // @Failure 400 {object} responser.ErrorResponse "User failed to create"
@@ -142,7 +142,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Success 200 {object} AuthResponse "User data retrieved successfully"
+// @Success 200 {object} models.UserDataRespDTO "User data retrieved successfully"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized: token is invalid"
 // @Router /auth [get]
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {

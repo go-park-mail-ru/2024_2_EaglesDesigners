@@ -1,51 +1,5 @@
 basePath: /
 definitions:
-  delivery.AuthCredentials:
-    properties:
-      password:
-        example: "12345678"
-        type: string
-      username:
-        example: user11
-        type: string
-    type: object
-  delivery.AuthResponse:
-    properties:
-      user:
-        $ref: '#/definitions/delivery.UserData'
-    type: object
-  delivery.RegisterCredentials:
-    properties:
-      name:
-        example: Vincent Vega
-        type: string
-      password:
-        example: go_do_a_crime
-        type: string
-      username:
-        example: killer1994
-        type: string
-    type: object
-  delivery.RegisterResponse:
-    properties:
-      message:
-        example: Registration successful
-        type: string
-      user:
-        $ref: '#/definitions/delivery.UserData'
-    type: object
-  delivery.UserData:
-    properties:
-      id:
-        example: "2"
-        type: string
-      name:
-        example: Dr Peper
-        type: string
-      username:
-        example: user12
-        type: string
-    type: object
   model.AddUsersIntoChatDTO:
     properties:
       usersId:
@@ -99,6 +53,15 @@ definitions:
           $ref: '#/definitions/model.ChatDTOOutput'
         type: array
     type: object
+  models.AuthReqDTO:
+    properties:
+      password:
+        example: "12345678"
+        type: string
+      username:
+        example: user11
+        type: string
+    type: object
   models.ContactReqDTO:
     properties:
       contactUsername:
@@ -131,7 +94,7 @@ definitions:
   models.GetProfileResponseDTO:
     properties:
       avatarURL:
-        example: /2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
       bio:
         example: Не люблю сети
@@ -163,6 +126,26 @@ definitions:
         example: тут много текста
         type: string
     type: object
+  models.RegisterReqDTO:
+    properties:
+      name:
+        example: Vincent Vega
+        type: string
+      password:
+        example: go_do_a_crime
+        type: string
+      username:
+        example: killer1994
+        type: string
+    type: object
+  models.RegisterRespDTO:
+    properties:
+      message:
+        example: Registration successful
+        type: string
+      user:
+        $ref: '#/definitions/models.UserDataRespDTO'
+    type: object
   models.UpdateProfileRequestDTO:
     properties:
       bio:
@@ -173,6 +156,21 @@ definitions:
         type: string
       name:
         example: Vincent Vega
+        type: string
+    type: object
+  models.UserDataRespDTO:
+    properties:
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      id:
+        example: "2"
+        type: string
+      name:
+        example: Dr Peper
+        type: string
+      username:
+        example: user12
         type: string
     type: object
   responser.ErrorResponse:
@@ -239,7 +237,7 @@ paths:
         "200":
           description: User data retrieved successfully
           schema:
-            $ref: '#/definitions/delivery.AuthResponse'
+            $ref: '#/definitions/models.UserDataRespDTO'
         "401":
           description: 'Unauthorized: token is invalid'
           schema:
@@ -450,7 +448,7 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/delivery.AuthCredentials'
+          $ref: '#/definitions/models.AuthReqDTO'
       produces:
       - application/json
       responses:
@@ -594,14 +592,14 @@ paths:
         name: creds
         required: true
         schema:
-          $ref: '#/definitions/delivery.RegisterCredentials'
+          $ref: '#/definitions/models.RegisterReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Registration successful
           schema:
-            $ref: '#/definitions/delivery.RegisterResponse'
+            $ref: '#/definitions/models.RegisterRespDTO'
         "400":
           description: User failed to create
           schema:
