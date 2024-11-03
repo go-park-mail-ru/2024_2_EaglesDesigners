@@ -58,7 +58,7 @@ func New(usecase usecase, token token) *Delivery {
 func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	log.Println("Profile delivery: пришел запрос на получение данных профиля")
+	log.Println("Profile delivery: пришел запрос на получение данных о своем профиле")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {

@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
-	usecaseDto "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/gorilla/mux"
@@ -18,7 +17,7 @@ import (
 type usecase interface {
 	Authenticate(ctx context.Context, username, password string) bool
 	Registration(ctx context.Context, username, name, password string) error
-	GetUserDataByUsername(ctx context.Context, username string) (usecaseDto.UserData, error)
+	GetUserDataByUsername(ctx context.Context, username string) (models.UserData, error)
 }
 
 type token interface {
@@ -54,8 +53,12 @@ func NewDelivery(usecase usecase, token token) *Delivery {
 // @Router /login [post]
 func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var creds AuthCredentials
+
+	log.Println("Login delivery: пришел запрос на аутентификацию")
+
+	var creds models.AuthReqDTO
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+		log.Println("Login delivery: не удалось распарсить json")
 		responser.SendError(w, "Invalid format JSON", http.StatusBadRequest)
 		return
 	}
@@ -63,13 +66,17 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
 		err := d.setToken(w, r, creds.Username)
 		if err != nil {
+			log.Println("Login delivery: не удалось аутентифицировать пользователя")
 			responser.SendError(w, "Invalid format JSON", http.StatusUnauthorized)
 			return
 		}
 
+		log.Println("Login delivery: пользователь успешно аутентифицирован")
+
 		responser.SendOK(w, "Authentication successful", http.StatusCreated)
 
 	} else {
+		log.Println("Login delivery: неверный логин или пароль")
 		responser.SendError(w, "Incorrect login or password", http.StatusUnauthorized)
 	}
 }
@@ -92,7 +99,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Пришел запрос на регистрацию")
 
-	var creds RegisterCredentials
+	var creds models.RegisterReqDTO
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		responser.SendError(w, "Invalid input data", http.StatusBadRequest)
 		return
@@ -113,9 +120,9 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		userData := convertFromUsecaseUserData(userDataUC)
+		userData := convertUserDataToDTO(userDataUC)
 
-		response := RegisterResponse{
+		response := models.RegisterRespDTO{
 			Message: "Registration successful",
 			User:    userData,
 		}
@@ -140,23 +147,28 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Router /auth [get]
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	_, err := d.token.IsAuthorized(ctx, r.Cookies())
+
+	log.Println("Auth delivery: пришел запрос на авторизацию")
+
+	user, ok := ctx.Value(models.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	userData, err := d.usecase.GetUserDataByUsername(ctx, user.Username)
 	if err != nil {
+		log.Println("Auth delivery: не получилось получить данные пользователя")
 		responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	dataJWT, err := d.token.GetUserDataByJWT(r.Cookies())
-	log.Println("/auth cookie: ", dataJWT)
-	if err != nil {
-		responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+	userDataDTO := convertUserDataToDTO(userData)
 
-	data := convertFromJWTUserData(dataJWT)
+	log.Println("Auth delivery: пользователь успешно авторизован")
 
-	response := AuthResponse{
-		User: data,
+	response := models.AuthRespDTO{
+		User: userDataDTO,
 	}
 
 	jsonResp, err := json.Marshal(response)
@@ -264,16 +276,17 @@ func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username str
 	return nil
 }
 
-func convertFromUsecaseUserData(userDataUC usecaseDto.UserData) UserData {
-	return UserData{
-		ID:       userDataUC.ID,
-		Username: userDataUC.Username,
-		Name:     userDataUC.Name,
+func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
+	return models.UserDataRespDTO{
+		ID:        userData.ID,
+		Username:  userData.Username,
+		Name:      userData.Name,
+		AvatarURL: userData.AvatarURL,
 	}
 }
 
-func convertFromJWTUserData(userDataJWT jwt.UserData) UserData {
-	return UserData{
+func convertFromJWTUserData(userDataJWT jwt.UserData) models.UserDataRespDTO {
+	return models.UserDataRespDTO{
 		ID:       userDataJWT.ID,
 		Username: userDataJWT.Username,
 		Name:     userDataJWT.Name,
