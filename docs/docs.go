@@ -57,39 +57,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/addusers": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "chat"
-                ],
-                "summary": "Добавить пользователей в чат",
-                "parameters": [
-                    {
-                        "description": "Пользователи на добавление",
-                        "name": "users",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.AddUsersIntoChatDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Пользователи добавлены"
-                    },
-                    "400": {
-                        "description": "Некорректный запрос"
-                    },
-                    "500": {
-                        "description": "Не удалось добавить пользователей"
-                    }
-                }
-            }
-        },
         "/auth": {
             "get": {
                 "description": "Retrieve user data based on the JWT token present in the cookies.",
@@ -115,6 +82,49 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/addusers": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Добавить пользователей в чат",
+                "parameters": [
+                    {
+                        "description": "Пользователи на добавление",
+                        "name": "users",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddUsersIntoChatDTO"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи добавлены"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос"
+                    },
+                    "500": {
+                        "description": "Не удалось добавить пользователей"
                     }
                 }
             }
@@ -638,9 +648,6 @@ const docTemplate = `{
         "model.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {
-                "chatId": {
-                    "type": "string"
-                },
                 "usersId": {
                     "type": "array",
                     "items": {

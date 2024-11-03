@@ -48,8 +48,6 @@ definitions:
     type: object
   model.AddUsersIntoChatDTO:
     properties:
-      chatId:
-        type: string
       usersId:
         example:
         - uuid1
@@ -228,27 +226,6 @@ paths:
       summary: Add new chat
       tags:
       - chat
-  /addusers:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Пользователи на добавление
-        in: body
-        name: users
-        required: true
-        schema:
-          $ref: '#/definitions/model.AddUsersIntoChatDTO'
-      responses:
-        "200":
-          description: Пользователи добавлены
-        "400":
-          description: Некорректный запрос
-        "500":
-          description: Не удалось добавить пользователей
-      summary: Добавить пользователей в чат
-      tags:
-      - chat
   /auth:
     get:
       consumes:
@@ -268,6 +245,35 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /chat/{chatId}/addusers:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Пользователи на добавление
+        in: body
+        name: users
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddUsersIntoChatDTO'
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи добавлены
+        "400":
+          description: Некорректный запрос
+        "500":
+          description: Не удалось добавить пользователей
+      summary: Добавить пользователей в чат
+      tags:
+      - chat
   /chat/{chatId}/messages:
     post:
       consumes:
