@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -23,17 +24,18 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 	}
 }
 
-func (r *Repository) GetUserByUsername(ctx context.Context, username string) (User, error) {
+func (r *Repository) GetUserByUsername(ctx context.Context, username string) (models.UserDAO, error) {
 	query := `SELECT 
 			  	  id,
 			  	  username,
 				  password,
 				  version,
-			  	  name 
+			  	  name,
+				  avatar_path
 			  FROM public."user"
 			  WHERE username = $1;`
 
-	var user User
+	var user models.UserDAO
 
 	row := r.db.QueryRow(
 		ctx,
@@ -47,14 +49,16 @@ func (r *Repository) GetUserByUsername(ctx context.Context, username string) (Us
 		&user.Password,
 		&user.Version,
 		&user.Name,
+		&user.AvatarURL,
 	)
 
 	if err != nil {
 		log.Printf("Пользователь не найден в базе данных: %v\n", err)
-		return user, errors.New("user does not exist")
+		return user, errors.New("пользователь не найден")
 	}
 
-	log.Printf("Пользователь c id %s найден", user.ID.String())
+	log.Println("GetUserByUsername repo: пользователь получен")
+
 	return user, nil
 }
 
@@ -87,7 +91,7 @@ func (r *Repository) CreateUser(ctx context.Context, username, name, password st
 		return err
 	}
 
-	log.Println("created user:", uuidNew.String(), username)
+	log.Println("Register repo: пользователь успешно создан: ", uuidNew.String(), username)
 
 	return nil
 }

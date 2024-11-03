@@ -58,11 +58,11 @@ func New(usecase usecase, token token) *Delivery {
 func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	log.Println("Profile delivery: пришел запрос на получение данных профиля")
+	log.Println("Profile delivery: пришел запрос на получение данных о своем профиле")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -70,7 +70,7 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {
-		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
-		responser.SendErrorResponse(w, responseError, http.StatusBadRequest)
+		responser.SendError(w, responseError, http.StatusBadRequest)
 		return
 	}
 
@@ -109,7 +109,7 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {
-		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
-		responser.SendErrorResponse(w, responseError, http.StatusBadRequest)
+		responser.SendError(w, responseError, http.StatusBadRequest)
 		return
 	}
 
@@ -148,7 +148,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -156,7 +156,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		log.Println("Profile delivery: не удалось распарсить запрос: ", err)
-		responser.SendErrorResponse(w, "Unable to parse form", http.StatusBadRequest)
+		responser.SendError(w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
 
@@ -165,14 +165,14 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	jsonString := r.FormValue("profile_data")
 	if jsonString != "" {
 		if err := json.Unmarshal([]byte(jsonString), &profile); err != nil {
-			responser.SendErrorResponse(w, invalidJSONError, http.StatusBadRequest)
+			responser.SendError(w, invalidJSONError, http.StatusBadRequest)
 			return
 		}
 	}
 
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
-		responser.SendErrorResponse(w, "Failed to get avatar", http.StatusBadRequest)
+		responser.SendError(w, "Failed to get avatar", http.StatusBadRequest)
 		return
 	}
 	defer func() {
@@ -186,11 +186,11 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := d.usecase.UpdateProfile(ctx, profile); err != nil {
-		responser.SendErrorResponse(w, "Failed to update profile", http.StatusBadRequest)
+		responser.SendError(w, "Failed to update profile", http.StatusBadRequest)
 		return
 	}
 
-	responser.SendOKResponse(w, "Profile updated", http.StatusOK)
+	responser.SendOK(w, "Profile updated", http.StatusOK)
 }
 
 func convertProfileDataToDTO(profileData models.ProfileData) models.GetProfileResponseDTO {

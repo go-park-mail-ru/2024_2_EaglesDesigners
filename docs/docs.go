@@ -74,7 +74,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User data retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/delivery.AuthResponse"
+                            "$ref": "#/definitions/models.UserDataRespDTO"
                         }
                     },
                     "401": {
@@ -391,7 +391,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.AddContactReqDTO"
+                            "$ref": "#/definitions/models.ContactReqDTO"
                         }
                     }
                 ],
@@ -399,7 +399,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Contact created",
                         "schema": {
-                            "$ref": "#/definitions/models.ContactDTO"
+                            "$ref": "#/definitions/models.ContactRespDTO"
                         }
                     },
                     "400": {
@@ -416,6 +416,55 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes user contact.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Delete contact",
+                "parameters": [
+                    {
+                        "description": "Credentials for delete user contact",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ContactReqDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Contact deleted",
+                        "schema": {
+                            "$ref": "#/definitions/models.ContactRespDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to delete contact",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -443,7 +492,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/delivery.AuthCredentials"
+                            "$ref": "#/definitions/models.AuthReqDTO"
                         }
                     }
                 ],
@@ -666,7 +715,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/delivery.RegisterCredentials"
+                            "$ref": "#/definitions/models.RegisterReqDTO"
                         }
                     }
                 ],
@@ -674,7 +723,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Registration successful",
                         "schema": {
-                            "$ref": "#/definitions/delivery.RegisterResponse"
+                            "$ref": "#/definitions/models.RegisterRespDTO"
                         }
                     },
                     "400": {
@@ -744,73 +793,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "delivery.AuthCredentials": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string",
-                    "example": "12345678"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "user11"
-                }
-            }
-        },
-        "delivery.AuthResponse": {
-            "type": "object",
-            "properties": {
-                "user": {
-                    "$ref": "#/definitions/delivery.UserData"
-                }
-            }
-        },
-        "delivery.RegisterCredentials": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "Vincent Vega"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "go_do_a_crime"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "killer1994"
-                }
-            }
-        },
-        "delivery.RegisterResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Registration successful"
-                },
-                "user": {
-                    "$ref": "#/definitions/delivery.UserData"
-                }
-            }
-        },
-        "delivery.UserData": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "2"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Dr Peper"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "user12"
-                }
-            }
-        },
         "model.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {
@@ -895,6 +877,7 @@ const docTemplate = `{
                 }
             }
         },
+
         "model.DeleteUsersFromChatDTO": {
             "type": "object",
             "properties": {
@@ -911,6 +894,22 @@ const docTemplate = `{
             }
         },
         "models.AddContactReqDTO": {
+
+        "models.AuthReqDTO": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "12345678"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user11"
+                }
+            }
+        },
+        "models.ContactReqDTO": {
+
             "type": "object",
             "properties": {
                 "contactUsername": {
@@ -919,7 +918,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ContactDTO": {
+        "models.ContactRespDTO": {
             "type": "object",
             "properties": {
                 "avatarURL": {
@@ -947,7 +946,7 @@ const docTemplate = `{
                 "contacts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ContactDTO"
+                        "$ref": "#/definitions/models.ContactRespDTO"
                     }
                 }
             }
@@ -957,7 +956,7 @@ const docTemplate = `{
             "properties": {
                 "avatarURL": {
                     "type": "string",
-                    "example": "/2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
                 },
                 "bio": {
                     "type": "string",
@@ -1002,6 +1001,35 @@ const docTemplate = `{
                 }
             }
         },
+        "models.RegisterReqDTO": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "go_do_a_crime"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "killer1994"
+                }
+            }
+        },
+        "models.RegisterRespDTO": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Registration successful"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.UserDataRespDTO"
+                }
+            }
+        },
         "models.UpdateProfileRequestDTO": {
             "type": "object",
             "properties": {
@@ -1019,11 +1047,33 @@ const docTemplate = `{
                 }
             }
         },
+        "models.UserDataRespDTO": {
+            "type": "object",
+            "properties": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "2"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Dr Peper"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user12"
+                }
+            }
+        },
         "responser.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "error message"
                 },
                 "status": {
                     "type": "string",
@@ -1035,7 +1085,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "success message"
                 }
             }
         }

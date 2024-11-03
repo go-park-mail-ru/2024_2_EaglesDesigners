@@ -5,14 +5,15 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
+	"log"
 	"net/http"
 
-	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 )
 
 type repository interface {
-	GetUserByUsername(ctx context.Context, username string) (repo.User, error)
+	GetUserByUsername(ctx context.Context, username string) (models.UserDAO, error)
 	CreateUser(ctx context.Context, username, name, password string) error
 }
 
@@ -44,28 +45,35 @@ func (u *Usecase) Authenticate(ctx context.Context, username, password string) b
 
 func (u *Usecase) Registration(ctx context.Context, username, name, password string) error {
 	if len(username) < 6 || len(password) < 8 || len(name) < 1 {
+		log.Println("Registration usecase: не удалось создать юзера: данные не прошли валидацию")
 		return errors.New("bad data")
 	}
 
 	hashed := HashPassword(password)
 	err := u.repository.CreateUser(ctx, username, name, hashed)
 	if err != nil {
+		log.Println("Registration usecase: не удалось создать юзера: ", err)
 		return err
 	}
+
+	log.Println("Registration usecase: пользователь создан")
 
 	return nil
 }
 
-func (u *Usecase) GetUserDataByUsername(ctx context.Context, username string) (UserData, error) {
+func (u *Usecase) GetUserDataByUsername(ctx context.Context, username string) (models.UserData, error) {
 	user, err := u.repository.GetUserByUsername(ctx, username)
 	if err != nil {
-		return UserData{}, err
+		return models.UserData{}, err
 	}
 
-	userData := UserData{
-		ID:       user.ID,
-		Username: user.Username,
-		Name:     user.Name,
+	log.Println("GetUserDataByUsername usecase: пользователь получен")
+
+	userData := models.UserData{
+		ID:        user.ID,
+		Username:  user.Username,
+		Name:      user.Name,
+		AvatarURL: user.AvatarURL,
 	}
 
 	return userData, nil

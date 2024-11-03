@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
-	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 )
 
 var jwtSecret = generateJWTSecret()
 
 type repository interface {
-	GetUserByUsername(ctx context.Context, username string) (repo.User, error)
+	GetUserByUsername(ctx context.Context, username string) (auth.UserDAO, error)
 	CreateUser(ctx context.Context, username, name, password string) error
 }
 
@@ -224,7 +224,7 @@ func getPayloadOfJWT(token string) (payload Payload, err error) {
 	return payload, nil
 }
 
-func convertToUser(u repo.User) User {
+func convertToUser(u auth.UserDAO) User {
 	return User{
 		ID:       u.ID,
 		Username: u.Username,

@@ -8,23 +8,23 @@ import (
 
 // @Schema
 type SuccessResponse struct {
-	Message string `json:"message"`
+	Message string `json:"message" example:"success message"`
 }
 
 // @Schema
 type ErrorResponse struct {
-	Error  string `json:"error"`
+	Error  string `json:"error" example:"error message"`
 	Status string `json:"status" example:"error"`
 }
 
-func SendOKResponse(w http.ResponseWriter, message string, statusCode int) {
+func SendOK(w http.ResponseWriter, message string, statusCode int) {
 	response := SuccessResponse{Message: message}
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-func SendErrorResponse(w http.ResponseWriter, errorMessage string, statusCode int) {
+func SendError(w http.ResponseWriter, errorMessage string, statusCode int) {
 	log.Printf("Отправлен код %d. ОШИБКА: %s \n", statusCode, errorMessage)
 
 	response := ErrorResponse{Error: errorMessage, Status: "error"}
@@ -34,5 +34,18 @@ func SendErrorResponse(w http.ResponseWriter, errorMessage string, statusCode in
 }
 
 func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
-	SendErrorResponse(w, "Method not allowed", http.StatusUnauthorized)
+	SendError(w, "Method not allowed", http.StatusUnauthorized)
+}
+
+// SendStruct отправляет полученный экземпляр структуры в формате json с статусом кода statusCode.
+func SendStruct(w http.ResponseWriter, response any, statusCode int) {
+	jsonResp, err := json.Marshal(response)
+	if err != nil {
+		SendError(w, "Failed to create response", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.Write(jsonResp)
 }

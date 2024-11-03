@@ -1,51 +1,5 @@
 basePath: /
 definitions:
-  delivery.AuthCredentials:
-    properties:
-      password:
-        example: "12345678"
-        type: string
-      username:
-        example: user11
-        type: string
-    type: object
-  delivery.AuthResponse:
-    properties:
-      user:
-        $ref: '#/definitions/delivery.UserData'
-    type: object
-  delivery.RegisterCredentials:
-    properties:
-      name:
-        example: Vincent Vega
-        type: string
-      password:
-        example: go_do_a_crime
-        type: string
-      username:
-        example: killer1994
-        type: string
-    type: object
-  delivery.RegisterResponse:
-    properties:
-      message:
-        example: Registration successful
-        type: string
-      user:
-        $ref: '#/definitions/delivery.UserData'
-    type: object
-  delivery.UserData:
-    properties:
-      id:
-        example: "2"
-        type: string
-      name:
-        example: Dr Peper
-        type: string
-      username:
-        example: user12
-        type: string
-    type: object
   model.AddUsersIntoChatDTO:
     properties:
       usersId:
@@ -103,6 +57,7 @@ definitions:
           $ref: '#/definitions/model.ChatDTOOutput'
         type: array
     type: object
+
   model.DeleteUsersFromChatDTO:
     properties:
       usersId:
@@ -114,12 +69,24 @@ definitions:
         type: array
     type: object
   models.AddContactReqDTO:
+
+  models.AuthReqDTO:
+    properties:
+      password:
+        example: "12345678"
+        type: string
+      username:
+        example: user11
+        type: string
+    type: object
+  models.ContactReqDTO:
+
     properties:
       contactUsername:
         example: user11
         type: string
     type: object
-  models.ContactDTO:
+  models.ContactRespDTO:
     properties:
       avatarURL:
         example: /uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png
@@ -139,13 +106,13 @@ definitions:
     properties:
       contacts:
         items:
-          $ref: '#/definitions/models.ContactDTO'
+          $ref: '#/definitions/models.ContactRespDTO'
         type: array
     type: object
   models.GetProfileResponseDTO:
     properties:
       avatarURL:
-        example: /2024_2_eaglesDesigners/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
       bio:
         example: Не люблю сети
@@ -177,6 +144,26 @@ definitions:
         example: тут много текста
         type: string
     type: object
+  models.RegisterReqDTO:
+    properties:
+      name:
+        example: Vincent Vega
+        type: string
+      password:
+        example: go_do_a_crime
+        type: string
+      username:
+        example: killer1994
+        type: string
+    type: object
+  models.RegisterRespDTO:
+    properties:
+      message:
+        example: Registration successful
+        type: string
+      user:
+        $ref: '#/definitions/models.UserDataRespDTO'
+    type: object
   models.UpdateProfileRequestDTO:
     properties:
       bio:
@@ -189,9 +176,25 @@ definitions:
         example: Vincent Vega
         type: string
     type: object
+  models.UserDataRespDTO:
+    properties:
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      id:
+        example: "2"
+        type: string
+      name:
+        example: Dr Peper
+        type: string
+      username:
+        example: user12
+        type: string
+    type: object
   responser.ErrorResponse:
     properties:
       error:
+        example: error message
         type: string
       status:
         example: error
@@ -200,6 +203,7 @@ definitions:
   responser.SuccessResponse:
     properties:
       message:
+        example: success message
         type: string
     type: object
 externalDocs:
@@ -251,7 +255,7 @@ paths:
         "200":
           description: User data retrieved successfully
           schema:
-            $ref: '#/definitions/delivery.AuthResponse'
+            $ref: '#/definitions/models.UserDataRespDTO'
         "401":
           description: 'Unauthorized: token is invalid'
           schema:
@@ -420,6 +424,37 @@ paths:
       tags:
       - chat
   /contacts:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes user contact.
+      parameters:
+      - description: Credentials for delete user contact
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.ContactReqDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Contact deleted
+          schema:
+            $ref: '#/definitions/models.ContactRespDTO'
+        "400":
+          description: Failed to delete contact
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete contact
+      tags:
+      - contacts
     get:
       consumes:
       - application/json
@@ -454,14 +489,14 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/models.AddContactReqDTO'
+          $ref: '#/definitions/models.ContactReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Contact created
           schema:
-            $ref: '#/definitions/models.ContactDTO'
+            $ref: '#/definitions/models.ContactRespDTO'
         "400":
           description: Failed to create contact
           schema:
@@ -490,7 +525,7 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/delivery.AuthCredentials'
+          $ref: '#/definitions/models.AuthReqDTO'
       produces:
       - application/json
       responses:
@@ -634,14 +669,14 @@ paths:
         name: creds
         required: true
         schema:
-          $ref: '#/definitions/delivery.RegisterCredentials'
+          $ref: '#/definitions/models.RegisterReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Registration successful
           schema:
-            $ref: '#/definitions/delivery.RegisterResponse'
+            $ref: '#/definitions/models.RegisterRespDTO'
         "400":
           description: User failed to create
           schema:
