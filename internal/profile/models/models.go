@@ -3,11 +3,13 @@ package models
 import (
 	"mime/multipart"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // @Schema
 type UpdateProfileRequestDTO struct {
-	Username  string          `json:"-"`
+	ID        uuid.UUID       `json:"-"`
 	Name      *string         `json:"name" example:"Vincent Vega"`
 	Bio       *string         `json:"bio" example:"Не люблю сети"`
 	Birthdate *time.Time      `json:"birthdate" example:"2024-04-13T08:30:00Z"`
@@ -23,7 +25,7 @@ type GetProfileResponseDTO struct {
 }
 
 type Profile struct {
-	Username  string
+	ID        uuid.UUID
 	Name      *string
 	Bio       *string
 	Avatar    *multipart.File
@@ -38,7 +40,7 @@ type ProfileData struct {
 }
 
 type ProfileDAO struct {
-	Username   string
+	ID         uuid.UUID
 	Name       *string
 	Bio        *string
 	AvatarPath *string

@@ -22,7 +22,7 @@ func New(pool *pgxpool.Pool) *Repository {
 	}
 }
 
-func (r *Repository) GetProfileByUsername(ctx context.Context, username string) (models.ProfileDataDAO, error) {
+func (r *Repository) GetProfileByUsername(ctx context.Context, id uuid.UUID) (models.ProfileDataDAO, error) {
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Не удалось соединиться с базой данных: %v\n", err)
@@ -38,8 +38,8 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 			bio,
 			avatar_path
 		FROM public."user"
-		WHERE username = $1;`,
-		username,
+		WHERE id = $1;`,
+		id,
 	)
 
 	var profileData models.ProfileDataDAO
@@ -66,7 +66,7 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 // bio = $3,
 // birthdate = $4,
 // avatar_path = $5
-// WHERE username = $1
+// WHERE id = $1
 // RETURNING avatar_path;
 func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error) {
 	conn, err := r.pool.Acquire(ctx)
@@ -80,8 +80,8 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 		ctx,
 		`SELECT avatar_path
 		FROM public."user"
-		WHERE username = $1;`,
-		profile.Username,
+		WHERE id = $1;`,
+		profile.ID,
 	)
 
 	err = row.Scan(&avatarURL)
@@ -99,7 +99,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 
 	var args []interface{}
 
-	args = append(args, profile.Username)
+	args = append(args, profile.ID)
 
 	if profile.Name != nil {
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("name = $%d", len(args)+1))
@@ -122,7 +122,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 		return nil, errors.New("нет полей для обновления")
 	}
 
-	query += fmt.Sprintf("%s WHERE username = $1", strings.Join(rowsWithFields, ", ")) + " RETURNING avatar_path;"
+	query += fmt.Sprintf("%s WHERE id = $1", strings.Join(rowsWithFields, ", ")) + " RETURNING avatar_path;"
 
 	log.Println(query)
 
