@@ -99,21 +99,21 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		log.Println("Chat delivery: не удалось распарсить запрос: ", err)
-		responser.SendErrorResponse(w, "Unable to parse form", http.StatusBadRequest)
+		responser.SendError(w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
 
 	jsonString := r.FormValue("chat_data")
 	if jsonString != "" {
 		if err := json.Unmarshal([]byte(jsonString), &chatDTO); err != nil {
-			responser.SendErrorResponse(w, invalidJSONError, http.StatusBadRequest)
+			responser.SendError(w, invalidJSONError, http.StatusBadRequest)
 			return
 		}
 	}
 
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
-		responser.SendErrorResponse(w, "Failed to get avatar", http.StatusBadRequest)
+		responser.SendError(w, "Failed to get avatar", http.StatusBadRequest)
 		return
 	}
 	defer func() {
@@ -172,7 +172,6 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 
 	w.WriteHeader(http.StatusOK)
 }
-
 
 // DeleteUsersFromChat godoc
 // @Summary Удалить пользователей из чата
@@ -305,14 +304,14 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	jsonString := r.FormValue("chat_data")
 	if jsonString != "" {
 		if err := json.Unmarshal([]byte(jsonString), &chatUpdate); err != nil {
-			responser.SendErrorResponse(w, invalidJSONError, http.StatusBadRequest)
+			responser.SendError(w, invalidJSONError, http.StatusBadRequest)
 			return
 		}
 	}
 
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
-		responser.SendErrorResponse(w, "Failed to get avatar", http.StatusBadRequest)
+		responser.SendError(w, "Failed to get avatar", http.StatusBadRequest)
 		return
 	}
 	defer func() {

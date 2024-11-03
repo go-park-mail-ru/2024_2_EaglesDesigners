@@ -279,7 +279,6 @@ func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username str
 }
 
 func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
-	log.Println("конверт")
 	return models.UserDataRespDTO{
 		ID:        userData.ID,
 		Username:  userData.Username,
