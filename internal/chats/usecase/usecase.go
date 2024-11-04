@@ -294,46 +294,40 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 	return nil
 }
 
-
-
-func (s *ChatUsecaseImpl)  DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) error {
+func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userID, chatId)
 	if err != nil {
-		return err
+		return chatModel.DeletdeUsersFromChatDTO{}, err
 	}
-
+	var deletedIds []uuid.UUID
 	// проверяем есть ли права
 	switch role {
 	case admin, owner:
-		log.Printf("Chat usecase -> AddUsersIntoChat: начато добавление пользователей в чат %v пользователем %v", chatId, userID)
-
-		chat, err := s.repository.GetChatById(ctx, chatId)
-
-		if err != nil {
-			log.Println("Chat usecase -> AddUsersIntoChat: не удалось добавить юзера в чат^ %v", err)
-		}
+		log.Printf("Chat usecase -> DeleteUsersFromChat: начато удаление пользователей в чат %v пользователем %v", chatId, userID)
 
 		for _, id := range usertToDelete.UsersId {
 			userRole, err := s.repository.GetUserRoleInChat(ctx, id, chatId)
-			if (id == userID) {
-				continue
-			}
-			if (userRole == owner) {
-				continue
-			}
-
-			s.repository.DeleteUserFromChat(ctx, id, chatId)
-			chatDTO, err := s.createChatDTO(ctx, chat)
 			if err != nil {
-				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
+				continue
 			}
-			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
 
+			if id == userID {
+				continue
+			}
+			if userRole == owner {
+				continue
+			}
+
+			err = s.repository.DeleteUserFromChat(ctx, id, chatId)
+			if err != nil {
+				continue
+			}
+			deletedIds = append(deletedIds, id)
 		}
-		log.Printf("Chat usecase -> AddUsersIntoChat: участники удалены из чата %v пользователем %v", chatId, userID)
+		log.Printf("Chat usecase -> DeleteUsersFromChat: участники удалены из чата %v пользователем %v", chatId, userID)
 
-		return nil
+		return chatModel.DeletdeUsersFromChatDTO{}, nil
 	}
 
-	return errors.New("Участники не удалены")
+	return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, errors.New("Участники не удалены")
 }

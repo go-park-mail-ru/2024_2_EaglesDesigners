@@ -209,7 +209,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = c.service.DeleteUsersFromChat(r.Context(), user.ID, chatUUID, usersToDelete)
+	delUsers, err := c.service.DeleteUsersFromChat(r.Context(), user.ID, chatUUID, usersToDelete)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
@@ -217,6 +217,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	
 	w.WriteHeader(http.StatusOK)
 }
 
