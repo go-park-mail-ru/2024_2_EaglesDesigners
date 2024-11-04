@@ -543,7 +543,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Contact deleted",
                         "schema": {
-                            "$ref": "#/definitions/models.ContactRespDTO"
+                            "$ref": "#/definitions/responser.SuccessResponse"
                         }
                     },
                     "400": {
@@ -1065,7 +1065,6 @@ const docTemplate = `{
                     "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
                 },
                 "name": {
-                    "description": "can be nil",
                     "type": "string",
                     "example": "Витек"
                 },
@@ -1202,7 +1201,7 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string",
-                    "example": "2"
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
                 },
                 "name": {
                     "type": "string",

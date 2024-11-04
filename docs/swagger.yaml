@@ -124,7 +124,6 @@ definitions:
         example: 08a0f350-e122-467b-8ba8-524d2478b56e
         type: string
       name:
-        description: can be nil
         example: Витек
         type: string
       username:
@@ -218,7 +217,7 @@ definitions:
         example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
       id:
-        example: "2"
+        example: f0364477-bfd4-496d-b639-d825b009d509
         type: string
       name:
         example: Dr Peper
@@ -538,7 +537,7 @@ paths:
         "200":
           description: Contact deleted
           schema:
-            $ref: '#/definitions/models.ContactRespDTO'
+            $ref: '#/definitions/responser.SuccessResponse'
         "400":
           description: Failed to delete contact
           schema:

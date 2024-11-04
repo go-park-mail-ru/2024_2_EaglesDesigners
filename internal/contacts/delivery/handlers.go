@@ -165,7 +165,7 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security BearerAuth
 // @Param credentials body models.ContactReqDTO true "Credentials for delete user contact"
-// @Success 200 {object} models.ContactRespDTO "Contact deleted"
+// @Success 200 {object} responser.SuccessResponse "Contact deleted"
 // @Failure 400 {object} responser.ErrorResponse "Failed to delete contact"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Router /contacts [delete]
