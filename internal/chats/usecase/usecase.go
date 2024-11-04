@@ -127,16 +127,17 @@ func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uui
 	return nil
 }
 
-func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) error {
+func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error) {
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
-		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+		return chatModel.AddedUsersIntoChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 	role, err := s.repository.GetUserRoleInChat(ctx, user.ID, chat_id)
 	if err != nil {
-		return err
+		return chatModel.AddedUsersIntoChatDTO{}, err
 	}
 
+	var addedUsers []uuid.UUID
 	// проверяем есть ли права
 	switch role {
 	case admin, owner:
@@ -155,14 +156,14 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
 			}
 			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
-
+			addedUsers = append(addedUsers, id)
 		}
 		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
 
-		return nil
+		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers}, nil
 	}
 
-	return errors.New("Участники не добавлены")
+	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
 }
 
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error {
@@ -216,7 +217,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	s.sendNotificationToUser(ctx, user.ID, newChatDTO, messageUsecase.FeatNewUser)
 
 	log.Printf("Chat usecase -> AddNewChat: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
-	err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
+	_, err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
 
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
@@ -294,46 +295,40 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 	return nil
 }
 
-
-
-func (s *ChatUsecaseImpl)  DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) error {
+func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userID, chatId)
 	if err != nil {
-		return err
+		return chatModel.DeletdeUsersFromChatDTO{}, err
 	}
-
+	var deletedIds []uuid.UUID
 	// проверяем есть ли права
 	switch role {
 	case admin, owner:
-		log.Printf("Chat usecase -> AddUsersIntoChat: начато добавление пользователей в чат %v пользователем %v", chatId, userID)
-
-		chat, err := s.repository.GetChatById(ctx, chatId)
-
-		if err != nil {
-			log.Println("Chat usecase -> AddUsersIntoChat: не удалось добавить юзера в чат^ %v", err)
-		}
+		log.Printf("Chat usecase -> DeleteUsersFromChat: начато удаление пользователей в чат %v пользователем %v", chatId, userID)
 
 		for _, id := range usertToDelete.UsersId {
 			userRole, err := s.repository.GetUserRoleInChat(ctx, id, chatId)
-			if (id == userID) {
-				continue
-			}
-			if (userRole == owner) {
-				continue
-			}
-
-			s.repository.DeleteUserFromChat(ctx, id, chatId)
-			chatDTO, err := s.createChatDTO(ctx, chat)
 			if err != nil {
-				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
+				continue
 			}
-			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
 
+			if id == userID {
+				continue
+			}
+			if userRole == owner {
+				continue
+			}
+
+			err = s.repository.DeleteUserFromChat(ctx, id, chatId)
+			if err != nil {
+				continue
+			}
+			deletedIds = append(deletedIds, id)
 		}
-		log.Printf("Chat usecase -> AddUsersIntoChat: участники удалены из чата %v пользователем %v", chatId, userID)
+		log.Printf("Chat usecase -> DeleteUsersFromChat: участники удалены из чата %v пользователем %v", chatId, userID)
 
-		return nil
+		return chatModel.DeletdeUsersFromChatDTO{}, nil
 	}
 
-	return errors.New("Участники не удалены")
+	return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, errors.New("Участники не удалены")
 }
