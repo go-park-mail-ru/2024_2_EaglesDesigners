@@ -350,14 +350,8 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonResp, err := json.Marshal(updatedChat)
-	if err != nil {
-		log.Printf("Не удалось добавить распарсить структуру: %v", err)
-		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
-		return
-	}
 
-	responser.SendStruct(w, jsonResp, 200)
+	responser.SendStruct(w, updatedChat, 200)
 }
 
 func sendSuccess(w http.ResponseWriter) {
