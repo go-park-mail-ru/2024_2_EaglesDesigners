@@ -50,6 +50,14 @@ definitions:
         example: Чат с пользователем 2
         type: string
     type: object
+  model.ChatUpdateOutput:
+    properties:
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      wasAvatarUpdated:
+        type: boolean
+    type: object
   model.ChatsDTO:
     properties:
       chats:
@@ -301,6 +309,8 @@ paths:
       responses:
         "200":
           description: Чат обновлен
+          schema:
+            $ref: '#/definitions/model.ChatUpdateOutput'
         "400":
           description: Некорректный запрос
           schema:

@@ -129,7 +129,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Чат обновлен"
+                        "description": "Чат обновлен",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatUpdateOutput"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -955,6 +958,18 @@ const docTemplate = `{
                 "chatName": {
                     "type": "string",
                     "example": "Чат с пользователем 2"
+                }
+            }
+        },
+        "model.ChatUpdateOutput": {
+            "type": "object",
+            "properties": {
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "wasAvatarUpdated": {
+                    "type": "boolean"
                 }
             }
         },

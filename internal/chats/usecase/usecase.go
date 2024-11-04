@@ -257,12 +257,13 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 	return nil
 }
 
-func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) error {
+func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) (chatModel.ChatUpdateOutput, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
-		return err
+		return chatModel.ChatUpdateOutput{}, err
 	}
 
+	var updatedChat chatModel.ChatUpdateOutput
 	// проверяем есть ли права
 	switch role {
 	case owner, admin:
@@ -273,26 +274,30 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 			err := multipartHepler.RewritePhoto(*chatUpdate.Avatar, chatDir)
 			if err != nil {
 				log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
-				return err
+				return chatModel.ChatUpdateOutput{}, err
 			}
+
+			updatedChat.Avatar = true
 		}
 
-		err = s.repository.UpdateChat(ctx, chatId, chatUpdate.ChatName)
-		if err != nil {
-			log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
-			return err
+		if chatUpdate.ChatName != "" {
+			err = s.repository.UpdateChat(ctx, chatId, chatUpdate.ChatName)
+			if err != nil {
+				log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
+				return chatModel.ChatUpdateOutput{}, err
+			}
+			updatedChat.ChatName = chatUpdate.ChatName
 		}
-
-		return nil
+		return chatModel.ChatUpdateOutput{}, nil
 	case none:
 		log.Printf("Chat usecase -> UpdateChat: у пользователя %v нет привелегий", userId)
-		return &customerror.NoPermissionError{
+		return chatModel.ChatUpdateOutput{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: fmt.Sprintf("чат: %v", chatId.String()),
 		}
 	}
 
-	return nil
+	return updatedChat, nil
 }
 
 func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error) {
