@@ -46,7 +46,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Чат создан"
+                        "description": "Чат создан",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatDTOOutput"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",

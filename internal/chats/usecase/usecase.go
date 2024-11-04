@@ -166,10 +166,10 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
 }
 
-func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error {
+func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error) {
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
-		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+		return chatModel.ChatDTOOutput{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
 	chatId := uuid.New()
@@ -184,7 +184,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		filename, err := multipartHepler.SavePhoto(*chat.Avatar, chatDir)
 		if err != nil {
 			log.Printf("Не удалось записать аватарку: %v", err)
-			return err
+			return chatModel.ChatDTOOutput{}, err
 		}
 		newChat.AvatarURL = filename
 	}
@@ -197,7 +197,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	err = s.repository.CreateNewChat(ctx, newChat)
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось сохнанить чат: %v", err)
-		return err
+		return chatModel.ChatDTOOutput{}, err
 	}
 
 	// добавление владельца
@@ -205,7 +205,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
-		return err
+		return chatModel.ChatDTOOutput{}, err
 	}
 
 	newChatDTO, err := s.createChatDTO(ctx, newChat)
@@ -221,10 +221,10 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
-		return err
+		return chatModel.ChatDTOOutput{}, err
 	}
 
-	return nil
+	return newChatDTO, nil
 }
 
 func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error {

@@ -89,7 +89,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 // @Tags chat
 // @Accept json
 // @Param chat body model.ChatDTOInput true "Chat info"
-// @Success 201 "Чат создан"
+// @Success 201 {object} model.ChatDTOOutput "Чат создан"
 // @Failure 400 {object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500 {object} responser.ErrorResponse "Не удалось добавить чат / группу"
 // @Router /addchat [post]
@@ -126,14 +126,21 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		chatDTO.Avatar = &avatar
 	}
 
-	err = c.service.AddNewChat(r.Context(), r.Cookies(), chatDTO)
+	returnChat, err := c.service.AddNewChat(r.Context(), r.Cookies(), chatDTO)
 	if err != nil {
 		log.Printf("Не удалось добавить чат: %v", err)
 		responser.SendError(w, fmt.Sprintf("Не удалось добавить чат: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	jsonResp, err := json.Marshal(returnChat)
+	if err != nil {
+		log.Printf("Не удалось добавить распарсить структуру: %v", err)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(w, jsonResp, 201)
 }
 
 // AddUsersIntoChat godoc
