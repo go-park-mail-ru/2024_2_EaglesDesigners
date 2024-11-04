@@ -306,7 +306,20 @@ paths:
       - auth
   /chat/{chatId}:
     put:
+      consumes:
+      - multipart/form-data
+      description: Update bio, avatar, name or birthdate of user.
       parameters:
+      - description: JSON representation of chat data
+        in: body
+        name: chat_data
+        required: true
+        schema:
+          $ref: '#/definitions/model.ChatUpdate'
+      - description: group avatar
+        in: formData
+        name: avatar
+        type: file
       - description: Chat ID (UUID)
         example: '"123e4567-e89b-12d3-a456-426614174000"'
         in: path
@@ -317,9 +330,9 @@ paths:
         type: string
       responses:
         "200":
-          description: Пользователи чата
+          description: Чат обновлен
           schema:
-            $ref: '#/definitions/model.UsersInChat'
+            $ref: '#/definitions/model.ChatUpdateOutput'
         "400":
           description: Некорректный запрос
           schema:
@@ -329,12 +342,12 @@ paths:
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
         "500":
-          description: Не удалось получить учатсников
+          description: Не удалось обновчить чат
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Получаем id пользователей
+      summary: Обновляем фото и имя
       tags:
       - chat
   /chat/{chatId}/addusers:
@@ -499,6 +512,39 @@ paths:
       summary: Add new message
       tags:
       - message
+  /chat/{chatId}/users:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи чата
+          schema:
+            $ref: '#/definitions/model.UsersInChat'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить учатсников
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получаем id пользователей
+      tags:
+      - chat
   /chats:
     get:
       parameters:
