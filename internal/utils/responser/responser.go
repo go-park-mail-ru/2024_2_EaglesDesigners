@@ -38,7 +38,7 @@ func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // SendStruct отправляет полученный экземпляр структуры в формате json с статусом кода statusCode.
-func SendStruct(w http.ResponseWriter, response any, statusCode int) {
+func 	SendStruct(w http.ResponseWriter, response any, statusCode int) {
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
 		SendError(w, "Failed to create response", http.StatusBadRequest)

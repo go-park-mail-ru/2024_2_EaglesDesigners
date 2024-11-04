@@ -90,6 +90,16 @@ definitions:
           type: string
         type: array
     type: object
+  model.UsersInChat:
+    properties:
+      usersId:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
   models.AuthReqDTO:
     properties:
       password:
@@ -297,25 +307,20 @@ paths:
       - auth
   /chat/{chatId}:
     put:
-      consumes:
-      - multipart/form-data
-      description: Update bio, avatar, name or birthdate of user.
       parameters:
-      - description: JSON representation of chat data
-        in: body
-        name: chat_data
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
         required: true
-        schema:
-          $ref: '#/definitions/model.ChatUpdate'
-      - description: group avatar
-        in: formData
-        name: avatar
-        type: file
+        type: string
       responses:
         "200":
-          description: Чат обновлен
+          description: Пользователи чата
           schema:
-            $ref: '#/definitions/model.ChatUpdateOutput'
+            $ref: '#/definitions/model.UsersInChat'
         "400":
           description: Некорректный запрос
           schema:
@@ -325,12 +330,12 @@ paths:
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
         "500":
-          description: Не удалось обновчить чат
+          description: Не удалось получить учатсников
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Обновляем фото и имя
+      summary: Получаем id пользователей
       tags:
       - chat
   /chat/{chatId}/addusers:

@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	admin = "admin"
-	none  = "none"
-	owner = "owner"
+	admin     = "admin"
+	none      = "none"
+	owner     = "owner"
+	notInChat = ""
 )
 
 const (
@@ -334,4 +335,27 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 	}
 
 	return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, errors.New("Участники не удалены")
+}
+
+func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.UsersInChat, error) {
+	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
+	if err != nil {
+		return chatModel.UsersInChat{}, err
+	}
+
+	if role == notInChat {
+		return chatModel.UsersInChat{}, &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: chatId.String(),
+		}
+	}
+
+	ids, err := s.repository.GetUsersFromChat(ctx, chatId)
+	if err != nil {
+		return chatModel.UsersInChat{}, err
+	}
+
+	return chatModel.UsersInChat{
+		UsersId: ids,
+	}, nil
 }
