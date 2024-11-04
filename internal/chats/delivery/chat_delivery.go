@@ -353,6 +353,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if avatar != nil {
+		log.Println("Chat delivery -> UpdateGroup: обновление аватарки")
 		chatUpdate.Avatar = &avatar
 	}
 

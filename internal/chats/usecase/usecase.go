@@ -276,7 +276,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 				log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
 				return chatModel.ChatUpdateOutput{}, err
 			}
-
+			log.Println("Chat usecase -> UpdateChat: аватар обновлен")
 			updatedChat.Avatar = true
 		}
 
