@@ -107,7 +107,7 @@ const docTemplate = `{
                     "multipart/form-data"
                 ],
                 "tags": [
-                    "profile"
+                    "chat"
                 ],
                 "summary": "Обновляем фото и имя",
                 "parameters": [

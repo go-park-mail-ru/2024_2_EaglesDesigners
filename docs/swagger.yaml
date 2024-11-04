@@ -332,7 +332,7 @@ paths:
       - BearerAuth: []
       summary: Обновляем фото и имя
       tags:
-      - profile
+      - chat
   /chat/{chatId}/addusers:
     post:
       consumes:

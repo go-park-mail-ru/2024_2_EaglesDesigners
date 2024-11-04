@@ -280,7 +280,6 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-
 	sendSuccess(w)
 }
 
@@ -306,7 +305,7 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 // UpdateGroup godoc
 // @Summary Обновляем фото и имя
 // @Description Update bio, avatar, name or birthdate of user.
-// @Tags profile
+// @Tags chat
 // @Accept multipart/form-data
 // @Security BearerAuth
 // @Param chat_data body model.ChatUpdate true "JSON representation of chat data"
@@ -379,7 +378,6 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	responser.SendStruct(w, jsonResp, 200)
 }
-
 
 func sendSuccess(w http.ResponseWriter) {
 	jsonResp, err := json.Marshal(SuccessfullSuccess{Success: "Произошёл успешный успех"})
