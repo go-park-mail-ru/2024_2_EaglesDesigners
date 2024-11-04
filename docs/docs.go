@@ -273,7 +273,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Пользователи добавлены"
+                        "description": "Пользователи удалены",
+                        "schema": {
+                            "$ref": "#/definitions/model.DeletdeUsersFromChatDTO"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -960,6 +963,21 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/model.ChatDTOOutput"
                     }
+                }
+            }
+        },
+        "model.DeletdeUsersFromChatDTO": {
+            "type": "object",
+            "properties": {
+                "deletedUsers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
                 }
             }
         },

@@ -164,7 +164,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = c.service.AddUsersIntoChat(r.Context(), r.Cookies(), usersToAdd.UsersId, chatUUID)
+	addedUsers, err := c.service.AddUsersIntoChat(r.Context(), r.Cookies(), usersToAdd.UsersId, chatUUID)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
@@ -172,7 +172,14 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	jsonResp, err := json.Marshal(addedUsers)
+	if err != nil {
+		log.Printf("Не удалось добавить распарсить структуру: %v", err)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(w, jsonResp, 200)
 }
 
 // DeleteUsersFromChat godoc
@@ -181,7 +188,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 // @Accept json
 // @Param users body model.DeleteUsersFromChatDTO true "Пользователи на добавление"
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Success 200 "Пользователи добавлены"
+// @Success 200 {object} model.DeletdeUsersFromChatDTO "Пользователи удалены"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/delusers [post]
@@ -217,8 +224,14 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	
-	w.WriteHeader(http.StatusOK)
+	jsonResp, err := json.Marshal(delUsers)
+	if err != nil {
+		log.Printf("Не удалось добавить распарсить структуру: %v", err)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(w, jsonResp, 200)
 }
 
 // DeleteChatOrGroup godoc

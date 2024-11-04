@@ -57,6 +57,16 @@ definitions:
           $ref: '#/definitions/model.ChatDTOOutput'
         type: array
     type: object
+  model.DeletdeUsersFromChatDTO:
+    properties:
+      deletedUsers:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
   model.DeleteUsersFromChatDTO:
     properties:
       usersId:
@@ -389,7 +399,9 @@ paths:
         type: string
       responses:
         "200":
-          description: Пользователи добавлены
+          description: Пользователи удалены
+          schema:
+            $ref: '#/definitions/model.DeletdeUsersFromChatDTO'
         "400":
           description: Некорректный запрос
           schema:

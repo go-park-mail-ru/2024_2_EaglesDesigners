@@ -127,16 +127,17 @@ func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uui
 	return nil
 }
 
-func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) error {
+func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error) {
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
-		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+		return chatModel.AddedUsersIntoChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 	role, err := s.repository.GetUserRoleInChat(ctx, user.ID, chat_id)
 	if err != nil {
-		return err
+		return chatModel.AddedUsersIntoChatDTO{}, err
 	}
 
+	var addedUsers []uuid.UUID
 	// проверяем есть ли права
 	switch role {
 	case admin, owner:
@@ -155,14 +156,14 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
 			}
 			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
-
+			addedUsers = append(addedUsers, id)
 		}
 		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
 
-		return nil
+		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers}, nil
 	}
 
-	return errors.New("Участники не добавлены")
+	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
 }
 
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error {
@@ -216,7 +217,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	s.sendNotificationToUser(ctx, user.ID, newChatDTO, messageUsecase.FeatNewUser)
 
 	log.Printf("Chat usecase -> AddNewChat: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
-	err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
+	_, err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
 
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
