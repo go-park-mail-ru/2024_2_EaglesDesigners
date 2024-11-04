@@ -102,11 +102,30 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Update bio, avatar, name or birthdate of user.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
                 "tags": [
                     "chat"
                 ],
-                "summary": "Получаем id пользователей",
+                "summary": "Обновляем фото и имя",
                 "parameters": [
+                    {
+                        "description": "JSON representation of chat data",
+                        "name": "chat_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatUpdate"
+                        }
+                    },
+                    {
+                        "type": "file",
+                        "description": "group avatar",
+                        "name": "avatar",
+                        "in": "formData"
+                    },
                     {
                         "maxLength": 36,
                         "minLength": 36,
@@ -120,9 +139,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Пользователи чата",
+                        "description": "Чат обновлен",
                         "schema": {
-                            "$ref": "#/definitions/model.UsersInChat"
+                            "$ref": "#/definitions/model.ChatUpdateOutput"
                         }
                     },
                     "400": {
@@ -138,7 +157,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Не удалось получить учатсников",
+                        "description": "Не удалось обновчить чат",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -379,6 +398,57 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Не удалось добавить сообщение",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Получаем id пользователей",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи чата",
+                        "schema": {
+                            "$ref": "#/definitions/model.UsersInChat"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить учатсников",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
