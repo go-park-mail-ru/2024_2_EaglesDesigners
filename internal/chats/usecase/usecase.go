@@ -288,16 +288,14 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 			}
 			updatedChat.ChatName = chatUpdate.ChatName
 		}
-		return chatModel.ChatUpdateOutput{}, nil
-	case none:
+		return updatedChat, nil
+	default:
 		log.Printf("Chat usecase -> UpdateChat: у пользователя %v нет привелегий", userId)
 		return chatModel.ChatUpdateOutput{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: fmt.Sprintf("чат: %v", chatId.String()),
 		}
 	}
-
-	return updatedChat, nil
 }
 
 func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error) {
