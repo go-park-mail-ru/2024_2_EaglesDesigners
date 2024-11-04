@@ -102,36 +102,27 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update bio, avatar, name or birthdate of user.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
                 "tags": [
                     "chat"
                 ],
-                "summary": "Обновляем фото и имя",
+                "summary": "Получаем id пользователей",
                 "parameters": [
                     {
-                        "description": "JSON representation of chat data",
-                        "name": "chat_data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.ChatUpdate"
-                        }
-                    },
-                    {
-                        "type": "file",
-                        "description": "group avatar",
-                        "name": "avatar",
-                        "in": "formData"
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Чат обновлен",
+                        "description": "Пользователи чата",
                         "schema": {
-                            "$ref": "#/definitions/model.ChatUpdateOutput"
+                            "$ref": "#/definitions/model.UsersInChat"
                         }
                     },
                     "400": {
@@ -147,7 +138,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Не удалось обновчить чат",
+                        "description": "Не удалось получить учатсников",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -1011,6 +1002,21 @@ const docTemplate = `{
             }
         },
         "model.DeleteUsersFromChatDTO": {
+            "type": "object",
+            "properties": {
+                "usersId": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.UsersInChat": {
             "type": "object",
             "properties": {
                 "usersId": {

@@ -94,3 +94,7 @@ type DeleteUsersFromChatDTO struct {
 type DeletdeUsersFromChatDTO struct {
 	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2"`
 }
+
+type UsersInChat struct {
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
+}

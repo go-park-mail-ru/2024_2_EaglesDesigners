@@ -153,6 +153,7 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/delete", auth.Middleware(chat.DeleteChatOrGroup)).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}", auth.Middleware(chat.UpdateGroup)).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/users", auth.Middleware(chat.GetUsersFromChat)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/startwebsocket", auth.Middleware(messageDelivery.HandleConnection))

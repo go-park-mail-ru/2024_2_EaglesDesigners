@@ -333,7 +333,7 @@ func (r *ChatRepositoryImpl) DeleteChat(ctx context.Context, chatId uuid.UUID) e
 		log.Printf("Chat repository -> DeleteChat: не удалось удалить чат: %v", err)
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -353,17 +353,15 @@ func (r *ChatRepositoryImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, c
 	// Выполнение удаления
 	_, err = conn.Exec(ctx, deleteQuery, chatName, chatId)
 
-
 	if err != nil {
 		log.Printf("Chat repository -> UpdateChat: не удалось обновить чат: %v", err)
 		return err
 	}
-	
+
 	return nil
 }
 
-
-func (r *ChatRepositoryImpl)  DeleteUserFromChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error {
+func (r *ChatRepositoryImpl) DeleteUserFromChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error {
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
@@ -378,11 +376,47 @@ func (r *ChatRepositoryImpl)  DeleteUserFromChat(ctx context.Context, userId uui
 	// Выполнение удаления
 	_, err = conn.Exec(ctx, deleteQuery, chatId, userId)
 
-
 	if err != nil {
 		log.Printf("Chat repository -> DeleteUserFromChat: не удалось обновить чат: %v", err)
 		return err
 	}
-	
+
 	return nil
+}
+
+func (r *ChatRepositoryImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error) {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> GetUsersFromChat: начато получение пользователей из чата: %v", chatId)
+
+	rows, err := conn.Query(ctx,
+		`SELECT user_id
+		FROM chat_user
+		WHERE chat_id = $1;`,
+		chatId,
+	)
+	if err != nil {
+		log.Printf("Unable to SELECT ids: %v\n", err)
+		return nil, err
+	}
+
+	var ids []uuid.UUID
+	for rows.Next() {
+		var userId uuid.UUID
+
+		log.Println("Repository: поиск параметров из запроса")
+		err = rows.Scan(&userId)
+
+		if err != nil {
+			log.Printf("Repository: unable to scan: %v", err)
+			return nil, err
+		}
+		ids = append(ids, userId)
+	}
+	return ids, nil
 }

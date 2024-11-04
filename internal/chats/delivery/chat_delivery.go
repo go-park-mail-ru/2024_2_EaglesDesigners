@@ -133,14 +133,7 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonResp, err := json.Marshal(returnChat)
-	if err != nil {
-		log.Printf("Не удалось добавить распарсить структуру: %v", err)
-		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	responser.SendStruct(w, jsonResp, 201)
+	responser.SendStruct(w, returnChat, 201)
 }
 
 // AddUsersIntoChat godoc
@@ -179,14 +172,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	jsonResp, err := json.Marshal(addedUsers)
-	if err != nil {
-		log.Printf("Не удалось добавить распарсить структуру: %v", err)
-		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	responser.SendStruct(w, jsonResp, 200)
+	responser.SendStruct(w, addedUsers, 200)
 }
 
 // DeleteUsersFromChat godoc
@@ -231,14 +217,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	jsonResp, err := json.Marshal(delUsers)
-	if err != nil {
-		log.Printf("Не удалось добавить распарсить структуру: %v", err)
-		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	responser.SendStruct(w, jsonResp, 200)
+	responser.SendStruct(w, delUsers, 200)
 }
 
 // DeleteChatOrGroup godoc
@@ -310,6 +289,7 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 // @Security BearerAuth
 // @Param chat_data body model.ChatUpdate true "JSON representation of chat data"
 // @Param avatar formData file false "group avatar" example:"/2024_2_eaglesDesigners/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Success 200 {object} model.ChatUpdateOutput "Чат обновлен"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
@@ -381,16 +361,50 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendSuccess(w http.ResponseWriter) {
-	jsonResp, err := json.Marshal(SuccessfullSuccess{Success: "Произошёл успешный успех"})
-	if err != nil {
-		log.Printf("Не удалось добавить распарсить структуру: %v", err)
-		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
-		return
-	}
 
-	responser.SendStruct(w, jsonResp, 200)
+	responser.SendStruct(w, SuccessfullSuccess{Success: "Произошёл успешный успех"}, 200)
 }
 
 type SuccessfullSuccess struct {
 	Success string `json:success`
+}
+
+// GetUsersFromChat godoc
+// @Summary Получаем id пользователей
+// @Tags chat
+// @Security BearerAuth
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")// @Success 200 {object} model.ChatUpdateOutput "Чат обновлен"
+// @Success 200 {object} model.UsersInChat "Пользователи чата"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
+// @Router /chat/{chatId} [put]
+func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) {
+	chatUUID, err := getChatIdFromContext(r.Context())
+
+	if err != nil {
+		//conn.400
+		log.Println("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid:", err)
+		responser.SendError(w, fmt.Sprintf("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(w, "Не получены нужные параметры", http.StatusInternalServerError)
+		return
+	}
+
+	ids, err := c.service.GetUsersFromChat(r.Context(), chatUUID, user.ID)
+
+	if err != nil {
+		if errors.As(err, customerror.NoPermissionError{}) {
+			responser.SendError(w, err.Error(), 403)
+			return
+		}
+		responser.SendError(w, err.Error(), 500)
+		return
+	}
+
+	responser.SendStruct(w, ids, 200)
 }
