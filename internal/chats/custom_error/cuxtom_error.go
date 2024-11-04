@@ -3,8 +3,8 @@ package customerror
 import "fmt"
 
 type NoPermissionError struct {
-	User  string
-	Area  string
+	User string
+	Area string
 }
 
 // Error реализует интерфейс error для NoPermissionError.

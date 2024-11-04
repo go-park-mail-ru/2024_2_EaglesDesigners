@@ -285,7 +285,18 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 					return chatModel.ChatUpdateOutput{}, err
 				}
 			} else {
-				
+				log.Println("Chat usecase -> UpdateChat: нет старой аватарки -> установка новой")
+				filename, err := multipartHepler.SavePhoto(*chatUpdate.Avatar, chatDir)
+				if err != nil {
+					log.Printf("Не удалось записать аватарку: %v", err)
+					return chatModel.ChatUpdateOutput{}, err
+				}
+				err = s.repository.UpdateChatPhoto(ctx, chatId, filename)
+
+				if err != nil {
+					log.Printf("Chat usecase -> UpdateChat: не удалось установить аватарку: %v", err)
+					return chatModel.ChatUpdateOutput{}, err
+				}
 			}
 			log.Println("Chat usecase -> UpdateChat: аватар обновлен")
 			updatedChat.Avatar = true
