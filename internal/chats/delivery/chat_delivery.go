@@ -245,7 +245,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 // @Summary Удаличть чат или группу
 // @Tags chat
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Success 200 "Чат удалён"
+// @Success 200 {object} SuccessfullSuccess "Чат удалён"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить чат"
@@ -280,7 +280,8 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+
+	sendSuccess(w)
 }
 
 func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
@@ -377,4 +378,20 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responser.SendStruct(w, jsonResp, 200)
+}
+
+
+func sendSuccess(w http.ResponseWriter) {
+	jsonResp, err := json.Marshal(SuccessfullSuccess{Success: "Произошёл успешный успех"})
+	if err != nil {
+		log.Printf("Не удалось добавить распарсить структуру: %v", err)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(w, jsonResp, 200)
+}
+
+type SuccessfullSuccess struct {
+	Success string `json:success`
 }

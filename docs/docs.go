@@ -224,7 +224,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Чат удалён"
+                        "description": "Чат удалён",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.SuccessfullSuccess"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -888,6 +891,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "delivery.SuccessfullSuccess": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
         "model.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {

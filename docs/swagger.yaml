@@ -1,5 +1,10 @@
 basePath: /
 definitions:
+  delivery.SuccessfullSuccess:
+    properties:
+      success:
+        type: string
+    type: object
   model.AddUsersIntoChatDTO:
     properties:
       usersId:
@@ -375,6 +380,8 @@ paths:
       responses:
         "200":
           description: Чат удалён
+          schema:
+            $ref: '#/definitions/delivery.SuccessfullSuccess'
         "400":
           description: Некорректный запрос
           schema:
