@@ -25,6 +25,8 @@ const (
 	userNotFoundError = "User not found"
 )
 
+var noPerm error = &customerror.NoPermissionError{User: "Alice", Area: "секретная зона"}
+
 type ChatDelivery struct {
 	service chatlist.ChatUsecase
 }
@@ -342,7 +344,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	updatedChat, err := c.service.UpdateChat(r.Context(), chatUUID, chatUpdate, user.ID)
 
 	if err != nil {
-		if errors.As(err, &customerror.NoPermissionError{}) {
+		if errors.As(err, &noPerm) {
 			responser.SendError(w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
 			return
 		}
@@ -392,7 +394,7 @@ func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) 
 	ids, err := c.service.GetUsersFromChat(r.Context(), chatUUID, user.ID)
 
 	if err != nil {
-		if errors.As(err, customerror.NoPermissionError{}) {
+		if errors.As(err, noPerm) {
 			responser.SendError(w, err.Error(), 403)
 			return
 		}

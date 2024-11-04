@@ -347,7 +347,7 @@ func (r *ChatRepositoryImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, c
 
 	log.Printf("Chat repository -> UpdateChat: начато обновление чата: %v", chatId)
 
-	deleteQuery := `UPDATE TABLE chat SET
+	deleteQuery := `UPDATE chat SET
 		chat_name = $1 WHERE id = $2;`
 
 	// Выполнение удаления
@@ -419,4 +419,28 @@ func (r *ChatRepositoryImpl) GetUsersFromChat(ctx context.Context, chatId uuid.U
 		ids = append(ids, userId)
 	}
 	return ids, nil
+}
+
+func (r *ChatRepositoryImpl) UpdateChatPhoto(ctx context.Context, chatId uuid.UUID, filename string) error {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> UpdateChatPhoto: начато обновление чата: %v", chatId)
+
+	deleteQuery := `UPDATE chat SET
+		avatar_path = $1 WHERE id = $2;`
+
+	// Выполнение удаления
+	_, err = conn.Exec(ctx, deleteQuery, filename, chatId)
+
+	if err != nil {
+		log.Printf("Chat repository -> UpdateChatPhoto: не удалось обновить чат: %v", err)
+		return err
+	}
+
+	return nil
 }
