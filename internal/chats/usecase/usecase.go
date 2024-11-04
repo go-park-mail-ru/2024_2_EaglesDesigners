@@ -272,10 +272,20 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 
 		// send notification to chat
 		if chatUpdate.Avatar != nil {
-			err := multipartHepler.RewritePhoto(*chatUpdate.Avatar, chatDir)
+			chat, err := s.repository.GetChatById(ctx, chatId)
 			if err != nil {
-				log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
 				return chatModel.ChatUpdateOutput{}, err
+			}
+
+			if chat.AvatarURL != "" {
+
+				err = multipartHepler.RewritePhoto(*chatUpdate.Avatar, chat.AvatarURL)
+				if err != nil {
+					log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
+					return chatModel.ChatUpdateOutput{}, err
+				}
+			} else {
+				
 			}
 			log.Println("Chat usecase -> UpdateChat: аватар обновлен")
 			updatedChat.Avatar = true
@@ -287,6 +297,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 				log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
 				return chatModel.ChatUpdateOutput{}, err
 			}
+			log.Println("Chat usecase -> UpdateChat: имя чата обновлено")
 			updatedChat.ChatName = chatUpdate.ChatName
 		}
 		return updatedChat, nil

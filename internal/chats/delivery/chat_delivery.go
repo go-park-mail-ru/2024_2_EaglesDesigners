@@ -372,7 +372,7 @@ type SuccessfullSuccess struct {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
-// @Router /chat/{chatId} [put]
+// @Router /chat/{chatId}/users [get]
 func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) {
 	chatUUID, err := getChatIdFromContext(r.Context())
 
