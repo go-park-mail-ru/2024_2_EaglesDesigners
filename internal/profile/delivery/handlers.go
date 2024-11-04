@@ -11,6 +11,7 @@ import (
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -76,14 +77,15 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	response := convertProfileDataToDTO(profileData)
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendError(w, responseError, http.StatusBadRequest)
+	if err := validator.Check(response); err != nil {
+		log.Printf("Profile delivery: выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	log.Println("Profile delivery: данные успешно отправлены")
+
+	responser.SendStruct(w, response, http.StatusOK)
 }
 
 // GetProfileHandler godoc
@@ -115,14 +117,15 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	response := convertProfileDataToDTO(profileData)
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendError(w, responseError, http.StatusBadRequest)
+	if err := validator.Check(response); err != nil {
+		log.Printf("Profile delivery: выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	log.Println("Profile delivery: данные успешно отправлены")
+
+	responser.SendStruct(w, response, http.StatusOK)
 }
 
 // UpdateProfileHandler godoc
@@ -170,6 +173,12 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
+	if err := validator.Check(profile); err != nil {
+		log.Printf("Profile delivery: входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
 		responser.SendError(w, "Failed to get avatar", http.StatusBadRequest)
@@ -189,6 +198,8 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 		responser.SendError(w, "Failed to update profile", http.StatusBadRequest)
 		return
 	}
+
+	log.Println("Profile delivery: профиль успешно обновлен")
 
 	responser.SendOK(w, "Profile updated", http.StatusOK)
 }

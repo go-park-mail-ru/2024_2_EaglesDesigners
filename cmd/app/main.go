@@ -29,6 +29,7 @@ import (
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/uploads/delivery"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/redis/go-redis/v9"
 )
@@ -81,6 +82,8 @@ func main() {
 	}
 	defer redisClient.Close()
 	log.Println("Redis подключен")
+
+	govalidator.SetFieldsRequiredByDefault(true)
 
 	router := mux.NewRouter()
 

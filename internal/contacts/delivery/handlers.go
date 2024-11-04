@@ -11,6 +11,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 )
 
 const (
@@ -81,6 +82,14 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 		Contacts: contactsDTO,
 	}
 
+	if err := validator.Check(response); err != nil {
+		log.Printf("Contact delivery: выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("Contact delivery: контакты успешно отправлены")
+
 	responser.SendStruct(w, response, http.StatusCreated)
 }
 
@@ -118,6 +127,12 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := validator.Check(contactCreds); err != nil {
+		log.Printf("Contact delivery: входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	var contactData models.ContactData
 
 	contactData.UserID = user.ID.String()
@@ -129,9 +144,15 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Contact delivery: контакт создан")
-
 	response := convertContactToDTO(contact)
+
+	if err := validator.Check(response); err != nil {
+		log.Printf("Contact delivery: выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("Contact delivery: контакт успешно создан")
 
 	responser.SendStruct(w, response, http.StatusCreated)
 }
@@ -180,7 +201,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.Println("Contact delivery: контакт удален")
+	log.Println("Contact delivery: контакт успешно удален")
 
 	responser.SendOK(w, "contact deleted", http.StatusOK)
 }
