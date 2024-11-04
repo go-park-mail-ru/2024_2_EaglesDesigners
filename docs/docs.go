@@ -46,7 +46,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Чат создан"
+                        "description": "Чат создан",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatDTOOutput"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -126,7 +129,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Чат обновлен"
+                        "description": "Чат обновлен",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatUpdateOutput"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -218,7 +224,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Чат удалён"
+                        "description": "Чат удалён",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.SuccessfullSuccess"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -882,6 +891,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "delivery.SuccessfullSuccess": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
         "model.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {
@@ -952,6 +969,18 @@ const docTemplate = `{
                 "chatName": {
                     "type": "string",
                     "example": "Чат с пользователем 2"
+                }
+            }
+        },
+        "model.ChatUpdateOutput": {
+            "type": "object",
+            "properties": {
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "wasAvatarUpdated": {
+                    "type": "boolean"
                 }
             }
         },

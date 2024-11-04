@@ -89,7 +89,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 // @Tags chat
 // @Accept json
 // @Param chat body model.ChatDTOInput true "Chat info"
-// @Success 201 "Чат создан"
+// @Success 201 {object} model.ChatDTOOutput "Чат создан"
 // @Failure 400 {object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500 {object} responser.ErrorResponse "Не удалось добавить чат / группу"
 // @Router /addchat [post]
@@ -126,14 +126,21 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		chatDTO.Avatar = &avatar
 	}
 
-	err = c.service.AddNewChat(r.Context(), r.Cookies(), chatDTO)
+	returnChat, err := c.service.AddNewChat(r.Context(), r.Cookies(), chatDTO)
 	if err != nil {
 		log.Printf("Не удалось добавить чат: %v", err)
 		responser.SendError(w, fmt.Sprintf("Не удалось добавить чат: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	jsonResp, err := json.Marshal(returnChat)
+	if err != nil {
+		log.Printf("Не удалось добавить распарсить структуру: %v", err)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(w, jsonResp, 201)
 }
 
 // AddUsersIntoChat godoc
@@ -238,7 +245,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 // @Summary Удаличть чат или группу
 // @Tags chat
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Success 200 "Чат удалён"
+// @Success 200 {object} SuccessfullSuccess "Чат удалён"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить чат"
@@ -272,7 +279,9 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 		responser.SendError(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
+
+	sendSuccess(w)
 }
 
 func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
@@ -302,7 +311,7 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 // @Security BearerAuth
 // @Param chat_data body model.ChatUpdate true "JSON representation of chat data"
 // @Param avatar formData file false "group avatar" example:"/2024_2_eaglesDesigners/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
-// @Success 200 "Чат обновлен"
+// @Success 200 {object} model.ChatUpdateOutput "Чат обновлен"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновчить чат"
@@ -350,7 +359,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Chat delivery -> UpdateGroup: пришёл запрос на изменение чата %v от пользователя %v", chatUUID, user.ID)
 
-	err = c.service.UpdateChat(r.Context(), chatUUID, chatUpdate, user.ID)
+	updatedChat, err := c.service.UpdateChat(r.Context(), chatUUID, chatUpdate, user.ID)
 
 	if err != nil {
 		if errors.As(err, &customerror.NoPermissionError{}) {
@@ -360,5 +369,29 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		responser.SendError(w, fmt.Sprintf("Внутренняя ошибка: %v", err), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
+	jsonResp, err := json.Marshal(updatedChat)
+	if err != nil {
+		log.Printf("Не удалось добавить распарсить структуру: %v", err)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(w, jsonResp, 200)
+}
+
+
+func sendSuccess(w http.ResponseWriter) {
+	jsonResp, err := json.Marshal(SuccessfullSuccess{Success: "Произошёл успешный успех"})
+	if err != nil {
+		log.Printf("Не удалось добавить распарсить структуру: %v", err)
+		responser.SendError(w, fmt.Sprintf("Не удалось добавить распарсить структуру: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(w, jsonResp, 200)
+}
+
+type SuccessfullSuccess struct {
+	Success string `json:success`
 }

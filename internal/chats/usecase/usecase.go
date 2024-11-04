@@ -166,10 +166,10 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
 }
 
-func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error {
+func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error) {
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
-		return errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+		return chatModel.ChatDTOOutput{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}
 
 	chatId := uuid.New()
@@ -184,7 +184,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		filename, err := multipartHepler.SavePhoto(*chat.Avatar, chatDir)
 		if err != nil {
 			log.Printf("Не удалось записать аватарку: %v", err)
-			return err
+			return chatModel.ChatDTOOutput{}, err
 		}
 		newChat.AvatarURL = filename
 	}
@@ -197,7 +197,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	err = s.repository.CreateNewChat(ctx, newChat)
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось сохнанить чат: %v", err)
-		return err
+		return chatModel.ChatDTOOutput{}, err
 	}
 
 	// добавление владельца
@@ -205,7 +205,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
-		return err
+		return chatModel.ChatDTOOutput{}, err
 	}
 
 	newChatDTO, err := s.createChatDTO(ctx, newChat)
@@ -221,10 +221,10 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось добавить пользователя в чат: %v", err)
-		return err
+		return chatModel.ChatDTOOutput{}, err
 	}
 
-	return nil
+	return newChatDTO, nil
 }
 
 func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error {
@@ -257,12 +257,13 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 	return nil
 }
 
-func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) error {
+func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) (chatModel.ChatUpdateOutput, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
-		return err
+		return chatModel.ChatUpdateOutput{}, err
 	}
 
+	var updatedChat chatModel.ChatUpdateOutput
 	// проверяем есть ли права
 	switch role {
 	case owner, admin:
@@ -273,26 +274,30 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 			err := multipartHepler.RewritePhoto(*chatUpdate.Avatar, chatDir)
 			if err != nil {
 				log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
-				return err
+				return chatModel.ChatUpdateOutput{}, err
 			}
+
+			updatedChat.Avatar = true
 		}
 
-		err = s.repository.UpdateChat(ctx, chatId, chatUpdate.ChatName)
-		if err != nil {
-			log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
-			return err
+		if chatUpdate.ChatName != "" {
+			err = s.repository.UpdateChat(ctx, chatId, chatUpdate.ChatName)
+			if err != nil {
+				log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
+				return chatModel.ChatUpdateOutput{}, err
+			}
+			updatedChat.ChatName = chatUpdate.ChatName
 		}
-
-		return nil
+		return chatModel.ChatUpdateOutput{}, nil
 	case none:
 		log.Printf("Chat usecase -> UpdateChat: у пользователя %v нет привелегий", userId)
-		return &customerror.NoPermissionError{
+		return chatModel.ChatUpdateOutput{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: fmt.Sprintf("чат: %v", chatId.String()),
 		}
 	}
 
-	return nil
+	return updatedChat, nil
 }
 
 func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error) {

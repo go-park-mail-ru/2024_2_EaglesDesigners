@@ -1,5 +1,10 @@
 basePath: /
 definitions:
+  delivery.SuccessfullSuccess:
+    properties:
+      success:
+        type: string
+    type: object
   model.AddUsersIntoChatDTO:
     properties:
       usersId:
@@ -49,6 +54,14 @@ definitions:
       chatName:
         example: Чат с пользователем 2
         type: string
+    type: object
+  model.ChatUpdateOutput:
+    properties:
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      wasAvatarUpdated:
+        type: boolean
     type: object
   model.ChatsDTO:
     properties:
@@ -250,6 +263,8 @@ paths:
       responses:
         "201":
           description: Чат создан
+          schema:
+            $ref: '#/definitions/model.ChatDTOOutput'
         "400":
           description: Некорректный запрос
           schema:
@@ -299,6 +314,8 @@ paths:
       responses:
         "200":
           description: Чат обновлен
+          schema:
+            $ref: '#/definitions/model.ChatUpdateOutput'
         "400":
           description: Некорректный запрос
           schema:
@@ -363,6 +380,8 @@ paths:
       responses:
         "200":
           description: Чат удалён
+          schema:
+            $ref: '#/definitions/delivery.SuccessfullSuccess'
         "400":
           description: Некорректный запрос
           schema:

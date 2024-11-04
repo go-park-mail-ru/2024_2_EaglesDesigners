@@ -63,6 +63,11 @@ type ChatUpdate struct {
 	Avatar   *multipart.File `json:"-"`
 }
 
+type ChatUpdateOutput struct {
+	ChatName string `json:"chatName" example:"Чат с пользователем 2"`
+	Avatar   bool   `json:"wasAvatarUpdated"`
+}
+
 func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) ChatDTOOutput {
 	return ChatDTOOutput{
 		ChatId:       chat.ChatId,
