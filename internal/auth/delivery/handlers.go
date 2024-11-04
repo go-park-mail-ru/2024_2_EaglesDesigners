@@ -11,6 +11,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/gorilla/mux"
 )
 
@@ -63,6 +64,12 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := validator.Check(creds); err != nil {
+		log.Printf("Login delivery: входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
 		err := d.setToken(w, r, creds.Username)
 		if err != nil {
@@ -105,8 +112,9 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(creds.Username) < 6 || len(creds.Password) < 8 || creds.Name == "" {
-		responser.SendError(w, "Invalid input data", http.StatusBadRequest)
+	if err := validator.Check(creds); err != nil {
+		log.Printf("Register delivery: входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
@@ -131,6 +139,12 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	response := models.RegisterRespDTO{
 		Message: "Registration successful",
 		User:    userDataDTO,
+	}
+
+	if err := validator.Check(response); err != nil {
+		log.Printf("Register delivery: выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		return
 	}
 
 	log.Println("Register delivery: Пользователь успешно зарегистрирован")
@@ -167,20 +181,19 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	userDataDTO := convertUserDataToDTO(userData)
 
-	log.Println("Auth delivery: пользователь успешно авторизован")
-
 	response := models.AuthRespDTO{
 		User: userDataDTO,
 	}
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
+	if err := validator.Check(response); err != nil {
+		log.Printf("Auth delivery: выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	log.Println("Auth delivery: пользователь успешно авторизован")
+
+	responser.SendStruct(w, response, http.StatusOK)
 }
 
 func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {

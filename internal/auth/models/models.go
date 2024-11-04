@@ -12,26 +12,26 @@ const (
 
 // @Schema
 type AuthReqDTO struct {
-	Username string `json:"username" example:"user11"`
-	Password string `json:"password"  example:"12345678"`
+	Username string `json:"username" example:"user11" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
+	Password string `json:"password"  example:"12345678" valid:"minstringlength(8),matches(^[a-zA-Z0-9_]+$)"`
 }
 
 // @Schema
 type RegisterReqDTO struct {
-	Username string `json:"username" example:"killer1994"`
-	Name     string `json:"name" example:"Vincent Vega"`
-	Password string `json:"password" example:"go_do_a_crime"`
+	Username string `json:"username" example:"killer1994" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
+	Name     string `json:"name" example:"Vincent Vega" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
+	Password string `json:"password" example:"go_do_a_crime" valid:"minstringlength(8),matches(^[a-zA-Z0-9_]+$)"`
 }
 
 // @Schema
 type RegisterRespDTO struct {
-	Message string          `json:"message" example:"Registration successful"`
-	User    UserDataRespDTO `json:"user"`
+	Message string          `json:"message" example:"Registration successful" valid:"matches(^[a-zA-Zа-яА-Я0-9 ]+$)"`
+	User    UserDataRespDTO `json:"user" valid:"-"`
 }
 
 // @Schema
 type AuthRespDTO struct {
-	User UserDataRespDTO `json:"user"`
+	User UserDataRespDTO `json:"user" valid:"-"`
 }
 
 // @Schema
@@ -42,19 +42,19 @@ type SignupRespDTO struct {
 
 // @Schema
 type UserRespDTO struct {
-	ID       uuid.UUID `json:"id" example:"1"`
-	Username string    `json:"username" example:"mavrodi777"`
-	Name     string    `json:"name" example:"Мафиозник"`
-	Password string    `json:"password" example:"1234567890"`
-	Version  int64     `json:"version" example:"1"`
+	ID       uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
+	Username string    `json:"username" example:"mavrodi777" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
+	Name     string    `json:"name" example:"Мафиозник" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
+	Password string    `json:"password" example:"1234567890" valid:"minstringlength(8),matches(^[a-zA-Z0-9_]+$)"`
+	Version  int64     `json:"version" example:"1" valid:"int"`
 }
 
 // @Schema
 type UserDataRespDTO struct {
-	ID        uuid.UUID `json:"id" example:"2"`
-	Username  string    `json:"username" example:"user12"`
-	Name      string    `json:"name" example:"Dr Peper"`
-	AvatarURL *string   `json:"avatarURL" example:"/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"`
+	ID        uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
+	Username  string    `json:"username" example:"user12" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
+	Name      string    `json:"name" example:"Dr Peper" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
+	AvatarURL *string   `json:"avatarURL" example:"/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/avatar/[a-zA-Z0-9\\-]+\\.png$),optional"`
 }
 
 type User struct {
