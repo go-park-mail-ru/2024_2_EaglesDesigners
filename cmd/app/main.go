@@ -74,6 +74,7 @@ func main() {
 		Addr: "redis:6379",
 		// Addr:     "localhost:6379",
 		Password: "1234",
+		PoolSize: 1000,
 		DB:       0,
 	})
 	status := redisClient.Ping(context.Background())
