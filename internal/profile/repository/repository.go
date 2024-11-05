@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -22,10 +22,12 @@ func New(pool *pgxpool.Pool) *Repository {
 	}
 }
 
-func (r *Repository) GetProfileByUsername(ctx context.Context, username string) (models.ProfileDataDAO, error) {
+func (r *Repository) GetProfileByUsername(ctx context.Context, id uuid.UUID) (models.ProfileDataDAO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Не удалось соединиться с базой данных: %v\n", err)
+		log.Errorf("не удалось соединиться с базой данных: %v\n", err)
 		return models.ProfileDataDAO{}, err
 	}
 	defer conn.Release()
@@ -38,8 +40,8 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 			bio,
 			avatar_path
 		FROM public."user"
-		WHERE username = $1;`,
-		username,
+		WHERE id = $1;`,
+		id,
 	)
 
 	var profileData models.ProfileDataDAO
@@ -48,12 +50,14 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 		&profileData.Name,
 		&profileData.Birthdate,
 		&profileData.Bio,
-		&profileData.AvatarURL,
+		&profileData.AvatarPath,
 	)
 	if err != nil {
-		log.Printf("Не удалось получить данные профиля: %v\n", err)
+		log.Errorf("не удалось получить данные профиля: %v\n", err)
 		return models.ProfileDataDAO{}, err
 	}
+
+	log.Println("данные получены")
 
 	return profileData, nil
 }
@@ -64,12 +68,14 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, username string) 
 // bio = $3,
 // birthdate = $4,
 // avatar_path = $5
-// WHERE username = $1
+// WHERE id = $1
 // RETURNING avatar_path;
 func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Не удалось соединиться с базой данных: %v\n", err)
+		log.Errorf("не удалось соединиться с базой данных: %v\n", err)
 		return nil, err
 	}
 	defer conn.Release()
@@ -78,8 +84,8 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 		ctx,
 		`SELECT avatar_path
 		FROM public."user"
-		WHERE username = $1;`,
-		profile.Username,
+		WHERE id = $1;`,
+		profile.ID,
 	)
 
 	err = row.Scan(&avatarURL)
@@ -89,7 +95,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 
 	if avatarURL == nil {
 		avatarURL = new(string)
-		*avatarURL = uuid.New().String()
+		*avatarURL = "/uploads/avatar/" + uuid.New().String() + ".png"
 	}
 
 	query := `UPDATE public."user" SET `
@@ -97,7 +103,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 
 	var args []interface{}
 
-	args = append(args, profile.Username)
+	args = append(args, profile.ID)
 
 	if profile.Name != nil {
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("name = $%d", len(args)+1))
@@ -107,7 +113,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("bio = $%d", len(args)+1))
 		args = append(args, profile.Bio)
 	}
-	if profile.AvatarBase64 != nil {
+	if profile.Avatar != nil {
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("avatar_path = $%d", len(args)+1))
 		args = append(args, avatarURL)
 	}
@@ -120,7 +126,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 		return nil, errors.New("нет полей для обновления")
 	}
 
-	query += fmt.Sprintf("%s WHERE username = $1", strings.Join(rowsWithFields, ", ")) + " RETURNING avatar_path;"
+	query += fmt.Sprintf("%s WHERE id = $1", strings.Join(rowsWithFields, ", ")) + " RETURNING avatar_path;"
 
 	log.Println(query)
 

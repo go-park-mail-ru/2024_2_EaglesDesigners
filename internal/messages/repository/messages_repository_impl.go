@@ -25,7 +25,7 @@ func NewMessageRepositoryImpl(pool *pgxpool.Pool) MessageRepository {
 	}
 }
 
-func (r *MessageRepositoryImpl) GetMessages(page int, chatId uuid.UUID) ([]models.Message, error) {
+func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message, error) {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
@@ -46,12 +46,8 @@ func (r *MessageRepositoryImpl) GetMessages(page int, chatId uuid.UUID) ([]model
 	FROM public.message AS m
 	JOIN public.user AS u ON u.id = m.author_id
 	WHERE m.chat_id = $1
-	ORDER BY sent_at DESC
-	LIMIT $2
-	OFFSET $3;`,
+	ORDER BY sent_at DESC;`,
 		chatId,
-		pageSize,
-		pageSize*page,
 	)
 	if err != nil {
 		log.Printf("Repository: Unable to SELECT chats: %v\n", err)

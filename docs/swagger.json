@@ -18,6 +18,48 @@
     "host": "212.233.98.59:8080",
     "basePath": "/",
     "paths": {
+        "/addchat": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Add new chat",
+                "parameters": [
+                    {
+                        "description": "Chat info",
+                        "name": "chat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatDTOInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Чат создан",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatDTOOutput"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось добавить чат / группу",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth": {
             "get": {
                 "description": "Retrieve user data based on the JWT token present in the cookies.",
@@ -35,7 +77,7 @@
                     "200": {
                         "description": "User data retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/delivery.AuthResponse"
+                            "$ref": "#/definitions/models.UserDataRespDTO"
                         }
                     },
                     "401": {
@@ -43,6 +85,398 @@
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update bio, avatar, name or birthdate of user.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Обновляем фото и имя",
+                "parameters": [
+                    {
+                        "description": "JSON representation of chat data",
+                        "name": "chat_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatUpdate"
+                        }
+                    },
+                    {
+                        "type": "file",
+                        "description": "group avatar",
+                        "name": "avatar",
+                        "in": "formData"
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Чат обновлен",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatUpdateOutput"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось обновчить чат",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/addusers": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Добавить пользователей в чат",
+                "parameters": [
+                    {
+                        "description": "Пользователи на добавление",
+                        "name": "users",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddUsersIntoChatDTO"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи добавлены"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось добавить пользователей",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/delete": {
+            "delete": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Удаличть чат или группу",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Чат удалён",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.SuccessfullSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось удалить чат",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/delusers": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Удалить пользователей из чата",
+                "parameters": [
+                    {
+                        "description": "Пользователи на добавление",
+                        "name": "users",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.DeleteUsersFromChatDTO"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи удалены",
+                        "schema": {
+                            "$ref": "#/definitions/model.DeletdeUsersFromChatDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось добавить пользователей",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/messages": {
+            "get": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "Add new message",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Messages",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно отаправлены"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщениея",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message"
+                ],
+                "summary": "Add new message",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Message info",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Сообщение успешно добавлено"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось добавить сообщение",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Получаем id пользователей",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи чата",
+                        "schema": {
+                            "$ref": "#/definitions/model.UsersInChat"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить учатсников",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Get chats of user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Page number for pagination",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatsDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщения"
                     }
                 }
             }
@@ -110,7 +544,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.AddContactReqDTO"
+                            "$ref": "#/definitions/models.ContactReqDTO"
                         }
                     }
                 ],
@@ -118,7 +552,7 @@
                     "201": {
                         "description": "Contact created",
                         "schema": {
-                            "$ref": "#/definitions/models.ContactDTO"
+                            "$ref": "#/definitions/models.ContactRespDTO"
                         }
                     },
                     "400": {
@@ -135,6 +569,55 @@
                     },
                     "404": {
                         "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes user contact.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Delete contact",
+                "parameters": [
+                    {
+                        "description": "Credentials for delete user contact",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ContactReqDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Contact deleted",
+                        "schema": {
+                            "$ref": "#/definitions/responser.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to delete contact",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -162,7 +645,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/delivery.AuthCredentials"
+                            "$ref": "#/definitions/models.AuthReqDTO"
                         }
                     }
                 ],
@@ -234,7 +717,7 @@
                 "tags": [
                     "profile"
                 ],
-                "summary": "Get profile data",
+                "summary": "Get self profile data",
                 "responses": {
                     "200": {
                         "description": "Profile data found",
@@ -270,7 +753,7 @@
                 ],
                 "description": "Update bio, avatar, name or birthdate of user.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -281,13 +764,19 @@
                 "summary": "Update profile data",
                 "parameters": [
                     {
-                        "description": "Credentials for update profile data",
-                        "name": "credentials",
+                        "description": "JSON representation of profile data",
+                        "name": "profile_data",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/models.UpdateProfileRequestDTO"
                         }
+                    },
+                    {
+                        "type": "file",
+                        "description": "User avatar image",
+                        "name": "avatar",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -295,6 +784,47 @@
                         "description": "Profile updated",
                         "schema": {
                             "$ref": "#/definitions/responser.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update profile",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/{userid}": {
+            "get": {
+                "description": "Get bio, avatar and birthdate of user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get profile data",
+                "responses": {
+                    "200": {
+                        "description": "Profile data found",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetProfileResponseDTO"
                         }
                     },
                     "400": {
@@ -338,7 +868,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/delivery.RegisterCredentials"
+                            "$ref": "#/definitions/models.RegisterReqDTO"
                         }
                     }
                 ],
@@ -346,7 +876,7 @@
                     "201": {
                         "description": "Registration successful",
                         "schema": {
-                            "$ref": "#/definitions/delivery.RegisterResponse"
+                            "$ref": "#/definitions/models.RegisterRespDTO"
                         }
                     },
                     "400": {
@@ -363,10 +893,212 @@
                     }
                 }
             }
+        },
+        "/uploads/{folder}/{name}": {
+            "get": {
+                "description": "Fetches an image from the specified folder and by filename",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "uploads"
+                ],
+                "summary": "Retrieve an image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"avatar\"",
+                        "description": "Folder name",
+                        "name": "folder",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png\"",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful image retrieval",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "delivery.AuthCredentials": {
+        "delivery.SuccessfullSuccess": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AddUsersIntoChatDTO": {
+            "type": "object",
+            "properties": {
+                "usersId": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.ChatDTOInput": {
+            "type": "object",
+            "properties": {
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "chatType": {
+                    "type": "string",
+                    "example": "personalMessages"
+                },
+                "usersToAdd": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.ChatDTOOutput": {
+            "type": "object",
+            "properties": {
+                "avatarPath": {
+                    "type": "string",
+                    "example": "/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "chatId": {
+                    "type": "string",
+                    "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
+                },
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "chatType": {
+                    "type": "string",
+                    "example": "personal"
+                },
+                "countOfUsers": {
+                    "type": "integer",
+                    "example": 52
+                },
+                "lastMessage": {
+                    "$ref": "#/definitions/models.Message"
+                }
+            }
+        },
+        "model.ChatUpdate": {
+            "type": "object",
+            "properties": {
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                }
+            }
+        },
+        "model.ChatUpdateOutput": {
+            "type": "object",
+            "properties": {
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "updatedAvatarPath": {
+                    "type": "string",
+                    "example": "/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
+                }
+            }
+        },
+        "model.ChatsDTO": {
+            "type": "object",
+            "properties": {
+                "chats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ChatDTOOutput"
+                    }
+                }
+            }
+        },
+        "model.DeletdeUsersFromChatDTO": {
+            "type": "object",
+            "properties": {
+                "deletedUsers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.DeleteUsersFromChatDTO": {
+            "type": "object",
+            "properties": {
+                "usersId": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.UsersInChat": {
+            "type": "object",
+            "properties": {
+                "usersId": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "models.AuthReqDTO": {
             "type": "object",
             "properties": {
                 "password": {
@@ -379,15 +1111,118 @@
                 }
             }
         },
-        "delivery.AuthResponse": {
+        "models.ContactReqDTO": {
             "type": "object",
             "properties": {
-                "user": {
-                    "$ref": "#/definitions/delivery.UserData"
+                "contactUsername": {
+                    "type": "string",
+                    "example": "user11"
                 }
             }
         },
-        "delivery.RegisterCredentials": {
+        "models.ContactRespDTO": {
+            "type": "object",
+            "properties": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Витек"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user11"
+                }
+            }
+        },
+        "models.GetContactsRespDTO": {
+            "type": "object",
+            "properties": {
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ContactRespDTO"
+                    }
+                }
+            }
+        },
+        "models.GetProfileResponseDTO": {
+            "type": "object",
+            "properties": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "bio": {
+                    "type": "string",
+                    "example": "Не люблю сети"
+                },
+                "birthdate": {
+                    "type": "string",
+                    "example": "2024-04-13T08:30:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                }
+            }
+        },
+        "models.Message": {
+            "type": "object",
+            "properties": {
+                "authorID": {
+                    "type": "string"
+                },
+                "authorName": {
+                    "type": "string"
+                },
+                "chatId": {
+                    "type": "string"
+                },
+                "datetime": {
+                    "type": "string",
+                    "example": "2024-04-13T08:30:00Z"
+                },
+                "isRedacted": {
+                    "type": "boolean"
+                },
+                "messageId": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "тут много текста"
+                }
+            }
+        },
+        "models.MessageInput": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string",
+                    "example": "тут много текста"
+                }
+            }
+        },
+        "models.MessagesArrayDTO": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Message"
+                    }
+                }
+            }
+        },
+        "models.RegisterReqDTO": {
             "type": "object",
             "properties": {
                 "name": {
@@ -404,7 +1239,7 @@
                 }
             }
         },
-        "delivery.RegisterResponse": {
+        "models.RegisterRespDTO": {
             "type": "object",
             "properties": {
                 "message": {
@@ -412,16 +1247,37 @@
                     "example": "Registration successful"
                 },
                 "user": {
-                    "$ref": "#/definitions/delivery.UserData"
+                    "$ref": "#/definitions/models.UserDataRespDTO"
                 }
             }
         },
-        "delivery.UserData": {
+        "models.UpdateProfileRequestDTO": {
             "type": "object",
             "properties": {
+                "bio": {
+                    "type": "string",
+                    "example": "Не люблю сети"
+                },
+                "birthdate": {
+                    "type": "string",
+                    "example": "2024-04-13T08:30:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                }
+            }
+        },
+        "models.UserDataRespDTO": {
+            "type": "object",
+            "properties": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
                 "id": {
                     "type": "string",
-                    "example": "2"
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
                 },
                 "name": {
                     "type": "string",
@@ -433,98 +1289,12 @@
                 }
             }
         },
-        "models.AddContactReqDTO": {
-            "type": "object",
-            "properties": {
-                "contactUsername": {
-                    "type": "string",
-                    "example": "user11"
-                }
-            }
-        },
-        "models.ContactDTO": {
-            "type": "object",
-            "properties": {
-                "avatarBase64": {
-                    "type": "string",
-                    "example": "this is Base64 photo"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
-                },
-                "name": {
-                    "description": "can be nil",
-                    "type": "string",
-                    "example": "Витек"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "user11"
-                }
-            }
-        },
-        "models.GetContactsRespDTO": {
-            "type": "object",
-            "properties": {
-                "contacts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ContactDTO"
-                    }
-                }
-            }
-        },
-        "models.GetProfileResponseDTO": {
-            "type": "object",
-            "properties": {
-                "avatarBase64": {
-                    "type": "string",
-                    "example": "this is Base64 photo"
-                },
-                "bio": {
-                    "type": "string",
-                    "example": "Не люблю сети"
-                },
-                "birthdate": {
-                    "type": "string",
-                    "example": "2024-04-13T08:30:00Z"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Vincent Vega"
-                }
-            }
-        },
-        "models.UpdateProfileRequestDTO": {
-            "type": "object",
-            "properties": {
-                "avatarBase64": {
-                    "type": "string",
-                    "example": "this is Base64 photo"
-                },
-                "bio": {
-                    "type": "string",
-                    "example": "Не люблю сети"
-                },
-                "birthdate": {
-                    "type": "string",
-                    "example": "2024-04-13T08:30:00Z"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Vincent Vega"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "responser.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "error message"
                 },
                 "status": {
                     "type": "string",
@@ -536,7 +1306,8 @@
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "success message"
                 }
             }
         }

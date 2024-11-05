@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
 type ChatRepositoryImpl struct {
@@ -136,7 +137,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(ctx context.Context, chat chatModel.C
 }
 
 func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID, pageNum int) ([]chatModel.Chat, error) {
-
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
@@ -197,6 +198,7 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID,
 }
 
 func (r *ChatRepositoryImpl) GetUserRoleInChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) (string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	// идем в бд по двум полям: если есть то тру
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
@@ -223,6 +225,7 @@ func (r *ChatRepositoryImpl) GetUserRoleInChat(ctx context.Context, userId uuid.
 }
 
 func (r *ChatRepositoryImpl) AddUserIntoChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, userROle string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
@@ -250,6 +253,7 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(ctx context.Context, userId uuid.UU
 }
 
 func (r *ChatRepositoryImpl) GetCountOfUsersInChat(ctx context.Context, chatId uuid.UUID) (int, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Chat repository: установка количества участников чата: %v", chatId)
 
 	conn, err := r.pool.Acquire(ctx)
@@ -273,4 +277,204 @@ func (r *ChatRepositoryImpl) GetCountOfUsersInChat(ctx context.Context, chatId u
 	}
 
 	return count, err
+}
+
+func (r *ChatRepositoryImpl) GetChatById(ctx context.Context, chatId uuid.UUID) (chatModel.Chat, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return chatModel.Chat{}, err
+	}
+	defer conn.Release()
+
+	var chatName string
+	var chatType string
+	var avatarURL sql.NullString
+	var chatURLName sql.NullString
+
+	err = conn.QueryRow(ctx,
+		`SELECT c.id,
+		c.chat_name,
+		ch.value,
+		c.avatar_path,
+		c.chat_link_name
+		FROM chat AS c
+		JOIN chat_type AS ch ON ch.id = c.chat_type_id
+		WHERE c.id = $1`,
+		chatId,
+	).Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
+
+	if err != nil {
+		return chatModel.Chat{}, nil
+	}
+
+	return chatModel.Chat{
+		ChatId:      chatId,
+		ChatName:    chatName,
+		ChatType:    chatType,
+		AvatarURL:   avatarURL.String,
+		ChatURLName: chatURLName.String,
+	}, nil
+
+}
+
+func (r *ChatRepositoryImpl) DeleteChat(ctx context.Context, chatId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> DeleteChat: начато удаление чата: %v", chatId)
+
+	deleteQuery := `DELETE FROM chat WHERE id = $1;`
+
+	// Выполнение удаления
+	_, err = conn.Exec(context.Background(), deleteQuery, chatId)
+
+	if err != nil {
+		log.Printf("Chat repository -> DeleteChat: не удалось удалить чат: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *ChatRepositoryImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatName string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> UpdateChat: начато обновление чата: %v", chatId)
+
+	deleteQuery := `UPDATE chat SET
+		chat_name = $1 WHERE id = $2;`
+
+	// Выполнение удаления
+	_, err = conn.Exec(ctx, deleteQuery, chatName, chatId)
+
+	if err != nil {
+		log.Printf("Chat repository -> UpdateChat: не удалось обновить чат: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *ChatRepositoryImpl) DeleteUserFromChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> UpdateChat: начато обновление чата: %v", chatId)
+
+	deleteQuery := `DELETE FROM chat_user WHERE chat_id = $1 AND user_id = $2;`
+
+	// Выполнение удаления
+	_, err = conn.Exec(ctx, deleteQuery, chatId, userId)
+
+	if err != nil {
+		log.Printf("Chat repository -> DeleteUserFromChat: не удалось обновить чат: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *ChatRepositoryImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> GetUsersFromChat: начато получение пользователей из чата: %v", chatId)
+
+	rows, err := conn.Query(ctx,
+		`SELECT user_id
+		FROM chat_user
+		WHERE chat_id = $1;`,
+		chatId,
+	)
+	if err != nil {
+		log.Printf("Unable to SELECT ids: %v\n", err)
+		return nil, err
+	}
+
+	var ids []uuid.UUID
+	for rows.Next() {
+		var userId uuid.UUID
+
+		log.Println("Repository: поиск параметров из запроса")
+		err = rows.Scan(&userId)
+
+		if err != nil {
+			log.Printf("Repository: unable to scan: %v", err)
+			return nil, err
+		}
+		ids = append(ids, userId)
+	}
+	return ids, nil
+}
+
+func (r *ChatRepositoryImpl) UpdateChatPhoto(ctx context.Context, chatId uuid.UUID, filename string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Chat repository -> UpdateChatPhoto: начато обновление чата: %v", chatId)
+
+	deleteQuery := `UPDATE chat SET
+		avatar_path = $1 WHERE id = $2;`
+
+	// Выполнение удаления
+	_, err = conn.Exec(ctx, deleteQuery, filename, chatId)
+
+	if err != nil {
+		log.Printf("Chat repository -> UpdateChatPhoto: не удалось обновить чат: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return "", "", err
+	}
+	defer conn.Release()
+
+	var username sql.NullString
+	var filename sql.NullString
+	err = conn.QueryRow(ctx,
+		`SELECT username, avatar_path FROM public.user WHERE id = $1;`,
+		userId,
+	).Scan(&username, &filename)
+
+	if err != nil {
+		log.Printf("Chat repository -> GetUserNameAndAvatar: не удалось получитьб юзера: %v", err)
+		return "", "", err
+	}
+
+	return username.String, filename.String, nil
 }

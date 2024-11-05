@@ -26,7 +26,7 @@ func TestLoginHandler_Success(t *testing.T) {
 		},
 	}
 	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
-	reqBody, err := json.Marshal(delivery.AuthCredentials{
+	reqBody, err := json.Marshal(delivery.AuthReqDTO{
 		Username: "user1",
 		Password: "pass1",
 	})
@@ -62,7 +62,7 @@ func TestRegisterHandler_Success(t *testing.T) {
 		},
 	}
 	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
-	reqBody, _ := json.Marshal(delivery.RegisterCredentials{
+	reqBody, _ := json.Marshal(delivery.RegisterReqDTO{
 		Username: "killer1994",
 		Name:     "Vincent Vega",
 		Password: "go_do_a_crime",

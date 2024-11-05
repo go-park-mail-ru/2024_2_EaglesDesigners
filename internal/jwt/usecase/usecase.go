@@ -13,13 +13,14 @@ import (
 	"strings"
 	"time"
 
-	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
 var jwtSecret = generateJWTSecret()
 
 type repository interface {
-	GetUserByUsername(ctx context.Context, username string) (repo.User, error)
+	GetUserByUsername(ctx context.Context, username string) (auth.UserDAO, error)
 	CreateUser(ctx context.Context, username, name, password string) error
 }
 
@@ -111,7 +112,9 @@ func (u *Usecase) CreateJWT(ctx context.Context, username string) (string, error
 }
 
 func (u *Usecase) GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (User, error) {
-	log.Println("Запрошен поиск пользователь по jwt")
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Println("запрошен поиск пользователь по jwt")
 
 	token, err := parseCookies(cookies)
 	if err != nil {
@@ -123,11 +126,11 @@ func (u *Usecase) GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (Use
 		return User{}, err
 	}
 
-	log.Println("Пользователь аутентификацирован")
+	log.Println("пользователь аутентификацирован")
 
 	repoUser, err := u.repository.GetUserByUsername(ctx, payload.Sub)
 	if err != nil {
-		log.Println("Пользователь не найден: ", err)
+		log.Errorf("пользователь не найден: %v", err)
 		return User{}, err
 	}
 
@@ -224,7 +227,7 @@ func getPayloadOfJWT(token string) (payload Payload, err error) {
 	return payload, nil
 }
 
-func convertToUser(u repo.User) User {
+func convertToUser(u auth.UserDAO) User {
 	return User{
 		ID:       u.ID,
 		Username: u.Username,

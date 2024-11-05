@@ -1,6 +1,109 @@
 basePath: /
 definitions:
-  delivery.AuthCredentials:
+  delivery.SuccessfullSuccess:
+    properties:
+      success:
+        type: string
+    type: object
+  model.AddUsersIntoChatDTO:
+    properties:
+      usersId:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  model.ChatDTOInput:
+    properties:
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      chatType:
+        example: personalMessages
+        type: string
+      usersToAdd:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  model.ChatDTOOutput:
+    properties:
+      avatarPath:
+        example: /uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      chatId:
+        example: 08a0f350-e122-467b-8ba8-524d2478b56e
+        type: string
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      chatType:
+        example: personal
+        type: string
+      countOfUsers:
+        example: 52
+        type: integer
+      lastMessage:
+        $ref: '#/definitions/models.Message'
+    type: object
+  model.ChatUpdate:
+    properties:
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+    type: object
+  model.ChatUpdateOutput:
+    properties:
+      chatName:
+        example: Чат с пользователем 2
+        type: string
+      updatedAvatarPath:
+        example: /uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+    type: object
+  model.ChatsDTO:
+    properties:
+      chats:
+        items:
+          $ref: '#/definitions/model.ChatDTOOutput'
+        type: array
+    type: object
+  model.DeletdeUsersFromChatDTO:
+    properties:
+      deletedUsers:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  model.DeleteUsersFromChatDTO:
+    properties:
+      usersId:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  model.UsersInChat:
+    properties:
+      usersId:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  models.AuthReqDTO:
     properties:
       password:
         example: "12345678"
@@ -9,12 +112,83 @@ definitions:
         example: user11
         type: string
     type: object
-  delivery.AuthResponse:
+  models.ContactReqDTO:
     properties:
-      user:
-        $ref: '#/definitions/delivery.UserData'
+      contactUsername:
+        example: user11
+        type: string
     type: object
-  delivery.RegisterCredentials:
+  models.ContactRespDTO:
+    properties:
+      avatarURL:
+        example: /uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png
+        type: string
+      id:
+        example: 08a0f350-e122-467b-8ba8-524d2478b56e
+        type: string
+      name:
+        example: Витек
+        type: string
+      username:
+        example: user11
+        type: string
+    type: object
+  models.GetContactsRespDTO:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/models.ContactRespDTO'
+        type: array
+    type: object
+  models.GetProfileResponseDTO:
+    properties:
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      bio:
+        example: Не люблю сети
+        type: string
+      birthdate:
+        example: "2024-04-13T08:30:00Z"
+        type: string
+      name:
+        example: Vincent Vega
+        type: string
+    type: object
+  models.Message:
+    properties:
+      authorID:
+        type: string
+      authorName:
+        type: string
+      chatId:
+        type: string
+      datetime:
+        example: "2024-04-13T08:30:00Z"
+        type: string
+      isRedacted:
+        type: boolean
+      messageId:
+        example: "1"
+        type: string
+      text:
+        example: тут много текста
+        type: string
+    type: object
+  models.MessageInput:
+    properties:
+      text:
+        example: тут много текста
+        type: string
+    type: object
+  models.MessagesArrayDTO:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
+    type: object
+  models.RegisterReqDTO:
     properties:
       name:
         example: Vincent Vega
@@ -26,18 +200,33 @@ definitions:
         example: killer1994
         type: string
     type: object
-  delivery.RegisterResponse:
+  models.RegisterRespDTO:
     properties:
       message:
         example: Registration successful
         type: string
       user:
-        $ref: '#/definitions/delivery.UserData'
+        $ref: '#/definitions/models.UserDataRespDTO'
     type: object
-  delivery.UserData:
+  models.UpdateProfileRequestDTO:
     properties:
+      bio:
+        example: Не люблю сети
+        type: string
+      birthdate:
+        example: "2024-04-13T08:30:00Z"
+        type: string
+      name:
+        example: Vincent Vega
+        type: string
+    type: object
+  models.UserDataRespDTO:
+    properties:
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
       id:
-        example: "2"
+        example: f0364477-bfd4-496d-b639-d825b009d509
         type: string
       name:
         example: Dr Peper
@@ -46,70 +235,10 @@ definitions:
         example: user12
         type: string
     type: object
-  models.AddContactReqDTO:
-    properties:
-      contactUsername:
-        example: user11
-        type: string
-    type: object
-  models.ContactDTO:
-    properties:
-      avatarBase64:
-        example: this is Base64 photo
-        type: string
-      id:
-        example: 08a0f350-e122-467b-8ba8-524d2478b56e
-        type: string
-      name:
-        description: can be nil
-        example: Витек
-        type: string
-      username:
-        example: user11
-        type: string
-    type: object
-  models.GetContactsRespDTO:
-    properties:
-      contacts:
-        items:
-          $ref: '#/definitions/models.ContactDTO'
-        type: array
-    type: object
-  models.GetProfileResponseDTO:
-    properties:
-      avatarBase64:
-        example: this is Base64 photo
-        type: string
-      bio:
-        example: Не люблю сети
-        type: string
-      birthdate:
-        example: "2024-04-13T08:30:00Z"
-        type: string
-      name:
-        example: Vincent Vega
-        type: string
-    type: object
-  models.UpdateProfileRequestDTO:
-    properties:
-      avatarBase64:
-        example: this is Base64 photo
-        type: string
-      bio:
-        example: Не люблю сети
-        type: string
-      birthdate:
-        example: "2024-04-13T08:30:00Z"
-        type: string
-      name:
-        example: Vincent Vega
-        type: string
-      username:
-        type: string
-    type: object
   responser.ErrorResponse:
     properties:
       error:
+        example: error message
         type: string
       status:
         example: error
@@ -118,6 +247,7 @@ definitions:
   responser.SuccessResponse:
     properties:
       message:
+        example: success message
         type: string
     type: object
 externalDocs:
@@ -137,6 +267,33 @@ info:
   title: Swagger Patefon API
   version: "1.0"
 paths:
+  /addchat:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Chat info
+        in: body
+        name: chat
+        required: true
+        schema:
+          $ref: '#/definitions/model.ChatDTOInput'
+      responses:
+        "201":
+          description: Чат создан
+          schema:
+            $ref: '#/definitions/model.ChatDTOOutput'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось добавить чат / группу
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Add new chat
+      tags:
+      - chat
   /auth:
     get:
       consumes:
@@ -148,7 +305,7 @@ paths:
         "200":
           description: User data retrieved successfully
           schema:
-            $ref: '#/definitions/delivery.AuthResponse'
+            $ref: '#/definitions/models.UserDataRespDTO'
         "401":
           description: 'Unauthorized: token is invalid'
           schema:
@@ -156,7 +313,299 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /chat/{chatId}:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update bio, avatar, name or birthdate of user.
+      parameters:
+      - description: JSON representation of chat data
+        in: body
+        name: chat_data
+        required: true
+        schema:
+          $ref: '#/definitions/model.ChatUpdate'
+      - description: group avatar
+        in: formData
+        name: avatar
+        type: file
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Чат обновлен
+          schema:
+            $ref: '#/definitions/model.ChatUpdateOutput'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось обновчить чат
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновляем фото и имя
+      tags:
+      - chat
+  /chat/{chatId}/addusers:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Пользователи на добавление
+        in: body
+        name: users
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddUsersIntoChatDTO'
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи добавлены
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось добавить пользователей
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Добавить пользователей в чат
+      tags:
+      - chat
+  /chat/{chatId}/delete:
+    delete:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Чат удалён
+          schema:
+            $ref: '#/definitions/delivery.SuccessfullSuccess'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось удалить чат
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Удаличть чат или группу
+      tags:
+      - chat
+  /chat/{chatId}/delusers:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Пользователи на добавление
+        in: body
+        name: users
+        required: true
+        schema:
+          $ref: '#/definitions/model.DeleteUsersFromChatDTO'
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи удалены
+          schema:
+            $ref: '#/definitions/model.DeletdeUsersFromChatDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось добавить пользователей
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Удалить пользователей из чата
+      tags:
+      - chat
+  /chat/{chatId}/messages:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      - description: Messages
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.MessagesArrayDTO'
+      responses:
+        "200":
+          description: Сообщение успешно отаправлены
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить сообщениея
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Add new message
+      tags:
+      - message
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      - description: Message info
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.MessageInput'
+      responses:
+        "201":
+          description: Сообщение успешно добавлено
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось добавить сообщение
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Add new message
+      tags:
+      - message
+  /chat/{chatId}/users:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи чата
+          schema:
+            $ref: '#/definitions/model.UsersInChat'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить учатсников
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получаем id пользователей
+      tags:
+      - chat
+  /chats:
+    get:
+      parameters:
+      - default: 0
+        description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ChatsDTO'
+        "500":
+          description: Не удалось получить сообщения
+      summary: Get chats of user
+      tags:
+      - chat
   /contacts:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes user contact.
+      parameters:
+      - description: Credentials for delete user contact
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.ContactReqDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Contact deleted
+          schema:
+            $ref: '#/definitions/responser.SuccessResponse'
+        "400":
+          description: Failed to delete contact
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete contact
+      tags:
+      - contacts
     get:
       consumes:
       - application/json
@@ -191,14 +640,14 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/models.AddContactReqDTO'
+          $ref: '#/definitions/models.ContactReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Contact created
           schema:
-            $ref: '#/definitions/models.ContactDTO'
+            $ref: '#/definitions/models.ContactRespDTO'
         "400":
           description: Failed to create contact
           schema:
@@ -227,7 +676,7 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/delivery.AuthCredentials'
+          $ref: '#/definitions/models.AuthReqDTO'
       produces:
       - application/json
       responses:
@@ -291,20 +740,24 @@ paths:
             $ref: '#/definitions/responser.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get profile data
+      summary: Get self profile data
       tags:
       - profile
     put:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Update bio, avatar, name or birthdate of user.
       parameters:
-      - description: Credentials for update profile data
+      - description: JSON representation of profile data
         in: body
-        name: credentials
+        name: profile_data
         required: true
         schema:
           $ref: '#/definitions/models.UpdateProfileRequestDTO'
+      - description: User avatar image
+        in: formData
+        name: avatar
+        type: file
       produces:
       - application/json
       responses:
@@ -313,7 +766,7 @@ paths:
           schema:
             $ref: '#/definitions/responser.SuccessResponse'
         "400":
-          description: Invalid format JSON
+          description: Failed to update profile
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
         "401":
@@ -329,6 +782,33 @@ paths:
       summary: Update profile data
       tags:
       - profile
+  /profile/{userid}:
+    get:
+      consumes:
+      - application/json
+      description: Get bio, avatar and birthdate of user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile data found
+          schema:
+            $ref: '#/definitions/models.GetProfileResponseDTO'
+        "400":
+          description: Invalid format JSON
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Get profile data
+      tags:
+      - profile
   /signup:
     post:
       consumes:
@@ -340,14 +820,14 @@ paths:
         name: creds
         required: true
         schema:
-          $ref: '#/definitions/delivery.RegisterCredentials'
+          $ref: '#/definitions/models.RegisterReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Registration successful
           schema:
-            $ref: '#/definitions/delivery.RegisterResponse'
+            $ref: '#/definitions/models.RegisterRespDTO'
         "400":
           description: User failed to create
           schema:
@@ -359,6 +839,40 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /uploads/{folder}/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Fetches an image from the specified folder and by filename
+      parameters:
+      - description: Folder name
+        example: '"avatar"'
+        in: path
+        name: folder
+        required: true
+        type: string
+      - description: File name
+        example: '"642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png"'
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful image retrieval
+          schema:
+            type: file
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve an image
+      tags:
+      - uploads
 securityDefinitions:
   BasicAuth:
     type: basic

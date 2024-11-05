@@ -3,24 +3,27 @@ package delivery
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"html"
 	"net/http"
 	"sync"
 
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 )
 
 const (
 	invalidJSONError  = "Invalid format JSON"
-	responseError     = "Failed to create response"
 	userNotFoundError = "User not found"
 )
 
 type usecase interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.Contact, err error)
 	AddContact(ctx context.Context, contactData models.ContactData) (models.Contact, error)
+	DeleteContact(ctx context.Context, contactData models.ContactData) error
 }
 
 type token interface {
@@ -53,26 +56,25 @@ func New(usecase usecase, token token) *Delivery {
 // @Router /contacts [get]
 func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Пришел запрос на получение контактов")
+	log.Println("пришел запрос на получение контактов")
 
-	log.Println("Получение пользователя из jwt")
-	user, err := d.token.GetUserDataByJWT(r.Cookies())
-	if err != nil {
-		log.Println("Пользователь не найден")
-		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
 	contacts, err := d.usecase.GetContacts(ctx, user.Username)
 	if err != nil {
-		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
-	log.Println("Контакты получены")
+	log.Println("контакты получены")
 
-	var contactsDTO []models.ContactDTO
+	var contactsDTO []models.ContactRespDTO
 
 	for _, contact := range contacts {
 		contactsDTO = append(contactsDTO, convertContactToDTO(contact))
@@ -82,14 +84,15 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 		Contacts: contactsDTO,
 	}
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendErrorResponse(w, responseError, http.StatusBadRequest)
+	if err := validator.Check(response); err != nil {
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	log.Println("контакты успешно отправлены")
+
+	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
 // AddContactHandler godoc
@@ -99,8 +102,8 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param credentials body models.AddContactReqDTO true "Credentials for create a new contact"
-// @Success 201 {object} models.ContactDTO "Contact created"
+// @Param credentials body models.ContactReqDTO true "Credentials for create a new contact"
+// @Success 201 {object} models.ContactRespDTO "Contact created"
 // @Failure 400 {object} responser.ErrorResponse "Failed to create contact"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
@@ -109,54 +112,121 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Пришел запрос на добавление контакта")
+	log.Println("пришел запрос на добавление контакта")
 
-	userData, err := d.token.GetUserDataByJWT(r.Cookies())
-	if err != nil {
-		responser.SendErrorResponse(w, userNotFoundError, http.StatusNotFound)
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
-	var contactCreds models.AddContactReqDTO
+	var contactCreds models.ContactReqDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
-		log.Println("В теле запросе нет необходимых тегов")
-		responser.SendErrorResponse(w, invalidJSONError, http.StatusBadRequest)
+		log.Errorf("в теле запросе нет необходимых тегов")
+		responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
+		return
+	}
+
+	if err := validator.Check(contactCreds); err != nil {
+		log.Errorf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	var contactData models.ContactData
 
-	contactData.UserID = userData.ID.String()
+	contactData.UserID = user.ID.String()
 	contactData.ContactUsername = contactCreds.Username
 
 	contact, err := d.usecase.AddContact(ctx, contactData)
 	if err != nil {
-		responser.SendErrorResponse(w, "Failed to create contact", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Failed to create contact", http.StatusBadRequest)
 		return
 	}
-
-	log.Println("Контакт создан")
 
 	response := convertContactToDTO(contact)
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendErrorResponse(w, responseError, http.StatusBadRequest)
+	if err := validator.Check(response); err != nil {
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(jsonResp)
+	log.Println("Contact delivery: контакт успешно создан")
+
+	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
-func convertContactToDTO(contact models.Contact) models.ContactDTO {
-	return models.ContactDTO{
-		ID:           contact.ID,
-		Username:     contact.Username,
-		Name:         contact.Name,
-		AvatarBase64: contact.AvatarBase64,
+// DeleteContactHandler godoc
+// @Summary Delete contact
+// @Description Deletes user contact.
+// @Tags contacts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param credentials body models.ContactReqDTO true "Credentials for delete user contact"
+// @Success 200 {object} responser.SuccessResponse "Contact deleted"
+// @Failure 400 {object} responser.ErrorResponse "Failed to delete contact"
+// @Failure 401 {object} responser.ErrorResponse "Unauthorized"
+// @Router /contacts [delete]
+func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Println("пришел запрос на удаление контакта")
+
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
+		return
+	}
+
+	var contactCreds models.ContactReqDTO
+
+	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
+		log.Errorf("в теле запросе нет необходимых тегов")
+		responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
+		return
+	}
+
+	var contactData models.ContactData
+
+	contactData.UserID = user.ID.String()
+	contactData.ContactUsername = contactCreds.Username
+
+	err := d.usecase.DeleteContact(ctx, contactData)
+	if err != nil {
+		responser.SendError(ctx, w, "Failed to delete contact", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("контакт успешно удален")
+
+	responser.SendOK(w, "contact deleted", http.StatusOK)
+}
+
+func convertContactToDTO(contact models.Contact) models.ContactRespDTO {
+	var safeName *string
+	if contact.Name != nil {
+		safeName = new(string)
+		*safeName = html.EscapeString(*contact.Name)
+	}
+
+	var safeAvatarURL *string
+	if contact.AvatarURL != nil {
+		safeAvatarURL = new(string)
+		*safeAvatarURL = html.EscapeString(*contact.AvatarURL)
+	}
+
+	return models.ContactRespDTO{
+		ID:        contact.ID,
+		Username:  html.EscapeString(contact.Username),
+		Name:      safeName,
+		AvatarURL: safeAvatarURL,
 	}
 }

@@ -13,4 +13,11 @@ type ChatRepository interface {
 	CreateNewChat(ctx context.Context, chat chatModel.Chat) error
 	AddUserIntoChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, userROle string) error
 	GetCountOfUsersInChat(ctx context.Context, chatId uuid.UUID) (int, error)
+	GetChatById(ctx context.Context, chatId uuid.UUID) (chatModel.Chat, error)
+	DeleteChat(ctx context.Context, chatId uuid.UUID) error
+	UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate string) error
+	DeleteUserFromChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error
+	GetUsersFromChat(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error)
+	UpdateChatPhoto(ctx context.Context, chatId uuid.UUID, filename string) error
+	GetUserNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error)
 }

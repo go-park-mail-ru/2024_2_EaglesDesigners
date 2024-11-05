@@ -7,12 +7,13 @@ import (
 	"errors"
 	"net/http"
 
-	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
 type repository interface {
-	GetUserByUsername(ctx context.Context, username string) (repo.User, error)
+	GetUserByUsername(ctx context.Context, username string) (models.UserDAO, error)
 	CreateUser(ctx context.Context, username, name, password string) error
 }
 
@@ -39,33 +40,45 @@ func (u *Usecase) Authenticate(ctx context.Context, username, password string) b
 	if err != nil {
 		return false
 	}
+
 	return DoPasswordsMatch(user.Password, password)
 }
 
 func (u *Usecase) Registration(ctx context.Context, username, name, password string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	if len(username) < 6 || len(password) < 8 || len(name) < 1 {
+		log.Println("не удалось создать юзера: данные не прошли валидацию")
 		return errors.New("bad data")
 	}
 
 	hashed := HashPassword(password)
 	err := u.repository.CreateUser(ctx, username, name, hashed)
 	if err != nil {
+		log.Println("не удалось создать юзера: ", err)
 		return err
 	}
+
+	log.Println("пользователь создан")
 
 	return nil
 }
 
-func (u *Usecase) GetUserDataByUsername(ctx context.Context, username string) (UserData, error) {
+func (u *Usecase) GetUserDataByUsername(ctx context.Context, username string) (models.UserData, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	user, err := u.repository.GetUserByUsername(ctx, username)
 	if err != nil {
-		return UserData{}, err
+		return models.UserData{}, err
 	}
 
-	userData := UserData{
-		ID:       user.ID,
-		Username: user.Username,
-		Name:     user.Name,
+	log.Println("пользователь получен")
+
+	userData := models.UserData{
+		ID:        user.ID,
+		Username:  user.Username,
+		Name:      user.Name,
+		AvatarURL: user.AvatarURL,
 	}
 
 	return userData, nil

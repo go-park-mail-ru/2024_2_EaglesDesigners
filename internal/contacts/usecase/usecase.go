@@ -2,16 +2,15 @@ package usecase
 
 import (
 	"context"
-	"log"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
-	"github.com/google/uuid"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
 type Repository interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.ContactDAO, err error)
 	AddContact(ctx context.Context, contactData models.ContactDataDAO) (models.ContactDAO, error)
+	DeleteContact(ctx context.Context, contactData models.ContactDataDAO) error
 }
 
 type Usecase struct {
@@ -25,19 +24,17 @@ func New(repo Repository) *Usecase {
 }
 
 func (u *Usecase) GetContacts(ctx context.Context, username string) (contacts []models.Contact, err error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	contactsDAO, err := u.repo.GetContacts(ctx, username)
 	if err != nil {
-		log.Printf("Не удалось получить контакты: %v", err)
+		log.Errorf("не удалось получить контакты: %v", err)
 		return contacts, err
 	}
-	log.Println("Usecase: данные получены")
+	log.Println("данные получены")
 
 	for _, contactDAO := range contactsDAO {
-		contact, err := convertContactFromDAO(contactDAO)
-		if err != nil {
-			log.Println("Usecase: не удалось конвертировать контакт из DAO: ", err)
-			return contacts, err
-		}
+		contact := convertContactFromDAO(contactDAO)
 
 		contacts = append(contacts, contact)
 	}
@@ -46,47 +43,42 @@ func (u *Usecase) GetContacts(ctx context.Context, username string) (contacts []
 }
 
 func (u *Usecase) AddContact(ctx context.Context, contactData models.ContactData) (models.Contact, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	contactDataDAO := convertContactDataToDAO(contactData)
 
 	contactDAO, err := u.repo.AddContact(ctx, contactDataDAO)
 	if err != nil {
-		log.Println("Usecase: не получилось создать контакт: ", err)
+		log.Errorf("не получилось создать контакт: %v", err)
 		return models.Contact{}, err
 	}
 
-	contact, err := convertContactFromDAO(contactDAO)
-	if err != nil {
-		log.Println("Usecase: не удалось конвертировать контакт из DAO: ", err)
-		return models.Contact{}, err
-	}
+	contact := convertContactFromDAO(contactDAO)
 
 	return contact, nil
 }
 
-func convertContactFromDAO(dao models.ContactDAO) (models.Contact, error) {
-	var avatarBase64 *string
+func (u *Usecase) DeleteContact(ctx context.Context, contactData models.ContactData) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	if dao.AvatarURL != nil {
-		avatarUUID, err := uuid.Parse(*dao.AvatarURL)
-		if err != nil {
-			return models.Contact{}, err
-		}
+	contactDataDAO := convertContactDataToDAO(contactData)
 
-		avatarBase64 = new(string)
-		*avatarBase64, err = base64helper.ReadPhotoBase64(avatarUUID)
-		if err != nil {
-			return models.Contact{}, err
-		}
+	err := u.repo.DeleteContact(ctx, contactDataDAO)
+	if err != nil {
+		log.Errorf("не получилось удалить контакт: %v", err)
+		return err
 	}
 
-	user := models.Contact{
-		ID:           dao.ID.String(),
-		Username:     dao.Username,
-		Name:         dao.Name,
-		AvatarBase64: avatarBase64,
-	}
+	return nil
+}
 
-	return user, nil
+func convertContactFromDAO(dao models.ContactDAO) models.Contact {
+	return models.Contact{
+		ID:        dao.ID.String(),
+		Username:  dao.Username,
+		Name:      dao.Name,
+		AvatarURL: dao.AvatarURL,
+	}
 }
 
 func convertContactDataToDAO(contactData models.ContactData) models.ContactDataDAO {

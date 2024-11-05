@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	"log"
+	"errors"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -20,9 +21,11 @@ func New(pool *pgxpool.Pool) *Repository {
 }
 
 func (r *Repository) GetContacts(ctx context.Context, username string) (contacts []models.ContactDAO, err error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Repository: Не удалось соединиться с базой данных: %v\n", err)
+		log.Errorf("Не удалось соединиться с базой данных: %v", err)
 		return contacts, err
 	}
 	defer conn.Release()
@@ -44,7 +47,7 @@ func (r *Repository) GetContacts(ctx context.Context, username string) (contacts
 		username,
 	)
 	if err != nil {
-		log.Printf("Repository: Не удалось получить контакты: %v\n", err)
+		log.Errorf("Не удалось получить контакты: %v", err)
 		return contacts, err
 	}
 	defer rows.Close()
@@ -53,28 +56,30 @@ func (r *Repository) GetContacts(ctx context.Context, username string) (contacts
 		var contact models.ContactDAO
 
 		if err = rows.Scan(&contact.ID, &contact.Username, &contact.Name, &contact.AvatarURL); err != nil {
-			log.Printf("Repository: Не удалось получить контакты: %v\n", err)
+			log.Errorf("Не удалось получить контакты: %v", err)
 			return contacts, err
 		}
 		contacts = append(contacts, contact)
 	}
 
-	log.Println("Repository: данные получены")
+	log.Println("данные получены")
 
 	return contacts, nil
 }
 
 func (r *Repository) AddContact(ctx context.Context, contactData models.ContactDataDAO) (models.ContactDAO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Repository: Не удалось соединиться с базой данных: %v\n", err)
+		log.Errorf("Не удалось соединиться с базой данных: %v", err)
 		return models.ContactDAO{}, err
 	}
 	defer conn.Release()
 
 	tx, err := conn.Conn().Begin(ctx)
 	if err != nil {
-		log.Printf("Repository: Не удалось создать транзацию: %v\n", err)
+		log.Errorf("Не удалось создать транзацию: %v", err)
 		return models.ContactDAO{}, err
 	}
 
@@ -94,7 +99,7 @@ func (r *Repository) AddContact(ctx context.Context, contactData models.ContactD
 	)
 
 	if err != nil {
-		log.Printf("Repository: Не удалось создать контакт: %v\n", err)
+		log.Errorf("Не удалось создать контакт: %v", err)
 		return models.ContactDAO{}, err
 	}
 
@@ -114,14 +119,48 @@ func (r *Repository) AddContact(ctx context.Context, contactData models.ContactD
 	).Scan(&contact.ID, &contact.Name, &contact.AvatarURL)
 
 	if err != nil {
-		log.Printf("Repository: Не удалось получить данные контакта: %v\n", err)
+		log.Errorf("Не удалось получить данные контакта: %v", err)
 		return models.ContactDAO{}, err
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		log.Printf("Repository: Не удалось подтвердить транзакцию: %v\n", err)
+		log.Errorf("Не удалось подтвердить транзакцию: %v", err)
 		return models.ContactDAO{}, err
 	}
 
 	return contact, nil
+}
+
+func (r *Repository) DeleteContact(ctx context.Context, contactData models.ContactDataDAO) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Не удалось соединиться с базой данных: %v", err)
+		return err
+	}
+	defer conn.Release()
+
+	result, err := conn.Exec(
+		ctx,
+		`DELETE FROM public.contact 
+		WHERE user_id = $1 AND contact_id = (SELECT id FROM public."user" WHERE username = $2);`,
+		contactData.UserID,
+		contactData.ContactUsername,
+	)
+	if err != nil {
+		log.Errorf("Не удалось удалить контакт: %v", err)
+		return err
+	}
+
+	rowsAffected := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		log.Errorf("ничего не удалено; возможно, контакт не найден")
+		return errors.New("контакт не найден")
+	} else {
+		log.Println("контакт удален")
+	}
+
+	return nil
 }

@@ -2,15 +2,15 @@ package usecase
 
 import (
 	"context"
-	"log"
-	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/base64helper"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
+	"github.com/google/uuid"
 )
 
 type Repository interface {
-	GetProfileByUsername(ctx context.Context, username string) (models.ProfileDataDAO, error)
+	GetProfileByUsername(ctx context.Context, id uuid.UUID) (models.ProfileDataDAO, error)
 	UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error)
 }
 
@@ -25,24 +25,20 @@ func New(repo Repository) *Usecase {
 }
 
 func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdateProfileRequestDTO) error {
-	var avatarChanged bool
-
-	if profileDTO.AvatarBase64 != nil {
-		avatarChanged = true
-	}
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	profile := convertProfileFromDTO(profileDTO)
 
 	avatarURL, err := u.repo.UpdateProfile(ctx, profile)
 	if err != nil {
-		log.Printf("Не удалось обновить профиль: %v", err)
+		log.Errorf("не удалось обновить профиль: %v", err)
 		return err
 	}
 
-	if avatarChanged {
-		err := base64helper.RewritePhoto(*profileDTO.AvatarBase64, *avatarURL)
+	if profile.Avatar != nil {
+		err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarURL)
 		if err != nil {
-			log.Printf("Не удалось перезаписать аватарку: %v", err)
+			log.Errorf("не удалось перезаписать аватарку: %v", err)
 			return err
 		}
 	}
@@ -50,12 +46,16 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 	return nil
 }
 
-func (u *Usecase) GetProfile(ctx context.Context, username string) (models.ProfileData, error) {
-	profileDataDAO, err := u.repo.GetProfileByUsername(ctx, username)
+func (u *Usecase) GetProfile(ctx context.Context, id uuid.UUID) (models.ProfileData, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	profileDataDAO, err := u.repo.GetProfileByUsername(ctx, id)
 	if err != nil {
-		log.Printf("Не удалось получить профиль: %v", err)
+		log.Errorf("Не удалось получить профиль: %v", err)
 		return models.ProfileData{}, err
 	}
+
+	log.Println("данные получены")
 
 	profileData := convertProfileDataFromDAO(profileDataDAO)
 
@@ -63,52 +63,20 @@ func (u *Usecase) GetProfile(ctx context.Context, username string) (models.Profi
 }
 
 func convertProfileDataFromDAO(dao models.ProfileDataDAO) models.ProfileData {
-	var name *string
-
-	if dao.Name.Valid {
-		name = &dao.Name.String
-	} else {
-		name = nil
-	}
-
-	var bio *string
-
-	if dao.Bio.Valid {
-		bio = &dao.Bio.String
-	} else {
-		bio = nil
-	}
-
-	var avatarBase64 *string
-
-	if dao.AvatarURL.Valid {
-		avatarBase64 = &dao.AvatarURL.String
-	} else {
-		avatarBase64 = nil
-	}
-
-	var birthdate *time.Time
-
-	if dao.Birthdate.Valid {
-		birthdate = &dao.Birthdate.Time
-	} else {
-		birthdate = nil
-	}
-
 	return models.ProfileData{
-		Name:      name,
-		Bio:       bio,
-		AvatarURL: avatarBase64,
-		Birthdate: birthdate,
+		Name:       dao.Name,
+		Bio:        dao.Bio,
+		Birthdate:  dao.Birthdate,
+		AvatarPath: dao.AvatarPath,
 	}
 }
 
 func convertProfileFromDTO(dto models.UpdateProfileRequestDTO) models.Profile {
 	return models.Profile{
-		Username:     dto.Username,
-		Name:         dto.Name,
-		Bio:          dto.Bio,
-		AvatarBase64: dto.AvatarBase64,
-		Birthdate:    dto.Birthdate,
+		ID:        dto.ID,
+		Name:      dto.Name,
+		Bio:       dto.Bio,
+		Avatar:    dto.Avatar,
+		Birthdate: dto.Birthdate,
 	}
 }

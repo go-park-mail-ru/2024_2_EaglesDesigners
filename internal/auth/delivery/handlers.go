@@ -4,21 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"html"
 	"log"
 	"net/http"
 	"sync"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
-	usecaseDto "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/gorilla/mux"
 )
 
 type usecase interface {
 	Authenticate(ctx context.Context, username, password string) bool
 	Registration(ctx context.Context, username, name, password string) error
-	GetUserDataByUsername(ctx context.Context, username string) (usecaseDto.UserData, error)
+	GetUserDataByUsername(ctx context.Context, username string) (models.UserData, error)
 }
 
 type token interface {
@@ -47,30 +49,45 @@ func NewDelivery(usecase usecase, token token) *Delivery {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param credentials body AuthCredentials true "Credentials for login, including username and password"
+// @Param credentials body models.AuthReqDTO true "Credentials for login, including username and password"
 // @Success 201 {object} responser.SuccessResponse "Authentication successful"
 // @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
 // @Failure 401 {object} responser.ErrorResponse "Incorrect login or password"
 // @Router /login [post]
 func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var creds AuthCredentials
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Println("пришел запрос на аутентификацию")
+
+	var creds models.AuthReqDTO
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		responser.SendErrorResponse(w, "Invalid format JSON", http.StatusBadRequest)
+		log.Errorf("не удалось распарсить json")
+		responser.SendError(ctx, w, "Invalid format JSON", http.StatusBadRequest)
+		return
+	}
+
+	if err := validator.Check(creds); err != nil {
+		log.Errorf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
 		err := d.setToken(w, r, creds.Username)
 		if err != nil {
-			responser.SendErrorResponse(w, "Invalid format JSON", http.StatusUnauthorized)
+			log.Errorf("не удалось аутентифицировать пользователя")
+			responser.SendError(ctx, w, "Invalid format JSON", http.StatusUnauthorized)
 			return
 		}
 
-		responser.SendOKResponse(w, "Authentication successful", http.StatusCreated)
+		log.Println("пользователь успешно аутентифицирован")
+
+		responser.SendOK(w, "Authentication successful", http.StatusCreated)
 
 	} else {
-		responser.SendErrorResponse(w, "Incorrect login or password", http.StatusUnauthorized)
+		log.Errorf("неверный логин или пароль")
+		responser.SendError(ctx, w, "Incorrect login or password", http.StatusUnauthorized)
 	}
 }
 
@@ -79,8 +96,8 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param creds body RegisterCredentials true "Registration information"
-// @Success 201 {object} RegisterResponse "Registration successful"
+// @Param creds body models.RegisterReqDTO true "Registration information"
+// @Success 201 {object} models.RegisterRespDTO "Registration successful"
 // @Failure 400 {object} responser.ErrorResponse "Invalid input data"
 // @Failure 409 {object} responser.ErrorResponse "A user with that username already exists"
 // @Failure 400 {object} responser.ErrorResponse "User failed to create"
@@ -89,44 +106,54 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Пришел запрос на регистрацию")
+	log.Println("пришел запрос на регистрацию")
 
-	var creds RegisterCredentials
+	var creds models.RegisterReqDTO
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		responser.SendErrorResponse(w, "Invalid input data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
-	if len(creds.Username) < 6 || len(creds.Password) < 8 || creds.Name == "" {
-		responser.SendErrorResponse(w, "Invalid input data", http.StatusBadRequest)
+	if err := validator.Check(creds); err != nil {
+		log.Errorf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	if err := d.usecase.Registration(ctx, creds.Username, creds.Name, creds.Password); err != nil {
-		responser.SendErrorResponse(w, "A user with that username already exists", http.StatusConflict)
-	} else {
-		d.setToken(w, r, creds.Username)
-		userDataUC, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
-		if err != nil {
-			responser.SendErrorResponse(w, "User failed to create", http.StatusBadRequest)
-			return
-		}
-
-		userData := convertFromUsecaseUserData(userDataUC)
-
-		response := RegisterResponse{
-			Message: "Registration successful",
-			User:    userData,
-		}
-
-		log.Println("Пользователь успешно зарегистрирован")
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		jsonResp, _ := json.Marshal(response)
-		w.Write(jsonResp)
+		responser.SendError(ctx, w, "A user with that username already exists", http.StatusConflict)
+		return
 	}
+
+	log.Println("получение данных пользователя")
+
+	d.setToken(w, r, creds.Username)
+	userData, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
+	if err != nil {
+		responser.SendError(ctx, w, "User failed to create", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("новый пользователь получен")
+
+	userDataDTO := convertUserDataToDTO(userData)
+
+	response := models.RegisterRespDTO{
+		Message: "Registration successful",
+		User:    userDataDTO,
+	}
+
+	if err := validator.Check(response); err != nil {
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("пользователь успешно зарегистрирован")
+
+	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
 // AuthHandler godoc
@@ -135,43 +162,48 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Success 200 {object} AuthResponse "User data retrieved successfully"
+// @Success 200 {object} models.UserDataRespDTO "User data retrieved successfully"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized: token is invalid"
 // @Router /auth [get]
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	_, err := d.token.IsAuthorized(ctx, r.Cookies())
-	if err != nil {
-		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Println("пришел запрос на авторизацию")
+
+	user, ok := ctx.Value(models.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	dataJWT, err := d.token.GetUserDataByJWT(r.Cookies())
-	log.Println("/auth cookie: ", dataJWT)
+	userData, err := d.usecase.GetUserDataByUsername(ctx, user.Username)
 	if err != nil {
-		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+		log.Println("не получилось получить данные пользователя")
+		responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	data := convertFromJWTUserData(dataJWT)
+	userDataDTO := convertUserDataToDTO(userData)
 
-	response := AuthResponse{
-		User: data,
+	response := models.AuthRespDTO{
+		User: userDataDTO,
 	}
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+	if err := validator.Check(response); err != nil {
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	log.Println("пользователь успешно авторизован")
+
+	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
 func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.Background()
+		ctx := r.Context()
 
 		user, err := d.token.IsAuthorized(ctx, r.Cookies())
 		if err == errors.New("token expired") {
@@ -179,13 +211,13 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			user, err = d.token.GetUserByJWT(r.Context(), r.Cookies())
 
 			if err != nil {
-				responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+				responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 			d.setToken(w, r, user.Username)
 		}
 		if err != nil {
-			responser.SendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+			responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -208,6 +240,11 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 // @Failure 401 {object} responser.ErrorResponse "No access token found"
 // @Router /logout [post]
 func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Println("пришел запрос на разлогин")
+
 	tokenExists := false
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == "access_token" {
@@ -217,7 +254,7 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !tokenExists {
-		responser.SendErrorResponse(w, "No access token found", http.StatusUnauthorized)
+		responser.SendError(ctx, w, "No access token found", http.StatusUnauthorized)
 		return
 	}
 
@@ -231,7 +268,9 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 
-	responser.SendOKResponse(w, "Logout successful", http.StatusOK)
+	log.Println("разлогин прошел успешно")
+
+	responser.SendOK(w, "Logout successful", http.StatusOK)
 }
 
 func (c *Delivery) isAuthorized(r *http.Request) error {
@@ -264,18 +303,25 @@ func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username str
 	return nil
 }
 
-func convertFromUsecaseUserData(userDataUC usecaseDto.UserData) UserData {
-	return UserData{
-		ID:       userDataUC.ID,
-		Username: userDataUC.Username,
-		Name:     userDataUC.Name,
+func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
+	var avatarURL *string
+	if userData.AvatarURL != nil {
+		avatarURL = new(string)
+		*avatarURL = html.EscapeString(*userData.AvatarURL)
+	}
+
+	return models.UserDataRespDTO{
+		ID:        userData.ID,
+		Username:  html.EscapeString(userData.Username),
+		Name:      html.EscapeString(userData.Name),
+		AvatarURL: avatarURL,
 	}
 }
 
-func convertFromJWTUserData(userDataJWT jwt.UserData) UserData {
-	return UserData{
+func convertFromJWTUserData(userDataJWT jwt.UserData) models.UserDataRespDTO {
+	return models.UserDataRespDTO{
 		ID:       userDataJWT.ID,
-		Username: userDataJWT.Username,
-		Name:     userDataJWT.Name,
+		Username: html.EscapeString(userDataJWT.Username),
+		Name:     html.EscapeString(userDataJWT.Name),
 	}
 }
