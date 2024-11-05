@@ -89,7 +89,7 @@ type AddedUsersIntoChatDTO struct {
 }
 
 type DeleteUsersFromChatDTO struct {
-	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"uuid"`
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"-"`
 }
 
 type DeletdeUsersFromChatDTO struct {
