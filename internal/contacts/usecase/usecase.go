@@ -2,9 +2,9 @@ package usecase
 
 import (
 	"context"
-	"log"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
 type Repository interface {
@@ -24,12 +24,14 @@ func New(repo Repository) *Usecase {
 }
 
 func (u *Usecase) GetContacts(ctx context.Context, username string) (contacts []models.Contact, err error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	contactsDAO, err := u.repo.GetContacts(ctx, username)
 	if err != nil {
-		log.Printf("Contact usecase: не удалось получить контакты: %v", err)
+		log.Errorf("не удалось получить контакты: %v", err)
 		return contacts, err
 	}
-	log.Println("Contact usecase: данные получены")
+	log.Println("данные получены")
 
 	for _, contactDAO := range contactsDAO {
 		contact := convertContactFromDAO(contactDAO)
@@ -41,11 +43,13 @@ func (u *Usecase) GetContacts(ctx context.Context, username string) (contacts []
 }
 
 func (u *Usecase) AddContact(ctx context.Context, contactData models.ContactData) (models.Contact, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	contactDataDAO := convertContactDataToDAO(contactData)
 
 	contactDAO, err := u.repo.AddContact(ctx, contactDataDAO)
 	if err != nil {
-		log.Println("Contact usecase: не получилось создать контакт: ", err)
+		log.Errorf("не получилось создать контакт: %v", err)
 		return models.Contact{}, err
 	}
 
@@ -55,11 +59,13 @@ func (u *Usecase) AddContact(ctx context.Context, contactData models.ContactData
 }
 
 func (u *Usecase) DeleteContact(ctx context.Context, contactData models.ContactData) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	contactDataDAO := convertContactDataToDAO(contactData)
 
 	err := u.repo.DeleteContact(ctx, contactDataDAO)
 	if err != nil {
-		log.Println("Contact usecase: не получилось удалить контакт: ", err)
+		log.Errorf("не получилось удалить контакт: %v", err)
 		return err
 	}
 

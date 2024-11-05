@@ -1,9 +1,11 @@
 package responser
 
 import (
+	"context"
 	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
 // @Schema
@@ -24,8 +26,9 @@ func SendOK(w http.ResponseWriter, message string, statusCode int) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func SendError(w http.ResponseWriter, errorMessage string, statusCode int) {
-	log.Printf("Отправлен код %d. ОШИБКА: %s \n", statusCode, errorMessage)
+func SendError(ctx context.Context, w http.ResponseWriter, errorMessage string, statusCode int) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	log.Errorf("Отправлен код %d. ОШИБКА: %s", statusCode, errorMessage)
 
 	response := ErrorResponse{Error: errorMessage, Status: "error"}
 	w.WriteHeader(statusCode)
@@ -34,14 +37,23 @@ func SendError(w http.ResponseWriter, errorMessage string, statusCode int) {
 }
 
 func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
-	SendError(w, "Method not allowed", http.StatusUnauthorized)
+	statusCode := http.StatusUnauthorized
+	errorMessage := "Method not allowed"
+
+	response := ErrorResponse{Error: errorMessage, Status: "error"}
+	w.WriteHeader(statusCode)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Errorf("Отправлен код %d. ОШИБКА: %s", statusCode, errorMessage)
 }
 
 // SendStruct отправляет полученный экземпляр структуры в формате json с статусом кода statusCode.
-func 	SendStruct(w http.ResponseWriter, response any, statusCode int) {
+func SendStruct(ctx context.Context, w http.ResponseWriter, response any, statusCode int) {
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
-		SendError(w, "Failed to create response", http.StatusBadRequest)
+		SendError(ctx, w, "Failed to create response", http.StatusBadRequest)
 		return
 	}
 
