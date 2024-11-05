@@ -59,7 +59,7 @@ func (r *Repository) GetUserByUsername(ctx context.Context, username string) (mo
 		return user, errors.New("пользователь не найден")
 	}
 
-	log.Println("пользователь получен")
+	log.Printf("пользователь с id=%s получен", user.ID.String())
 
 	return user, nil
 }
