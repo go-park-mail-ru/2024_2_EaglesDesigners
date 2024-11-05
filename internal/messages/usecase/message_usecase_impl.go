@@ -109,10 +109,10 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	return nil
 }
 
-func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID, pageId int) (models.MessagesArrayDTO, error) {
+func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error) {
 	log.Printf("Usecase: начато получение сообщений")
 
-	messages, err := u.messageRepository.GetMessages(pageId, chatId)
+	messages, err := u.messageRepository.GetMessages(chatId)
 	if err != nil {
 		log.Printf("Usecase: не удалось получить сообщения: %v", err)
 		return models.MessagesArrayDTO{}, err
