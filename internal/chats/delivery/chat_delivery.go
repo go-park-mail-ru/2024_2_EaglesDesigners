@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -13,6 +12,7 @@ import (
 	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
@@ -49,6 +49,7 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 // @Failure 500	"Не удалось получить сообщения"
 // @Router /chats [get]
 func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	w.Header().Set("Content-Type", "application/json")
 
 	log.Printf("Пришёл запрос на получения чатов с параметрами: %v", r.URL.Query())
@@ -103,6 +104,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 // @Failure 500 {object} responser.ErrorResponse "Не удалось добавить чат / группу"
 // @Router /addchat [post]
 func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 
 	var chatDTO model.ChatDTOInput
@@ -169,6 +171,7 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/addusers [post]
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
 
@@ -221,6 +224,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/delusers [post]
 func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
 
@@ -278,6 +282,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить чат"
 // @Router /chat/{chatId}/delete [delete]
 func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
 
@@ -312,6 +317,7 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 }
 
 func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	mapVars, ok := ctx.Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
 		return uuid.UUID{}, errors.New("Не удалось достать переменные из контекста")
@@ -345,6 +351,7 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновчить чат"
 // @Router /chat/{chatId} [put]
 func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
 
@@ -434,6 +441,7 @@ type SuccessfullSuccess struct {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
 // @Router /chat/{chatId}/users [get]
 func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
 
