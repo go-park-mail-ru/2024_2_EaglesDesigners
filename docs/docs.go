@@ -1002,10 +1002,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatarPath": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
                 },
                 "chatId": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
                 },
                 "chatName": {
                     "type": "string",
@@ -1041,7 +1043,8 @@ const docTemplate = `{
                     "example": "Чат с пользователем 2"
                 },
                 "updatedAvatarPath": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
                 }
             }
         },

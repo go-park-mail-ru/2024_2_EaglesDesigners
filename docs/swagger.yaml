@@ -34,8 +34,10 @@ definitions:
   model.ChatDTOOutput:
     properties:
       avatarPath:
+        example: /uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
       chatId:
+        example: 08a0f350-e122-467b-8ba8-524d2478b56e
         type: string
       chatName:
         example: Чат с пользователем 2
@@ -61,6 +63,7 @@ definitions:
         example: Чат с пользователем 2
         type: string
       updatedAvatarPath:
+        example: /uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
     type: object
   model.ChatsDTO:
