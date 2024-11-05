@@ -65,7 +65,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
-		csrf, err := d.setTokens(w, r, creds.Username)
+		err := d.setTokens(w, r, creds.Username)
 		if err != nil {
 			log.Println("Login delivery: не удалось аутентифицировать пользователя")
 			responser.SendError(w, "Invalid format JSON", http.StatusUnauthorized)
@@ -74,9 +74,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Println("Login delivery: пользователь успешно аутентифицирован")
 
-		// responser.SendOK(w, "Authentication successful", http.StatusCreated)
-		resp := models.CsrfDTO{Token: csrf}
-		responser.SendStruct(w, resp, http.StatusCreated)
+		responser.SendOK(w, "Authentication successful", http.StatusCreated)
 
 	} else {
 		log.Println("Login delivery: неверный логин или пароль")
@@ -283,11 +281,11 @@ func (c *Delivery) isAuthorized(r *http.Request) error {
 	return nil
 }
 
-func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username string) (string, error) {
+func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username string) error {
 	ctx := r.Context()
 	token, err := d.token.CreateJWT(ctx, username)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -303,13 +301,13 @@ func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username st
 	csrf, err := csrf.CreateCSRF(token)
 	if err != nil {
 		log.Printf("Auth setTokens: не удалось создать csrf токен: %v", err)
-		return "", err
+		return err
 	}
 
 	w.Header().Set("X-CSRF-Token", csrf)
 	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
 
-	return csrf, nil
+	return nil
 }
 
 func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
