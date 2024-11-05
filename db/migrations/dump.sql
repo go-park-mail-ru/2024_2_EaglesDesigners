@@ -350,11 +350,11 @@ INSERT INTO contact (id, user_id, contact_id) VALUES
 
 
 INSERT INTO chat (chat_name, chat_type_id, id) VALUES
-    ('oleg', 1, '891a0b13-601e-4ef4-bc82-cc4be1f8c101'),
-      ('kizaru', 1, '891a0b13-601e-4ef4-bc83-cc4be1f8c101');
+    ('oleg', 1, gen_random_uuid()),
+      ('kizaru', 1, gen_random_uuid());
 
 INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
-    (gen_random_uuid(), 2,'891a0b13-601e-4ef4-bc82-cc4be1f8c101', (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,'891a0b13-601e-4ef4-bc82-cc4be1f8c101',  (SELECT id FROM public.user where username ='user22')),
-     (gen_random_uuid(), 2,'891a0b13-601e-4ef4-bc83-cc4be1f8c101', (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,'891a0b13-601e-4ef4-bc83-cc4be1f8c101',  (SELECT id FROM public.user where username ='user33'));
+    (gen_random_uuid(), 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
+    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
+     (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
+    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33'));

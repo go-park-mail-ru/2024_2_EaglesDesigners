@@ -2,9 +2,9 @@ package usecase
 
 import (
 	"context"
-	"log"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
 	"github.com/google/uuid"
 )
@@ -25,18 +25,20 @@ func New(repo Repository) *Usecase {
 }
 
 func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdateProfileRequestDTO) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	profile := convertProfileFromDTO(profileDTO)
 
 	avatarURL, err := u.repo.UpdateProfile(ctx, profile)
 	if err != nil {
-		log.Printf("Не удалось обновить профиль: %v", err)
+		log.Errorf("не удалось обновить профиль: %v", err)
 		return err
 	}
 
 	if profile.Avatar != nil {
 		err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarURL)
 		if err != nil {
-			log.Printf("Не удалось перезаписать аватарку: %v", err)
+			log.Errorf("не удалось перезаписать аватарку: %v", err)
 			return err
 		}
 	}
@@ -45,13 +47,15 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 }
 
 func (u *Usecase) GetProfile(ctx context.Context, id uuid.UUID) (models.ProfileData, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	profileDataDAO, err := u.repo.GetProfileByUsername(ctx, id)
 	if err != nil {
-		log.Printf("Не удалось получить профиль: %v", err)
+		log.Errorf("Не удалось получить профиль: %v", err)
 		return models.ProfileData{}, err
 	}
 
-	log.Println("Profile usecase: данные получены")
+	log.Println("данные получены")
 
 	profileData := convertProfileDataFromDAO(profileDataDAO)
 

@@ -46,7 +46,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Чат создан"
+                        "description": "Чат создан",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatDTOOutput"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -104,7 +107,7 @@ const docTemplate = `{
                     "multipart/form-data"
                 ],
                 "tags": [
-                    "profile"
+                    "chat"
                 ],
                 "summary": "Обновляем фото и имя",
                 "parameters": [
@@ -122,11 +125,24 @@ const docTemplate = `{
                         "description": "group avatar",
                         "name": "avatar",
                         "in": "formData"
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Чат обновлен"
+                        "description": "Чат обновлен",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatUpdateOutput"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -218,7 +234,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Чат удалён"
+                        "description": "Чат удалён",
+                        "schema": {
+                            "$ref": "#/definitions/delivery.SuccessfullSuccess"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -273,7 +292,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Пользователи добавлены"
+                        "description": "Пользователи удалены",
+                        "schema": {
+                            "$ref": "#/definitions/model.DeletdeUsersFromChatDTO"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -360,7 +382,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Message"
+                            "$ref": "#/definitions/models.MessageInput"
                         }
                     }
                 ],
@@ -376,6 +398,57 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Не удалось добавить сообщение",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Получаем id пользователей",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи чата",
+                        "schema": {
+                            "$ref": "#/definitions/model.UsersInChat"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить учатсников",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -540,7 +613,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Contact deleted",
                         "schema": {
-                            "$ref": "#/definitions/models.ContactRespDTO"
+                            "$ref": "#/definitions/responser.SuccessResponse"
                         }
                     },
                     "400": {
@@ -879,6 +952,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "delivery.SuccessfullSuccess": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
         "model.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {
@@ -921,10 +1002,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatarPath": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
                 },
                 "chatId": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
                 },
                 "chatName": {
                     "type": "string",
@@ -952,6 +1035,19 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ChatUpdateOutput": {
+            "type": "object",
+            "properties": {
+                "chatName": {
+                    "type": "string",
+                    "example": "Чат с пользователем 2"
+                },
+                "updatedAvatarPath": {
+                    "type": "string",
+                    "example": "/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png"
+                }
+            }
+        },
         "model.ChatsDTO": {
             "type": "object",
             "properties": {
@@ -963,7 +1059,37 @@ const docTemplate = `{
                 }
             }
         },
+        "model.DeletdeUsersFromChatDTO": {
+            "type": "object",
+            "properties": {
+                "deletedUsers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
         "model.DeleteUsersFromChatDTO": {
+            "type": "object",
+            "properties": {
+                "usersId": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uuid1",
+                        "uuid2"
+                    ]
+                }
+            }
+        },
+        "model.UsersInChat": {
             "type": "object",
             "properties": {
                 "usersId": {
@@ -1012,7 +1138,6 @@ const docTemplate = `{
                     "example": "08a0f350-e122-467b-8ba8-524d2478b56e"
                 },
                 "name": {
-                    "description": "can be nil",
                     "type": "string",
                     "example": "Витек"
                 },
@@ -1077,6 +1202,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "1"
                 },
+                "text": {
+                    "type": "string",
+                    "example": "тут много текста"
+                }
+            }
+        },
+        "models.MessageInput": {
+            "type": "object",
+            "properties": {
                 "text": {
                     "type": "string",
                     "example": "тут много текста"
@@ -1149,7 +1283,7 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string",
-                    "example": "2"
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
                 },
                 "name": {
                     "type": "string",

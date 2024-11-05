@@ -10,13 +10,14 @@ import (
 
 type ChatUsecase interface {
 	GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTOOutput, error)
-	AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) error
+	AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error)
 
 	// CanUserWriteInChat проверяет может ли юзер писать в чат
-	AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) error
+	AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error)
 
 	DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error
-	UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) error
+	UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) (chatModel.ChatUpdateOutput, error)
 
-	DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) error
+	DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error)
+	GetUsersFromChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.UsersInChat, error)
 }

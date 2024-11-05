@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -25,6 +25,8 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 }
 
 func (r *Repository) GetUserByUsername(ctx context.Context, username string) (models.UserDAO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	query := `SELECT 
 			  	  id,
 			  	  username,
@@ -53,16 +55,18 @@ func (r *Repository) GetUserByUsername(ctx context.Context, username string) (mo
 	)
 
 	if err != nil {
-		log.Printf("Пользователь не найден в базе данных: %v\n", err)
+		log.Errorf("Пользователь не найден в базе данных: %v", err)
 		return user, errors.New("пользователь не найден")
 	}
 
-	log.Println("GetUserByUsername repo: пользователь получен")
+	log.Printf("пользователь с id=%s получен", user.ID.String())
 
 	return user, nil
 }
 
 func (r *Repository) CreateUser(ctx context.Context, username, name, password string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	query := `INSERT INTO public.user
 				   (
 				   	   id,
@@ -87,11 +91,11 @@ func (r *Repository) CreateUser(ctx context.Context, username, name, password st
 	var user_id uuid.UUID
 	err := row.Scan(&user_id)
 	if err != nil {
-		log.Printf("Unable to INSERT in TABLE user: %v\n", err)
+		log.Errorf("не удалось вставить в таблицу юзера: %v", err)
 		return err
 	}
 
-	log.Println("Register repo: пользователь успешно создан: ", uuidNew.String(), username)
+	log.Println("пользователь успешно создан: ", uuidNew.String(), username)
 
 	return nil
 }

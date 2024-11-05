@@ -23,19 +23,19 @@ type Chat struct {
 
 // @Schema
 type ChatDTOOutput struct {
-	ChatId       uuid.UUID      `json:"chatId"`
-	ChatName     string         `json:"chatName" example:"Чат с пользователем 2"`
-	CountOfUsers int            `json:"countOfUsers" example:"52"`
-	ChatType     string         `json:"chatType" example:"personal"`
-	LastMessage  models.Message `json:"lastMessage"`
-	AvatarPath   string         `json:"avatarPath"`
+	ChatId       uuid.UUID      `json:"chatId" example:"08a0f350-e122-467b-8ba8-524d2478b56e" valid:"-"`
+	ChatName     string         `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
+	CountOfUsers int            `json:"countOfUsers" example:"52" valid:"int"`
+	ChatType     string         `json:"chatType" example:"personal" valid:"in(personal|group|channel)"`
+	LastMessage  models.Message `json:"lastMessage" valid:"-"`
+	AvatarPath   string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/chat/[a-zA-Z0-9\\-]+\\.png$),optional"`
 }
 
 type ChatDTOInput struct {
-	ChatName   string          `json:"chatName" example:"Чат с пользователем 2"`
-	ChatType   string          `json:"chatType" example:"personalMessages"`
-	UsersToAdd []uuid.UUID     `json:"usersToAdd" example:"uuid1,uuid2"`
-	Avatar     *multipart.File `json:"-"`
+	ChatName   string          `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
+	ChatType   string          `json:"chatType" example:"personalMessages" valid:"in(personal|group|channel)"`
+	UsersToAdd []uuid.UUID     `json:"usersToAdd" example:"uuid1,uuid2" valid:"-"`
+	Avatar     *multipart.File `json:"-" valid:"-"`
 }
 
 func (chat ChatDTOOutput) MarshalBinary() ([]byte, error) {
@@ -55,12 +55,17 @@ type ChatDAO struct {
 }
 
 type ChatsDTO struct {
-	Chats []ChatDTOOutput `json:"chats"`
+	Chats []ChatDTOOutput `json:"chats" valid:"-"`
 }
 
 type ChatUpdate struct {
-	ChatName string          `json:"chatName" example:"Чат с пользователем 2"`
+	ChatName string          `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
 	Avatar   *multipart.File `json:"-"`
+}
+
+type ChatUpdateOutput struct {
+	ChatName string `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
+	Avatar   string `json:"updatedAvatarPath" example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/chat/[a-zA-Z0-9\\-]+\\.png$),optional"`
 }
 
 func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) ChatDTOOutput {
@@ -75,9 +80,22 @@ func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) Cha
 }
 
 type AddUsersIntoChatDTO struct {
-	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"-"`
+}
+
+type AddedUsersIntoChatDTO struct {
+	AddedUsers    []uuid.UUID `json:"addedUser" example:"uuid1,uuid2" valid:"-"`
+	NotAddedUsers []uuid.UUID `json:"notAddedUser" example:"uuid1,uuid2" valid:"-"`
 }
 
 type DeleteUsersFromChatDTO struct {
-	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"-"`
+}
+
+type DeletdeUsersFromChatDTO struct {
+	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2" valid:"-"`
+}
+
+type UsersInChat struct {
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"-"`
 }

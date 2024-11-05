@@ -3,14 +3,16 @@ package delivery
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"html"
 	"net/http"
 	"sync"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -57,12 +59,13 @@ func New(usecase usecase, token token) *Delivery {
 // @Router /profile [get]
 func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Profile delivery: пришел запрос на получение данных о своем профиле")
+	log.Println("пришел запрос на получение данных о своем профиле")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -70,20 +73,21 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
 	response := convertProfileDataToDTO(profileData)
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendError(w, responseError, http.StatusBadRequest)
+	if err := validator.Check(response); err != nil {
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	log.Println("данные успешно отправлены")
+
+	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
 // GetProfileHandler godoc
@@ -99,8 +103,9 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 // @Router /profile/{userid} [get]
 func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Profile delivery: пришел запрос на получение данных профиля")
+	log.Println("пришел запрос на получение данных профиля")
 
 	vars := mux.Vars(r)
 	userid := vars["userid"]
@@ -109,20 +114,21 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
 	response := convertProfileDataToDTO(profileData)
 
-	jsonResp, err := json.Marshal(response)
-	if err != nil {
-		responser.SendError(w, responseError, http.StatusBadRequest)
+	if err := validator.Check(response); err != nil {
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	log.Println("данные успешно отправлены")
+
+	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
 // UpdateProfileHandler godoc
@@ -143,20 +149,21 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Profile delivery: пришел запрос на обновление профиля")
+	log.Println("пришел запрос на обновление профиля")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
 	var profile models.UpdateProfileRequestDTO
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		log.Println("Profile delivery: не удалось распарсить запрос: ", err)
-		responser.SendError(w, "Unable to parse form", http.StatusBadRequest)
+		log.Errorf("не удалось распарсить запрос: %v", err)
+		responser.SendError(ctx, w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
 
@@ -165,14 +172,20 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	jsonString := r.FormValue("profile_data")
 	if jsonString != "" {
 		if err := json.Unmarshal([]byte(jsonString), &profile); err != nil {
-			responser.SendError(w, invalidJSONError, http.StatusBadRequest)
+			responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
 			return
 		}
 	}
 
+	if err := validator.Check(profile); err != nil {
+		log.Errorf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
-		responser.SendError(w, "Failed to get avatar", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
 		return
 	}
 	defer func() {
@@ -186,18 +199,38 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := d.usecase.UpdateProfile(ctx, profile); err != nil {
-		responser.SendError(w, "Failed to update profile", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Failed to update profile", http.StatusBadRequest)
 		return
 	}
+
+	log.Println("профиль успешно обновлен")
 
 	responser.SendOK(w, "Profile updated", http.StatusOK)
 }
 
 func convertProfileDataToDTO(profileData models.ProfileData) models.GetProfileResponseDTO {
+	var safeName *string
+	if profileData.Name != nil {
+		safeName = new(string)
+		*safeName = html.EscapeString(*profileData.Name)
+	}
+
+	var safeBio *string
+	if profileData.Bio != nil {
+		safeBio = new(string)
+		*safeBio = html.EscapeString(*profileData.Bio)
+	}
+
+	var safeAvatarURL *string
+	if profileData.AvatarPath != nil {
+		safeAvatarURL = new(string)
+		*safeAvatarURL = html.EscapeString(*profileData.AvatarPath)
+	}
+
 	return models.GetProfileResponseDTO{
-		Name:      profileData.Name,
-		Bio:       profileData.Bio,
-		AvatarURL: profileData.AvatarPath,
+		Name:      safeName,
+		Bio:       safeBio,
+		AvatarURL: safeAvatarURL,
 		Birthdate: profileData.Birthdate,
 	}
 }

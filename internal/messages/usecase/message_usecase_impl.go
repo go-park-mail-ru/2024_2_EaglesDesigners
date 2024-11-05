@@ -14,6 +14,7 @@ import (
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 
 	"github.com/redis/go-redis/v9"
 
@@ -54,6 +55,7 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatR
 }
 
 func (u *MessageUsecaseImplm) publishMessageTochat(ctx context.Context, message models.Message) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	err := u.redisClient.XAdd(ctx, &redis.XAddArgs{
 		Stream: message.ChatId.String(),
 		MaxLen: 0,
@@ -68,6 +70,7 @@ func (u *MessageUsecaseImplm) publishMessageTochat(ctx context.Context, message 
 
 // goBroker - брокер, который кинет сообщение из канала в нужный чат
 func (u *MessageUsecaseImplm) goBroker(ctx context.Context) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	for {
 		select {
 		case message := <-u.messages:
@@ -75,7 +78,7 @@ func (u *MessageUsecaseImplm) goBroker(ctx context.Context) {
 				log.Println("Message usecase: добавление сообщения в redis")
 				err := u.publishMessageTochat(ctx, message)
 				if err != nil {
-					log.Printf("Message usecase -> goBroker: не удалось отправить в redis поток: %v", err)
+					log.Errorf("Message usecase -> goBroker: не удалось отправить в redis поток: %v", err)
 				} else {
 					log.Println("Message usecase -> goBroker: сообщение добавлено в redis поток")
 				}
@@ -86,6 +89,7 @@ func (u *MessageUsecaseImplm) goBroker(ctx context.Context) {
 }
 
 func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, chatId uuid.UUID, message models.Message) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
 
 	message.MessageId = uuid.New()
@@ -98,7 +102,7 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	err := u.messageRepository.AddMessage(message, chatId)
 	if err != nil {
-		log.Printf("Usecase: не удалось добавить сообщение: %v", err)
+		log.Errorf("Usecase: не удалось добавить сообщение: %v", err)
 		return err
 	}
 
@@ -109,12 +113,13 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	return nil
 }
 
-func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID, pageId int) (models.MessagesArrayDTO, error) {
+func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато получение сообщений")
 
-	messages, err := u.messageRepository.GetMessages(pageId, chatId)
+	messages, err := u.messageRepository.GetMessages(chatId)
 	if err != nil {
-		log.Printf("Usecase: не удалось получить сообщения: %v", err)
+		log.Errorf("Usecase: не удалось получить сообщения: %v", err)
 		return models.MessagesArrayDTO{}, err
 	}
 	log.Printf("Usecase: сообщения получены")
@@ -126,6 +131,7 @@ func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID,
 
 // sendMessagesToUsers - отправляет каждоиму подписчику из activeUsers сообщение
 func (u *MessageUsecaseImplm) sendMessagesToUsers(ctx context.Context, message models.Message, activeUsers map[string]bool) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	for userId := range activeUsers {
 		err := u.redisClient.XAdd(ctx, &redis.XAddArgs{
 			Stream: userId,
@@ -139,13 +145,14 @@ func (u *MessageUsecaseImplm) sendMessagesToUsers(ctx context.Context, message m
 		log.Println("Message usecase -> sendMessagesToUsers: сообщение отправлено", message)
 
 		if err != nil {
-			log.Printf("Message usecase -> sendMessagesToUsers: не удалось отправить сообщение: %v", err)
+			log.Errorf("Message usecase -> sendMessagesToUsers: не удалось отправить сообщение: %v", err)
 		}
 	}
 }
 
 // chatBroker кидает новые сообщения подписчикам
 func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Message usecase -> chatBroker: брокер создан для чата: %v", chatId)
 
 	defer func() {
@@ -165,7 +172,7 @@ func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) 
 		}).Result()
 
 		if err != nil {
-			fmt.Println("Message usecase: Ошибка при чтении сообщений:", err)
+			fmt.Errorf("Message usecase: Ошибка при чтении сообщений:", err)
 			continue
 		}
 
@@ -193,7 +200,7 @@ func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) 
 		// удаляем старые сообщения
 		_, err = u.redisClient.XDel(context.Background(), chatId.String(), msgToDel...).Result()
 		if err != nil {
-			log.Printf("Message usecase: не удалось удалить сообщения из redis: %v", err)
+			log.Errorf("Message usecase: не удалось удалить сообщения из redis: %v", err)
 		}
 
 		// если нет подписанных прользователей, то сворачиваемся
@@ -207,6 +214,7 @@ func (u *MessageUsecaseImplm) chatBroker(ctx context.Context, chatId uuid.UUID) 
 }
 
 func (u *MessageUsecaseImplm) publishUserIntoChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	err := u.redisClient.XAdd(ctx, &redis.XAddArgs{
 		Stream: chatId.String(),
 		MaxLen: 0,
@@ -222,6 +230,7 @@ func (u *MessageUsecaseImplm) publishUserIntoChat(ctx context.Context, chatId uu
 
 // initChatsForUser - отправляет в чаты (брокерам сообщений по определенным чатам), что пользователь пришел и ему надо кидать сообщения
 func (u *MessageUsecaseImplm) initChatsForUser(ctx context.Context, userId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Message usecase -> initChatsForUser: инициируем брокеров для пользователя: %v", userId)
 	chats, err := u.chatRepository.GetUserChats(ctx, userId, 0)
 	if err != nil {
@@ -230,7 +239,7 @@ func (u *MessageUsecaseImplm) initChatsForUser(ctx context.Context, userId uuid.
 	for _, chat := range chats {
 		err := u.publishUserIntoChat(ctx, chat.ChatId, userId)
 		if err != nil {
-			log.Printf("Message usecase -> publishUserIntoChat: Не удалось добавить пользователя в чат: %v", err)
+			log.Errorf("Message usecase -> publishUserIntoChat: Не удалось добавить пользователя в чат: %v", err)
 		}
 		if _, ok := u.activeChats[chat.ChatId]; !ok {
 			u.activeChats[chat.ChatId] = true
@@ -256,6 +265,7 @@ func (u *MessageUsecaseImplm) deleteUserFromChat(ctx context.Context, chatId uui
 
 // deactivateUsrChats - отправляет в чаты (брокерам сообщений по определенным чатам), что пользователь ушёл
 func (u *MessageUsecaseImplm) deactivateUsrChats(ctx context.Context, userId uuid.UUID) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	chats, err := u.chatRepository.GetUserChats(ctx, userId, 0)
 	if err != nil {
 		log.Println("Не удалось получить чаты пользователя")
@@ -269,6 +279,7 @@ func (u *MessageUsecaseImplm) deactivateUsrChats(ctx context.Context, userId uui
 
 // ScanForNewMessages сканирует redis stream с именем равным id пользователя
 func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel chan<- models.WebScoketDTO, res chan<- error, closeChannel <-chan bool) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	defer func() {
 		close(channel)
 		close(res)
@@ -289,7 +300,7 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 	// создаем рутины на чаты, если еще не существуют
 	err := u.initChatsForUser(ctx, user.ID)
 	if err != nil {
-		log.Println("Message usecase: не удалось инициировать чаты пользоватея: %v", err)
+		log.Errorf("Message usecase: не удалось инициировать чаты пользоватея: %v", err)
 		res <- err
 		return
 	}
@@ -313,7 +324,7 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 			}).Result()
 
 			if err != nil {
-				fmt.Println("Message usecase: Ошибка при чтении сообщений:", err)
+				fmt.Errorf("Message usecase: Ошибка при чтении сообщений: %v", err)
 				continue
 			}
 			var msgIds []string
@@ -323,14 +334,14 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 				for _, msg := range message.Messages {
 					mes, err := u.makeWebSocketDTO(msg.Values)
 					if err != nil {
-						log.Printf("Message usecase -> websocket: не удалось получить данные и канала: %v", err)
+						log.Errorf("Message usecase -> websocket: не удалось получить данные и канала: %v", err)
 						continue
 					}
 					if mes.MsgType == models.FeatUserInChat {
 						// создаем рутины на чаты, если еще не существуют
 						err := u.initChatsForUser(ctx, user.ID)
 						if err != nil {
-							log.Println("Message usecase: не удалось инициировать чаты пользоватея: %v", err)
+							log.Errorf("Message usecase: не удалось инициировать чаты пользоватея: %v", err)
 							res <- err
 							return
 						}
@@ -343,7 +354,7 @@ func (u *MessageUsecaseImplm) ScanForNewMessages(ctx context.Context, channel ch
 			}
 			_, err = u.redisClient.XDel(context.Background(), user.ID.String(), msgIds...).Result()
 			if err != nil {
-				log.Printf("Message usecase: не удалось удалить сообщения из redis: %v", err)
+				log.Errorf("Message usecase: не удалось удалить сообщения из redis: %v", err)
 			}
 		}
 	}
