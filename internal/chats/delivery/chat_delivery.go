@@ -317,7 +317,7 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 }
 
 func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
-	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	mapVars, ok := ctx.Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
 		return uuid.UUID{}, errors.New("Не удалось достать переменные из контекста")
