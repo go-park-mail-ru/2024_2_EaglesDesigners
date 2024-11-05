@@ -80,12 +80,12 @@ func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) Cha
 }
 
 type AddUsersIntoChatDTO struct {
-	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"uuid"`
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"-"`
 }
 
 type AddedUsersIntoChatDTO struct {
-	AddedUsers    []uuid.UUID `json:"addedUser" example:"uuid1,uuid2" valid:"uuid"`
-	NotAddedUsers []uuid.UUID `json:"notAddedUser" example:"uuid1,uuid2" valid:"uuid"`
+	AddedUsers    []uuid.UUID `json:"addedUser" example:"uuid1,uuid2" valid:"-"`
+	NotAddedUsers []uuid.UUID `json:"notAddedUser" example:"uuid1,uuid2" valid:"-"`
 }
 
 type DeleteUsersFromChatDTO struct {
@@ -93,9 +93,9 @@ type DeleteUsersFromChatDTO struct {
 }
 
 type DeletdeUsersFromChatDTO struct {
-	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2" valid:"uuid"`
+	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2" valid:"-"`
 }
 
 type UsersInChat struct {
-	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"uuid"`
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"-"`
 }

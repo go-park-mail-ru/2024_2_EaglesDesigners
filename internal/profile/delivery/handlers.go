@@ -3,6 +3,7 @@ package delivery
 import (
 	"context"
 	"encoding/json"
+	"html"
 	"net/http"
 	"sync"
 
@@ -208,10 +209,14 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func convertProfileDataToDTO(profileData models.ProfileData) models.GetProfileResponseDTO {
+	safeName := html.EscapeString(*profileData.Name)
+	safeBio := html.EscapeString(*profileData.Bio)
+	safeAvatarURL := html.EscapeString(*profileData.AvatarPath)
+
 	return models.GetProfileResponseDTO{
-		Name:      profileData.Name,
-		Bio:       profileData.Bio,
-		AvatarURL: profileData.AvatarPath,
+		Name:      &safeName,
+		Bio:       &safeBio,
+		AvatarURL: &safeAvatarURL,
 		Birthdate: profileData.Birthdate,
 	}
 }

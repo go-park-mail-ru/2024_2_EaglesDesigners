@@ -9,9 +9,9 @@ import (
 
 // @Schema
 type Message struct {
-	MessageId  uuid.UUID `json:"messageId" example:"1" valid:"uuid"`
-	AuthorID   uuid.UUID `json:"authorID" exameple:"2" valid:"uuid"`
-	AuthorName string    `json:"authorName" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
+	MessageId  uuid.UUID `json:"messageId" example:"1" valid:"-"`
+	AuthorID   uuid.UUID `json:"authorID" exameple:"2" valid:"-"`
+	AuthorName string    `json:"authorName" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$),optional"`
 	Message    string    `json:"text" example:"тут много текста" valid:"-"`
 	SentAt     time.Time `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
 	ChatId     uuid.UUID `json:"chatId" valid:"uuid"`

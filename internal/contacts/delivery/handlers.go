@@ -3,6 +3,7 @@ package delivery
 import (
 	"context"
 	"encoding/json"
+	"html"
 	"net/http"
 	"sync"
 
@@ -210,10 +211,13 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func convertContactToDTO(contact models.Contact) models.ContactRespDTO {
+	safeName := html.EscapeString(*contact.Name)
+	safeURL := html.EscapeString(*contact.AvatarURL)
+
 	return models.ContactRespDTO{
 		ID:        contact.ID,
-		Username:  contact.Username,
-		Name:      contact.Name,
-		AvatarURL: contact.AvatarURL,
+		Username:  html.EscapeString(contact.Username),
+		Name:      &safeName,
+		AvatarURL: &safeURL,
 	}
 }

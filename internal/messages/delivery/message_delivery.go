@@ -96,12 +96,6 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	var messageDTO models.Message
 	err = json.NewDecoder(r.Body).Decode(&messageDTO)
 
-	if err := validator.Check(messageDTO); err != nil {
-		log.Printf("входные данные не прошли проверку валидации: %v", err)
-		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
-		return
-	}
-
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"html"
 	"log"
 	"net/http"
 	"sync"
@@ -303,18 +304,20 @@ func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username str
 }
 
 func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
+	avatarURL := html.EscapeString(*userData.AvatarURL)
+
 	return models.UserDataRespDTO{
 		ID:        userData.ID,
-		Username:  userData.Username,
-		Name:      userData.Name,
-		AvatarURL: userData.AvatarURL,
+		Username:  html.EscapeString(userData.Username),
+		Name:      html.EscapeString(userData.Name),
+		AvatarURL: &avatarURL,
 	}
 }
 
 func convertFromJWTUserData(userDataJWT jwt.UserData) models.UserDataRespDTO {
 	return models.UserDataRespDTO{
 		ID:       userDataJWT.ID,
-		Username: userDataJWT.Username,
-		Name:     userDataJWT.Name,
+		Username: html.EscapeString(userDataJWT.Username),
+		Name:     html.EscapeString(userDataJWT.Name),
 	}
 }
