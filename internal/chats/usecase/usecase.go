@@ -25,6 +25,9 @@ const (
 	owner     = "owner"
 	notInChat = ""
 )
+const (
+	personal = "personal"
+)
 
 const (
 	channel = "channel"
@@ -90,6 +93,27 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	chatsDTO := []chatModel.ChatDTOOutput{}
 
 	for _, chat := range chats {
+		if chat.ChatType == personal {
+			users, err := s.repository.GetUsersFromChat(ctx, chat.ChatId)
+			if err != nil {
+				return nil, err
+			}
+			for _, id := range users {
+				if id != user.ID {
+					// находим имя пользователя и аватар
+					chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, id)
+
+					if err != nil {
+
+						log.Printf("Chat usecase -> GetChats: не удалось получить аватар и имя: %v", err)
+						return nil, err
+					}
+					chat.AvatarURL = avatar
+					chat.ChatName = chatName
+					break
+				}
+			}
+		}
 
 		chatDTO, err := s.createChatDTO(ctx, chat)
 
