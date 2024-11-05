@@ -304,13 +304,17 @@ func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username str
 }
 
 func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
-	avatarURL := html.EscapeString(*userData.AvatarURL)
+	var avatarURL *string
+	if userData.AvatarURL != nil {
+		avatarURL = new(string)
+		*avatarURL = html.EscapeString(*userData.AvatarURL)
+	}
 
 	return models.UserDataRespDTO{
 		ID:        userData.ID,
 		Username:  html.EscapeString(userData.Username),
 		Name:      html.EscapeString(userData.Name),
-		AvatarURL: &avatarURL,
+		AvatarURL: avatarURL,
 	}
 }
 

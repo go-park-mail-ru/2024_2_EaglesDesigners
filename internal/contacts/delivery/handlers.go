@@ -211,13 +211,22 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func convertContactToDTO(contact models.Contact) models.ContactRespDTO {
-	safeName := html.EscapeString(*contact.Name)
-	safeURL := html.EscapeString(*contact.AvatarURL)
+	var safeName *string
+	if contact.Name != nil {
+		safeName = new(string)
+		*safeName = html.EscapeString(*contact.Name)
+	}
+
+	var safeAvatarURL *string
+	if contact.AvatarURL != nil {
+		safeAvatarURL = new(string)
+		*safeAvatarURL = html.EscapeString(*contact.AvatarURL)
+	}
 
 	return models.ContactRespDTO{
 		ID:        contact.ID,
 		Username:  html.EscapeString(contact.Username),
-		Name:      &safeName,
-		AvatarURL: &safeURL,
+		Name:      safeName,
+		AvatarURL: safeAvatarURL,
 	}
 }

@@ -209,14 +209,28 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func convertProfileDataToDTO(profileData models.ProfileData) models.GetProfileResponseDTO {
-	safeName := html.EscapeString(*profileData.Name)
-	safeBio := html.EscapeString(*profileData.Bio)
-	safeAvatarURL := html.EscapeString(*profileData.AvatarPath)
+	var safeName *string
+	if profileData.Name != nil {
+		safeName = new(string)
+		*safeName = html.EscapeString(*profileData.Name)
+	}
+
+	var safeBio *string
+	if profileData.Bio != nil {
+		safeBio = new(string)
+		*safeBio = html.EscapeString(*profileData.Bio)
+	}
+
+	var safeAvatarURL *string
+	if profileData.AvatarPath != nil {
+		safeAvatarURL = new(string)
+		*safeAvatarURL = html.EscapeString(*profileData.AvatarPath)
+	}
 
 	return models.GetProfileResponseDTO{
-		Name:      &safeName,
-		Bio:       &safeBio,
-		AvatarURL: &safeAvatarURL,
+		Name:      safeName,
+		Bio:       safeBio,
+		AvatarURL: safeAvatarURL,
 		Birthdate: profileData.Birthdate,
 	}
 }
