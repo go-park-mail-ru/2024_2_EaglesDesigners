@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
@@ -13,6 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
 
 	"github.com/google/uuid"
@@ -55,6 +55,7 @@ func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepos
 }
 
 func (s *ChatUsecaseImpl) createChatDTO(ctx context.Context, chat chatModel.Chat) (chatModel.ChatDTOOutput, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	message, err := s.messageRepository.GetLastMessage(chat.ChatId)
 	if err != nil {
 		log.Printf("Usecase: не удалось получить последнее сообщение: %v", err)
@@ -77,7 +78,7 @@ func (s *ChatUsecaseImpl) createChatDTO(ctx context.Context, chat chatModel.Chat
 }
 
 func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTOOutput, error) {
-
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
 		return []chatModel.ChatDTOOutput{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
@@ -130,6 +131,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 }
 
 func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uuid.UUID, chatDTO chatModel.ChatDTOOutput, method string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	if _, ok := s.activeUsers[userId]; ok {
 
 		log.Printf("Chat usecase -> sendNotificationToUser: начата отправка уведомления пользователю: %v", userId)
@@ -153,6 +155,7 @@ func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uui
 }
 
 func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
 		return chatModel.AddedUsersIntoChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
@@ -198,6 +201,7 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 }
 
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
 		return chatModel.ChatDTOOutput{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
@@ -259,6 +263,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 }
 
 func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
 		return err
@@ -289,6 +294,7 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 }
 
 func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chatUpdate chatModel.ChatUpdate, userId uuid.UUID) (chatModel.ChatUpdateOutput, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
 		return chatModel.ChatUpdateOutput{}, err
@@ -354,6 +360,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 }
 
 func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 	role, err := s.repository.GetUserRoleInChat(ctx, userID, chatId)
 	if err != nil {
 		return chatModel.DeletdeUsersFromChatDTO{}, err

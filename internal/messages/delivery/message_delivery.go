@@ -3,7 +3,6 @@ package delivery
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
@@ -65,6 +65,7 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
 // @Router /chat/{chatId}/messages [post]
 func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
@@ -123,6 +124,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages [get]
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
@@ -169,6 +171,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	// начало
 
 	conn, err := upgrader.Upgrade(w, r, nil)
