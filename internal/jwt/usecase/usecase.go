@@ -17,7 +17,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
-var jwtSecret = generateJWTSecret()
+var jwtSecret = GenerateJWTSecret()
 
 type repository interface {
 	GetUserByUsername(ctx context.Context, username string) (auth.UserDAO, error)
@@ -46,7 +46,7 @@ func (u *Usecase) IsAuthorized(ctx context.Context, cookies []*http.Cookie) (use
 	}
 
 	if !result {
-		return user, errors.New("invalid token")
+		return user, errors.New("токен невалиден")
 	}
 
 	payload, err := getPayloadOfJWT(token)
@@ -60,11 +60,11 @@ func (u *Usecase) IsAuthorized(ctx context.Context, cookies []*http.Cookie) (use
 	}
 
 	if payload.Version != user.Version {
-		return user, errors.New("token outdated")
+		return user, errors.New("токен устарел")
 	}
 
 	if payload.Exp < time.Now().Unix() {
-		return user, errors.New("token expired")
+		return user, errors.New("токен истек")
 	}
 
 	return user, nil
@@ -103,7 +103,7 @@ func (u *Usecase) CreateJWT(ctx context.Context, username string) (string, error
 
 	payloadEncoded := base64.RawURLEncoding.EncodeToString(payloadJSON)
 
-	jwt, err := GeneratorJWT(headerEncoded, payloadEncoded)
+	jwt, err := GeneratorJWT(headerEncoded, payloadEncoded, jwtSecret)
 	if err != nil {
 		return "", err
 	}
@@ -158,7 +158,7 @@ func (u *Usecase) GetUserDataByJWT(cookies []*http.Cookie) (UserData, error) {
 	return data, nil
 }
 
-func generateJWTSecret() []byte {
+func GenerateJWTSecret() []byte {
 	secret := make([]byte, 32)
 	if _, err := rand.Read(secret); err != nil {
 		log.Fatalf("Ошибка при генерации jwtSecret: %v", err)
@@ -167,8 +167,8 @@ func generateJWTSecret() []byte {
 
 }
 
-func GeneratorJWT(header string, payload string) (string, error) {
-	hmac := hmac.New(sha256.New, jwtSecret)
+func GeneratorJWT(header string, payload string, secret []byte) (string, error) {
+	hmac := hmac.New(sha256.New, secret)
 	hmac.Write([]byte(header + "." + payload))
 	signature := hmac.Sum(nil)
 
@@ -188,7 +188,7 @@ func checkJWT(token string) (bool, error) {
 	payload := jwt[1]
 	signature := jwt[2]
 
-	newToken, err := GeneratorJWT(header, payload)
+	newToken, err := GeneratorJWT(header, payload, jwtSecret)
 	if err != nil {
 		return false, err
 	}

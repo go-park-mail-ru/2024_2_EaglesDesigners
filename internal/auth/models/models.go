@@ -80,3 +80,7 @@ type UserDAO struct {
 	Version   int64
 	AvatarURL *string
 }
+
+type CsrfDTO struct {
+	Token string `json:"csrf"`
+}

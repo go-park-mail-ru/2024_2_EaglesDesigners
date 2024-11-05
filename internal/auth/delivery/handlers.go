@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
@@ -74,7 +75,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
-		err := d.setToken(w, r, creds.Username)
+		err := d.setTokens(w, r, creds.Username)
 		if err != nil {
 			log.Errorf("не удалось аутентифицировать пользователя")
 			responser.SendError(ctx, w, "Invalid format JSON", http.StatusUnauthorized)
@@ -129,7 +130,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("получение данных пользователя")
 
-	d.setToken(w, r, creds.Username)
+	d.setTokens(w, r, creds.Username)
 	userData, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
 	if err != nil {
 		responser.SendError(ctx, w, "User failed to create", http.StatusBadRequest)
@@ -201,20 +202,22 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
-func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
+var errTokenExpired = errors.New("токен истек")
+
+func (d *Delivery) Authorize(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		user, err := d.token.IsAuthorized(ctx, r.Cookies())
-		if err == errors.New("token expired") {
-			log.Println("token expired, create new token")
+		if err == errTokenExpired {
+			log.Println("Auth middlware: токен истек, создается новый токен")
 			user, err = d.token.GetUserByJWT(r.Context(), r.Cookies())
 
 			if err != nil {
 				responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
-			d.setToken(w, r, user.Username)
+			d.setTokens(w, r, user.Username)
 		}
 		if err != nil {
 			responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
@@ -225,6 +228,26 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 		ctx = context.WithValue(ctx, models.MuxParamsKey, mux.Vars(r))
 
 		r = r.WithContext(ctx)
+
+		next(w, r)
+	}
+}
+
+func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("not_csrf")
+
+		user := r.Context().Value(models.UserKey).(jwt.User)
+
+		err := csrf.CheckCSRF(token, user.ID, user.Username)
+		if err != nil {
+			if err == errTokenExpired {
+				responser.SendError(w, "csrf expired", http.StatusForbidden)
+				return
+			}
+			responser.SendError(w, "Invalid csrf", http.StatusForbidden)
+			return
+		}
 
 		next(w, r)
 	}
@@ -283,7 +306,7 @@ func (c *Delivery) isAuthorized(r *http.Request) error {
 	return nil
 }
 
-func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username string) error {
+func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username string) error {
 	ctx := r.Context()
 	token, err := d.token.CreateJWT(ctx, username)
 	if err != nil {
@@ -299,6 +322,15 @@ func (d *Delivery) setToken(w http.ResponseWriter, r *http.Request, username str
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   7 * 24 * 60 * 60,
 	})
+
+	csrf, err := csrf.CreateCSRF(token)
+	if err != nil {
+		log.Printf("Auth setTokens: не удалось создать csrf токен: %v", err)
+		return err
+	}
+
+	w.Header().Set("X-CSRF-Token", csrf)
+	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
 
 	return nil
 }
