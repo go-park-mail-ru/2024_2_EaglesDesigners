@@ -3,13 +3,13 @@ package delivery
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 )
@@ -55,8 +55,9 @@ func New(usecase usecase, token token) *Delivery {
 // @Router /contacts [get]
 func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Contact delivery: пришел запрос на получение контактов")
+	log.Println("пришел запрос на получение контактов")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
@@ -70,7 +71,7 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Contact delivery: контакты получены")
+	log.Println("контакты получены")
 
 	var contactsDTO []models.ContactRespDTO
 
@@ -83,12 +84,12 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validator.Check(response); err != nil {
-		log.Printf("Contact delivery: выходные данные не прошли проверку валидации: %v", err)
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	log.Println("Contact delivery: контакты успешно отправлены")
+	log.Println("контакты успешно отправлены")
 
 	responser.SendStruct(w, response, http.StatusCreated)
 }
@@ -110,8 +111,9 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Contact delivery: пришел запрос на добавление контакта")
+	log.Println("пришел запрос на добавление контакта")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
@@ -122,13 +124,13 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	var contactCreds models.ContactReqDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
-		log.Println("Contact delivery: в теле запросе нет необходимых тегов")
+		log.Errorf("в теле запросе нет необходимых тегов")
 		responser.SendError(w, invalidJSONError, http.StatusBadRequest)
 		return
 	}
 
 	if err := validator.Check(contactCreds); err != nil {
-		log.Printf("Contact delivery: входные данные не прошли проверку валидации: %v", err)
+		log.Errorf("входные данные не прошли проверку валидации: %v", err)
 		responser.SendError(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
@@ -147,7 +149,7 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	response := convertContactToDTO(contact)
 
 	if err := validator.Check(response); err != nil {
-		log.Printf("Contact delivery: выходные данные не прошли проверку валидации: %v", err)
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
@@ -173,8 +175,9 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Contact delivery: пришел запрос на удаление контакта")
+	log.Println("пришел запрос на удаление контакта")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
@@ -185,7 +188,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 	var contactCreds models.ContactReqDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
-		log.Println("Contact delivery: в теле запросе нет необходимых тегов")
+		log.Errorf("в теле запросе нет необходимых тегов")
 		responser.SendError(w, invalidJSONError, http.StatusBadRequest)
 		return
 	}
@@ -201,7 +204,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.Println("Contact delivery: контакт успешно удален")
+	log.Println("контакт успешно удален")
 
 	responser.SendOK(w, "contact deleted", http.StatusOK)
 }

@@ -2,8 +2,9 @@ package responser
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+
+	log "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
 // @Schema
@@ -25,7 +26,7 @@ func SendOK(w http.ResponseWriter, message string, statusCode int) {
 }
 
 func SendError(w http.ResponseWriter, errorMessage string, statusCode int) {
-	log.Printf("Отправлен код %d. ОШИБКА: %s \n", statusCode, errorMessage)
+	log.Log.Errorf("Отправлен код %d. ОШИБКА: %s \n", statusCode, errorMessage)
 
 	response := ErrorResponse{Error: errorMessage, Status: "error"}
 	w.WriteHeader(statusCode)
@@ -38,7 +39,7 @@ func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // SendStruct отправляет полученный экземпляр структуры в формате json с статусом кода statusCode.
-func 	SendStruct(w http.ResponseWriter, response any, statusCode int) {
+func SendStruct(w http.ResponseWriter, response any, statusCode int) {
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
 		SendError(w, "Failed to create response", http.StatusBadRequest)
