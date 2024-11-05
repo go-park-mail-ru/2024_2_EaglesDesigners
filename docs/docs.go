@@ -1040,8 +1040,8 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Чат с пользователем 2"
                 },
-                "wasAvatarUpdated": {
-                    "type": "boolean"
+                "updatedAvatarPath": {
+                    "type": "string"
                 }
             }
         },
