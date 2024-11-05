@@ -65,7 +65,7 @@ type ChatUpdate struct {
 
 type ChatUpdateOutput struct {
 	ChatName string `json:"chatName" example:"Чат с пользователем 2"`
-	Avatar   bool   `json:"wasAvatarUpdated"`
+	Avatar   string   `json:"updatedAvatarPath"`
 }
 
 func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) ChatDTOOutput {

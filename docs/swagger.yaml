@@ -60,8 +60,8 @@ definitions:
       chatName:
         example: Чат с пользователем 2
         type: string
-      wasAvatarUpdated:
-        type: boolean
+      updatedAvatarPath:
+        type: string
     type: object
   model.ChatsDTO:
     properties:
