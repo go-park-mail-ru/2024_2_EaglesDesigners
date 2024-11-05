@@ -116,7 +116,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validator.Check(creds); err != nil {
-		log.Printf("входные данные не прошли проверку валидации: %v", err)
+		log.Errorf("входные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
@@ -145,7 +145,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validator.Check(response); err != nil {
-		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
@@ -190,7 +190,7 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validator.Check(response); err != nil {
-		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}

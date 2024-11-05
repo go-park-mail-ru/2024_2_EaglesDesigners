@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -23,9 +23,11 @@ func New(pool *pgxpool.Pool) *Repository {
 }
 
 func (r *Repository) GetProfileByUsername(ctx context.Context, id uuid.UUID) (models.ProfileDataDAO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Не удалось соединиться с базой данных: %v\n", err)
+		log.Errorf("не удалось соединиться с базой данных: %v\n", err)
 		return models.ProfileDataDAO{}, err
 	}
 	defer conn.Release()
@@ -51,11 +53,11 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, id uuid.UUID) (mo
 		&profileData.AvatarPath,
 	)
 	if err != nil {
-		log.Printf("Не удалось получить данные профиля: %v\n", err)
+		log.Errorf("не удалось получить данные профиля: %v\n", err)
 		return models.ProfileDataDAO{}, err
 	}
 
-	log.Println("Profile repo: данные получены")
+	log.Println("данные получены")
 
 	return profileData, nil
 }
@@ -69,9 +71,11 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, id uuid.UUID) (mo
 // WHERE id = $1
 // RETURNING avatar_path;
 func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Не удалось соединиться с базой данных: %v\n", err)
+		log.Errorf("не удалось соединиться с базой данных: %v\n", err)
 		return nil, err
 	}
 	defer conn.Release()
