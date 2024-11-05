@@ -64,9 +64,10 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
 // @Router /chat/{chatId}/messages [post]
 func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
-		responser.SendError(w, "Нет нужных параметров", http.StatusInternalServerError)
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
 		return
 	}
 
@@ -76,7 +77,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		//conn.400
 		log.Println("Delivery: error during parsing json:", err)
-		responser.SendError(w, fmt.Sprintf("Delivery: error during connection upgrade:%v", err), http.StatusBadRequest)
+		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during connection upgrade:%v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -87,7 +88,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	log.Println(user)
 	if !ok {
 		log.Println("Message delivery -> AddNewMessage: нет юзера в контексте")
-		responser.SendError(w, "Нет нужных параметров", http.StatusInternalServerError)
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
 		return
 	}
 
@@ -96,7 +97,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
-		responser.SendError(w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
+		responser.SendError(ctx, w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -104,7 +105,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		log.Printf("Не удалось добавить сообщение: %v", err)
-		responser.SendError(w, fmt.Sprintf("Не удалось добавить сообщение: %v", err), http.StatusInternalServerError)
+		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить сообщение: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -121,9 +122,10 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages [get]
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
-		responser.SendError(w, "Нет нужных параметров", http.StatusInternalServerError)
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
 		return
 	}
 
@@ -133,7 +135,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		//conn.400
 		log.Printf("Message delivery -> GetAllMessages: получен кривой Id юзера: %v", err)
-		responser.SendError(w, fmt.Sprintf("Delivery: error during connection upgrade:%v", err), http.StatusBadRequest)
+		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during connection upgrade:%v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -143,7 +145,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	messages, err := h.usecase.GetMessages(r.Context(), chatUUID)
 	if err != nil {
 		log.Println("Error reading message:", err)
-		responser.SendError(w, fmt.Sprintf("Error reading message:%v", err), http.StatusInternalServerError)
+		responser.SendError(ctx, w, fmt.Sprintf("Error reading message:%v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -151,7 +153,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		log.Printf("error happened in JSON marshal. Err: %s", err)
-		responser.SendError(w, fmt.Sprintf("error happened in JSON marshal. Err: %s", err), http.StatusInternalServerError)
+		responser.SendError(ctx, w, fmt.Sprintf("error happened in JSON marshal. Err: %s", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -213,4 +215,3 @@ func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Requ
 
 	}
 }
-
