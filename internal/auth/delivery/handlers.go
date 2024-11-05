@@ -224,10 +224,10 @@ func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
 		err := csrf.CheckCSRF(token, user.ID, user.Username)
 		if err != nil {
 			if err == errTokenExpired {
-				responser.SendError(w, "csrf expired", http.StatusUnauthorized)
+				responser.SendError(w, "csrf expired", http.StatusForbidden)
 				return
 			}
-			responser.SendError(w, "Invalid csrf", http.StatusUnauthorized)
+			responser.SendError(w, "Invalid csrf", http.StatusForbidden)
 			return
 		}
 
