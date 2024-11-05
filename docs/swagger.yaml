@@ -173,6 +173,12 @@ definitions:
         example: тут много текста
         type: string
     type: object
+  models.MessageInput:
+    properties:
+      text:
+        example: тут много текста
+        type: string
+    type: object
   models.MessagesArrayDTO:
     properties:
       messages:
@@ -498,7 +504,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/models.Message'
+          $ref: '#/definitions/models.MessageInput'
       responses:
         "201":
           description: Сообщение успешно добавлено
