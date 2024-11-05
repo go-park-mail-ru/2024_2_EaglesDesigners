@@ -34,7 +34,7 @@ type ChatDTOOutput struct {
 type ChatDTOInput struct {
 	ChatName   string          `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
 	ChatType   string          `json:"chatType" example:"personalMessages" valid:"in(personal|group|channel)"`
-	UsersToAdd []uuid.UUID     `json:"usersToAdd" example:"uuid1,uuid2" valid:"uuid"`
+	UsersToAdd []uuid.UUID     `json:"usersToAdd" example:"uuid1,uuid2" valid:"-"`
 	Avatar     *multipart.File `json:"-" valid:"-"`
 }
 
