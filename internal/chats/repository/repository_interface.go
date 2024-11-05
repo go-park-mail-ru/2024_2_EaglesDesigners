@@ -19,4 +19,5 @@ type ChatRepository interface {
 	DeleteUserFromChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error
 	GetUsersFromChat(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error)
 	UpdateChatPhoto(ctx context.Context, chatId uuid.UUID, filename string) error
+	GetUserNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error)
 }

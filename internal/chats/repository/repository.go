@@ -444,3 +444,26 @@ func (r *ChatRepositoryImpl) UpdateChatPhoto(ctx context.Context, chatId uuid.UU
 
 	return nil
 }
+
+func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error) {
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return "", "", err
+	}
+	defer conn.Release()
+
+	var username sql.NullString
+	var filename sql.NullString
+	err = conn.QueryRow(ctx,
+		`SELECT username, avatar_path FROM public.user WHERE id = $1;`,
+		userId,
+	).Scan(&username, &filename)
+
+	if err != nil {
+		log.Printf("Chat repository -> GetUserNameAndAvatar: не удалось получитьб юзера: %v", err)
+		return "", "", err
+	}
+
+	return username.String, filename.String, nil
+}
