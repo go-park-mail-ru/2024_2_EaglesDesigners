@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	admin = "admin"
-	none  = "none"
-	owner = "owner"
+	admin     = "admin"
+	none      = "none"
+	owner     = "owner"
+	notInChat = ""
 )
 
 const (
@@ -138,6 +139,7 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	}
 
 	var addedUsers []uuid.UUID
+	var notAddedUsers []uuid.UUID
 	// проверяем есть ли права
 	switch role {
 	case admin, owner:
@@ -150,7 +152,11 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 		}
 
 		for _, id := range user_ids {
-			s.repository.AddUserIntoChat(ctx, id, chat_id, none)
+			err = s.repository.AddUserIntoChat(ctx, id, chat_id, none)
+			if err != nil {
+				notAddedUsers = append(notAddedUsers, id)
+				continue
+			}
 			chatDTO, err := s.createChatDTO(ctx, chat)
 			if err != nil {
 				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
@@ -160,7 +166,8 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 		}
 		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
 
-		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers}, nil
+		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers,
+			NotAddedUsers: notAddedUsers}, nil
 	}
 
 	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
@@ -271,13 +278,36 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 
 		// send notification to chat
 		if chatUpdate.Avatar != nil {
-			err := multipartHepler.RewritePhoto(*chatUpdate.Avatar, chatDir)
+			chat, err := s.repository.GetChatById(ctx, chatId)
 			if err != nil {
-				log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
 				return chatModel.ChatUpdateOutput{}, err
 			}
 
-			updatedChat.Avatar = true
+			if chat.AvatarURL != "" {
+
+				err = multipartHepler.RewritePhoto(*chatUpdate.Avatar, chat.AvatarURL)
+				if err != nil {
+					log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
+					return chatModel.ChatUpdateOutput{}, err
+				}
+				updatedChat.Avatar = chat.AvatarURL
+			} else {
+				log.Println("Chat usecase -> UpdateChat: нет старой аватарки -> установка новой")
+				filename, err := multipartHepler.SavePhoto(*chatUpdate.Avatar, chatDir)
+				if err != nil {
+					log.Printf("Не удалось записать аватарку: %v", err)
+					return chatModel.ChatUpdateOutput{}, err
+				}
+				err = s.repository.UpdateChatPhoto(ctx, chatId, filename)
+
+				if err != nil {
+					log.Printf("Chat usecase -> UpdateChat: не удалось установить аватарку: %v", err)
+					return chatModel.ChatUpdateOutput{}, err
+				}
+				updatedChat.Avatar = filename
+			}
+			log.Println("Chat usecase -> UpdateChat: аватар обновлен")
+
 		}
 
 		if chatUpdate.ChatName != "" {
@@ -286,18 +316,17 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 				log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
 				return chatModel.ChatUpdateOutput{}, err
 			}
+			log.Println("Chat usecase -> UpdateChat: имя чата обновлено")
 			updatedChat.ChatName = chatUpdate.ChatName
 		}
-		return chatModel.ChatUpdateOutput{}, nil
-	case none:
+		return updatedChat, nil
+	default:
 		log.Printf("Chat usecase -> UpdateChat: у пользователя %v нет привелегий", userId)
 		return chatModel.ChatUpdateOutput{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: fmt.Sprintf("чат: %v", chatId.String()),
 		}
 	}
-
-	return updatedChat, nil
 }
 
 func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error) {
@@ -336,4 +365,27 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 	}
 
 	return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, errors.New("Участники не удалены")
+}
+
+func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.UsersInChat, error) {
+	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
+	if err != nil {
+		return chatModel.UsersInChat{}, err
+	}
+
+	if role == notInChat {
+		return chatModel.UsersInChat{}, &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: chatId.String(),
+		}
+	}
+
+	ids, err := s.repository.GetUsersFromChat(ctx, chatId)
+	if err != nil {
+		return chatModel.UsersInChat{}, err
+	}
+
+	return chatModel.UsersInChat{
+		UsersId: ids,
+	}, nil
 }

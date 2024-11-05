@@ -8,7 +8,7 @@ import (
 )
 
 type MessageRepository interface {
-	GetMessages(page int, chatId uuid.UUID) ([]models.Message, error)
+	GetMessages(chatId uuid.UUID) ([]models.Message, error)
 	AddMessage(message models.Message, chatId uuid.UUID) error
 	GetLastMessage(chatId uuid.UUID) (models.Message, error)
 	GetAllMessagesAfter(chatId uuid.UUID, after time.Time, lastMessageId uuid.UUID) ([]models.Message, error)

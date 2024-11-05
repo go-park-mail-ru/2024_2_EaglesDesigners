@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/cors"
@@ -30,6 +31,7 @@ import (
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/uploads/delivery"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/redis/go-redis/v9"
 )
@@ -123,9 +125,12 @@ func main() {
 
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
+	// добавление request_id в ctx всем запросам
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// r = r.WithContext(ctx) не работает nux.Vars(r), т.к. убирается сонтекст
+			requestID := uuid.New().String()
+			ctx = context.WithValue(r.Context(), logger.RequestIDKey, requestID)
+			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
 	})
@@ -156,6 +161,7 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/delete", auth.Middleware(chat.DeleteChatOrGroup)).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}", auth.Middleware(chat.UpdateGroup)).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/users", auth.Middleware(chat.GetUsersFromChat)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/startwebsocket", auth.Middleware(messageDelivery.HandleConnection))

@@ -60,8 +60,8 @@ definitions:
       chatName:
         example: Чат с пользователем 2
         type: string
-      wasAvatarUpdated:
-        type: boolean
+      updatedAvatarPath:
+        type: string
     type: object
   model.ChatsDTO:
     properties:
@@ -81,6 +81,16 @@ definitions:
         type: array
     type: object
   model.DeleteUsersFromChatDTO:
+    properties:
+      usersId:
+        example:
+        - uuid1
+        - uuid2
+        items:
+          type: string
+        type: array
+    type: object
+  model.UsersInChat:
     properties:
       usersId:
         example:
@@ -114,7 +124,6 @@ definitions:
         example: 08a0f350-e122-467b-8ba8-524d2478b56e
         type: string
       name:
-        description: can be nil
         example: Витек
         type: string
       username:
@@ -159,6 +168,12 @@ definitions:
       messageId:
         example: "1"
         type: string
+      text:
+        example: тут много текста
+        type: string
+    type: object
+  models.MessageInput:
+    properties:
       text:
         example: тут много текста
         type: string
@@ -208,7 +223,7 @@ definitions:
         example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
       id:
-        example: "2"
+        example: f0364477-bfd4-496d-b639-d825b009d509
         type: string
       name:
         example: Dr Peper
@@ -311,6 +326,14 @@ paths:
         in: formData
         name: avatar
         type: file
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
       responses:
         "200":
           description: Чат обновлен
@@ -480,7 +503,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/models.Message'
+          $ref: '#/definitions/models.MessageInput'
       responses:
         "201":
           description: Сообщение успешно добавлено
@@ -495,6 +518,39 @@ paths:
       summary: Add new message
       tags:
       - message
+  /chat/{chatId}/users:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи чата
+          schema:
+            $ref: '#/definitions/model.UsersInChat'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить учатсников
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получаем id пользователей
+      tags:
+      - chat
   /chats:
     get:
       parameters:
@@ -533,7 +589,7 @@ paths:
         "200":
           description: Contact deleted
           schema:
-            $ref: '#/definitions/models.ContactRespDTO'
+            $ref: '#/definitions/responser.SuccessResponse'
         "400":
           description: Failed to delete contact
           schema:

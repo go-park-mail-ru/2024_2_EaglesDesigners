@@ -63,7 +63,7 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -71,7 +71,7 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -79,13 +79,13 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	if err := validator.Check(response); err != nil {
 		log.Printf("Profile delivery: выходные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	log.Println("Profile delivery: данные успешно отправлены")
 
-	responser.SendStruct(w, response, http.StatusOK)
+	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
 // GetProfileHandler godoc
@@ -111,7 +111,7 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -119,13 +119,13 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := validator.Check(response); err != nil {
 		log.Printf("Profile delivery: выходные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	log.Println("Profile delivery: данные успешно отправлены")
 
-	responser.SendStruct(w, response, http.StatusOK)
+	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
 // UpdateProfileHandler godoc
@@ -151,7 +151,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -159,7 +159,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		log.Println("Profile delivery: не удалось распарсить запрос: ", err)
-		responser.SendError(w, "Unable to parse form", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
 
@@ -168,20 +168,20 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	jsonString := r.FormValue("profile_data")
 	if jsonString != "" {
 		if err := json.Unmarshal([]byte(jsonString), &profile); err != nil {
-			responser.SendError(w, invalidJSONError, http.StatusBadRequest)
+			responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
 			return
 		}
 	}
 
 	if err := validator.Check(profile); err != nil {
 		log.Printf("Profile delivery: входные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
-		responser.SendError(w, "Failed to get avatar", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
 		return
 	}
 	defer func() {
@@ -195,7 +195,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := d.usecase.UpdateProfile(ctx, profile); err != nil {
-		responser.SendError(w, "Failed to update profile", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Failed to update profile", http.StatusBadRequest)
 		return
 	}
 

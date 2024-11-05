@@ -65,7 +65,7 @@ type ChatUpdate struct {
 
 type ChatUpdateOutput struct {
 	ChatName string `json:"chatName" example:"Чат с пользователем 2"`
-	Avatar   bool   `json:"wasAvatarUpdated"`
+	Avatar   string   `json:"updatedAvatarPath"`
 }
 
 func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) ChatDTOOutput {
@@ -85,6 +85,7 @@ type AddUsersIntoChatDTO struct {
 
 type AddedUsersIntoChatDTO struct {
 	AddedUsers []uuid.UUID `json:"addedUser" example:"uuid1,uuid2"`
+	NotAddedUsers []uuid.UUID `json:"notAddedUser" example:"uuid1,uuid2"`
 }
 
 type DeleteUsersFromChatDTO struct {
@@ -93,4 +94,8 @@ type DeleteUsersFromChatDTO struct {
 
 type DeletdeUsersFromChatDTO struct {
 	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2"`
+}
+
+type UsersInChat struct {
+	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2"`
 }

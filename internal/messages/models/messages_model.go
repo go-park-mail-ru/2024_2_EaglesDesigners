@@ -27,6 +27,11 @@ func (m *Message) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, m)
 }
 
+type MessageInput struct {
+	Message string `json:"text" example:"тут много текста"`
+}
+
+
 type MessagesArrayDTO struct {
 	Messages []Message `json:"messages"`
 }
