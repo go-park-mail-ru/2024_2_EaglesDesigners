@@ -23,11 +23,11 @@ type Chat struct {
 
 // @Schema
 type ChatDTOOutput struct {
-	ChatId       uuid.UUID      `json:"chatId" example:"08a0f350-e122-467b-8ba8-524d2478b56e" valid:"uuid"`
+	ChatId       uuid.UUID      `json:"chatId" example:"08a0f350-e122-467b-8ba8-524d2478b56e" valid:"-"`
 	ChatName     string         `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
 	CountOfUsers int            `json:"countOfUsers" example:"52" valid:"int"`
 	ChatType     string         `json:"chatType" example:"personal" valid:"in(personal|group|channel)"`
-	LastMessage  models.Message `json:"lastMessage" valid:",optional"`
+	LastMessage  models.Message `json:"lastMessage" valid:"-"`
 	AvatarPath   string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/chat/[a-zA-Z0-9\\-]+\\.png$),optional"`
 }
 

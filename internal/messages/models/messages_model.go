@@ -14,7 +14,7 @@ type Message struct {
 	AuthorName string    `json:"authorName" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$),optional"`
 	Message    string    `json:"text" example:"тут много текста" valid:"-"`
 	SentAt     time.Time `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
-	ChatId     uuid.UUID `json:"chatId" valid:"uuid"`
+	ChatId     uuid.UUID `json:"chatId" valid:"-"`
 	IsRedacted bool      `json:"isRedacted" valid:"-"`
 }
 

@@ -133,6 +133,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	}
 
 	chatId := mapVars["chatId"]
+	log.Printf("chatid: %s", chatId)
 	chatUUID, err := uuid.Parse(chatId)
 
 	if err != nil {
