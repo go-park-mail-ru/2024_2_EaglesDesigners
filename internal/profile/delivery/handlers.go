@@ -3,13 +3,13 @@ package delivery
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/google/uuid"
@@ -58,8 +58,9 @@ func New(usecase usecase, token token) *Delivery {
 // @Router /profile [get]
 func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Profile delivery: пришел запрос на получение данных о своем профиле")
+	log.Println("пришел запрос на получение данных о своем профиле")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
@@ -78,12 +79,12 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 	response := convertProfileDataToDTO(profileData)
 
 	if err := validator.Check(response); err != nil {
-		log.Printf("Profile delivery: выходные данные не прошли проверку валидации: %v", err)
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	log.Println("Profile delivery: данные успешно отправлены")
+	log.Println("данные успешно отправлены")
 
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
@@ -101,8 +102,9 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 // @Router /profile/{userid} [get]
 func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Profile delivery: пришел запрос на получение данных профиля")
+	log.Println("пришел запрос на получение данных профиля")
 
 	vars := mux.Vars(r)
 	userid := vars["userid"]
@@ -118,12 +120,12 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	response := convertProfileDataToDTO(profileData)
 
 	if err := validator.Check(response); err != nil {
-		log.Printf("Profile delivery: выходные данные не прошли проверку валидации: %v", err)
+		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	log.Println("Profile delivery: данные успешно отправлены")
+	log.Println("данные успешно отправлены")
 
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
@@ -146,8 +148,9 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	log.Println("Profile delivery: пришел запрос на обновление профиля")
+	log.Println("пришел запрос на обновление профиля")
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
@@ -158,7 +161,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	var profile models.UpdateProfileRequestDTO
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		log.Println("Profile delivery: не удалось распарсить запрос: ", err)
+		log.Errorf("не удалось распарсить запрос: %v", err)
 		responser.SendError(ctx, w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
@@ -174,7 +177,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := validator.Check(profile); err != nil {
-		log.Printf("Profile delivery: входные данные не прошли проверку валидации: %v", err)
+		log.Errorf("входные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
@@ -199,7 +202,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.Println("Profile delivery: профиль успешно обновлен")
+	log.Println("профиль успешно обновлен")
 
 	responser.SendOK(w, "Profile updated", http.StatusOK)
 }
