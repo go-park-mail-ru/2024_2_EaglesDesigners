@@ -307,6 +307,7 @@ func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username st
 	}
 
 	w.Header().Set("X-CSRF-Token", csrf)
+	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
 
 	return csrf, nil
 }
