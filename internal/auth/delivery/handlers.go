@@ -62,13 +62,13 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var creds models.AuthReqDTO
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		log.Errorf("не удалось распарсить json")
-		responser.SendError(w, "Invalid format JSON", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid format JSON", http.StatusBadRequest)
 		return
 	}
 
 	if err := validator.Check(creds); err != nil {
 		log.Errorf("входные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		err := d.setToken(w, r, creds.Username)
 		if err != nil {
 			log.Errorf("не удалось аутентифицировать пользователя")
-			responser.SendError(w, "Invalid format JSON", http.StatusUnauthorized)
+			responser.SendError(ctx, w, "Invalid format JSON", http.StatusUnauthorized)
 			return
 		}
 
@@ -86,7 +86,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		log.Errorf("неверный логин или пароль")
-		responser.SendError(w, "Incorrect login or password", http.StatusUnauthorized)
+		responser.SendError(ctx, w, "Incorrect login or password", http.StatusUnauthorized)
 	}
 }
 
@@ -111,18 +111,18 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	var creds models.RegisterReqDTO
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		responser.SendError(w, "Invalid input data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
 
 	if err := validator.Check(creds); err != nil {
 		log.Printf("входные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	if err := d.usecase.Registration(ctx, creds.Username, creds.Name, creds.Password); err != nil {
-		responser.SendError(w, "A user with that username already exists", http.StatusConflict)
+		responser.SendError(ctx, w, "A user with that username already exists", http.StatusConflict)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	d.setToken(w, r, creds.Username)
 	userData, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
 	if err != nil {
-		responser.SendError(w, "User failed to create", http.StatusBadRequest)
+		responser.SendError(ctx, w, "User failed to create", http.StatusBadRequest)
 		return
 	}
 
@@ -146,13 +146,13 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := validator.Check(response); err != nil {
 		log.Printf("выходные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	log.Println("пользователь успешно зарегистрирован")
 
-	responser.SendStruct(w, response, http.StatusCreated)
+	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
 // AuthHandler godoc
@@ -172,14 +172,14 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := ctx.Value(models.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, "User not found", http.StatusNotFound)
+		responser.SendError(ctx, w, "User not found", http.StatusNotFound)
 		return
 	}
 
 	userData, err := d.usecase.GetUserDataByUsername(ctx, user.Username)
 	if err != nil {
 		log.Println("не получилось получить данные пользователя")
-		responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
+		responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -191,13 +191,13 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := validator.Check(response); err != nil {
 		log.Printf("выходные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	log.Println("пользователь успешно авторизован")
 
-	responser.SendStruct(w, response, http.StatusOK)
+	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
 func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
@@ -210,13 +210,13 @@ func (d *Delivery) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			user, err = d.token.GetUserByJWT(r.Context(), r.Cookies())
 
 			if err != nil {
-				responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
+				responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 			d.setToken(w, r, user.Username)
 		}
 		if err != nil {
-			responser.SendError(w, "Unauthorized", http.StatusUnauthorized)
+			responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -253,7 +253,7 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !tokenExists {
-		responser.SendError(w, "No access token found", http.StatusUnauthorized)
+		responser.SendError(ctx, w, "No access token found", http.StatusUnauthorized)
 		return
 	}
 

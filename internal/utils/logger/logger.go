@@ -23,7 +23,7 @@ func init() {
 func LoggerWithCtx(ctx context.Context, log *logrus.Logger) *logrus.Entry {
 	reqID, ok := ctx.Value(RequestIDKey).(string)
 	if !ok {
-		reqID = "PLOHOB"
+		reqID = "errors"
 	}
 
 	pc, _, _, _ := runtime.Caller(1)

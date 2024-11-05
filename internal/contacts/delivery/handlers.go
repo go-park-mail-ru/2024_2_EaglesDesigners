@@ -61,13 +61,13 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
 	contacts, err := d.usecase.GetContacts(ctx, user.Username)
 	if err != nil {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -85,13 +85,13 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := validator.Check(response); err != nil {
 		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	log.Println("контакты успешно отправлены")
 
-	responser.SendStruct(w, response, http.StatusCreated)
+	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
 // AddContactHandler godoc
@@ -117,7 +117,7 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -125,13 +125,13 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
 		log.Errorf("в теле запросе нет необходимых тегов")
-		responser.SendError(w, invalidJSONError, http.StatusBadRequest)
+		responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
 		return
 	}
 
 	if err := validator.Check(contactCreds); err != nil {
 		log.Errorf("входные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
@@ -142,7 +142,7 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	contact, err := d.usecase.AddContact(ctx, contactData)
 	if err != nil {
-		responser.SendError(w, "Failed to create contact", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Failed to create contact", http.StatusBadRequest)
 		return
 	}
 
@@ -150,13 +150,13 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := validator.Check(response); err != nil {
 		log.Errorf("выходные данные не прошли проверку валидации: %v", err)
-		responser.SendError(w, "Invalid data", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
 	log.Println("Contact delivery: контакт успешно создан")
 
-	responser.SendStruct(w, response, http.StatusCreated)
+	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
 // DeleteContactHandler godoc
@@ -181,7 +181,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
-		responser.SendError(w, userNotFoundError, http.StatusNotFound)
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
@@ -189,7 +189,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 
 	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
 		log.Errorf("в теле запросе нет необходимых тегов")
-		responser.SendError(w, invalidJSONError, http.StatusBadRequest)
+		responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
 		return
 	}
 
@@ -200,7 +200,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 
 	err := d.usecase.DeleteContact(ctx, contactData)
 	if err != nil {
-		responser.SendError(w, "Failed to delete contact", http.StatusBadRequest)
+		responser.SendError(ctx, w, "Failed to delete contact", http.StatusBadRequest)
 		return
 	}
 
