@@ -242,10 +242,10 @@ func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
 		err := csrf.CheckCSRF(token, user.ID, user.Username)
 		if err != nil {
 			if err == errTokenExpired {
-				responser.SendError(w, "csrf expired", http.StatusForbidden)
+				responser.SendError(context.Background(), w, "csrf expired", http.StatusForbidden)
 				return
 			}
-			responser.SendError(w, "Invalid csrf", http.StatusForbidden)
+			responser.SendError(context.Background(), w, "Invalid csrf", http.StatusForbidden)
 			return
 		}
 
@@ -296,16 +296,6 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendOK(w, "Logout successful", http.StatusOK)
 }
 
-func (c *Delivery) isAuthorized(r *http.Request) error {
-	ctx := r.Context()
-	_, err := c.token.IsAuthorized(ctx, r.Cookies())
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username string) error {
 	ctx := r.Context()
 	token, err := d.token.CreateJWT(ctx, username)
@@ -347,13 +337,5 @@ func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
 		Username:  html.EscapeString(userData.Username),
 		Name:      html.EscapeString(userData.Name),
 		AvatarURL: avatarURL,
-	}
-}
-
-func convertFromJWTUserData(userDataJWT jwt.UserData) models.UserDataRespDTO {
-	return models.UserDataRespDTO{
-		ID:       userDataJWT.ID,
-		Username: html.EscapeString(userDataJWT.Username),
-		Name:     html.EscapeString(userDataJWT.Name),
 	}
 }

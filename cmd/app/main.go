@@ -144,7 +144,6 @@ func main() {
 	router.HandleFunc("/profile", auth.Authorize(profile.GetSelfProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Authorize(auth.Csrf(profile.UpdateProfileHandler))).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/profile/{userid}", profile.GetProfileHandler).Methods("GET", "OPTIONS")
-	// router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Authorize(contacts.GetContactsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Authorize(auth.Csrf(contacts.AddContactHandler))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Authorize(auth.Csrf(contacts.DeleteContactHandler))).Methods("DELETE", "OPTIONS")
@@ -157,15 +156,15 @@ func main() {
 	// 	tmpl.Execute(w, nil)
 	// })
 
-	router.HandleFunc("/chats", auth.Middleware(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
-	router.HandleFunc("/addchat", auth.Middleware(chat.AddNewChat)).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/addusers", auth.Middleware(chat.AddUsersIntoChat)).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/delete", auth.Middleware(chat.DeleteChatOrGroup)).Methods("DELETE", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}", auth.Middleware(chat.UpdateGroup)).Methods("PUT", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/users", auth.Middleware(chat.GetUsersFromChat)).Methods("GET", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/messages", auth.Middleware(messageDelivery.AddNewMessage)).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chat/startwebsocket", auth.Middleware(messageDelivery.HandleConnection))
+	router.HandleFunc("/chats", auth.Authorize(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/addchat", auth.Authorize(auth.Csrf(chat.AddNewChat))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/addusers", auth.Authorize(auth.Csrf(chat.AddUsersIntoChat))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/delete", auth.Authorize(auth.Csrf(chat.DeleteChatOrGroup))).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}", auth.Authorize(auth.Csrf(chat.UpdateGroup))).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/users", auth.Authorize(chat.GetUsersFromChat)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/startwebsocket", auth.Authorize(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
