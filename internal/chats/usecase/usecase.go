@@ -139,6 +139,7 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	}
 
 	var addedUsers []uuid.UUID
+	var notAddedUsers []uuid.UUID
 	// проверяем есть ли права
 	switch role {
 	case admin, owner:
@@ -151,7 +152,11 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 		}
 
 		for _, id := range user_ids {
-			s.repository.AddUserIntoChat(ctx, id, chat_id, none)
+			err = s.repository.AddUserIntoChat(ctx, id, chat_id, none)
+			if err != nil {
+				notAddedUsers = append(notAddedUsers, id)
+				continue
+			}
 			chatDTO, err := s.createChatDTO(ctx, chat)
 			if err != nil {
 				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
@@ -161,7 +166,8 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 		}
 		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
 
-		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers}, nil
+		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers,
+			NotAddedUsers: notAddedUsers}, nil
 	}
 
 	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
@@ -301,7 +307,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 				updatedChat.Avatar = filename
 			}
 			log.Println("Chat usecase -> UpdateChat: аватар обновлен")
-			
+
 		}
 
 		if chatUpdate.ChatName != "" {

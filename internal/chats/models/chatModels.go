@@ -85,6 +85,7 @@ type AddUsersIntoChatDTO struct {
 
 type AddedUsersIntoChatDTO struct {
 	AddedUsers []uuid.UUID `json:"addedUser" example:"uuid1,uuid2"`
+	NotAddedUsers []uuid.UUID `json:"notAddedUser" example:"uuid1,uuid2"`
 }
 
 type DeleteUsersFromChatDTO struct {
