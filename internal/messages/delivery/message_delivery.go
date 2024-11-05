@@ -58,7 +58,7 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 // @Tags message
 // @Accept json
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Param message body models.Message true "Message info"
+// @Param message body models.MessageInput true "Message info"
 // @Success 201 "Сообщение успешно добавлено"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
@@ -140,7 +140,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	log.Println(mapVars["chatId"])
 	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
 
-	messages, err := h.usecase.GetMessages(r.Context(), chatUUID, 0)
+	messages, err := h.usecase.GetMessages(r.Context(), chatUUID)
 	if err != nil {
 		log.Println("Error reading message:", err)
 		responser.SendError(w, fmt.Sprintf("Error reading message:%v", err), http.StatusInternalServerError)

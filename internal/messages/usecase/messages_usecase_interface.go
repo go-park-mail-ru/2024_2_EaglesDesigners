@@ -11,7 +11,7 @@ import (
 
 type MessageUsecase interface {
 	SendMessage(ctx context.Context, user jwt.User, chatId uuid.UUID, message models.Message) error
-	GetMessages(ctx context.Context, chatId uuid.UUID, pageId int) (models.MessagesArrayDTO, error)
+	GetMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error)
 	ScanForNewMessages(ctx context.Context, channel chan<- models.WebScoketDTO, res chan<- error, closeChannel <-chan bool)
 	GetOnlineUsers() map[uuid.UUID]bool
 }

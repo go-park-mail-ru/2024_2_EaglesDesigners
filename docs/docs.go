@@ -382,7 +382,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Message"
+                            "$ref": "#/definitions/models.MessageInput"
                         }
                     }
                 ],
@@ -1199,6 +1199,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "1"
                 },
+                "text": {
+                    "type": "string",
+                    "example": "тут много текста"
+                }
+            }
+        },
+        "models.MessageInput": {
+            "type": "object",
+            "properties": {
                 "text": {
                     "type": "string",
                     "example": "тут много текста"
