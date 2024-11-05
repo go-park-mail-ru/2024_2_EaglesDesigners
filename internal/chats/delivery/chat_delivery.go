@@ -14,6 +14,7 @@ import (
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -74,6 +75,12 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 		Chats: chats,
 	}
 
+	if err := validator.Check(chatsDTO); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(r.Context(), w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	jsonResp, err := json.Marshal(chatsDTO)
 
 	if err != nil {
@@ -114,6 +121,12 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if err := validator.Check(chatDTO); err != nil {
+		log.Printf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
 		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
@@ -133,6 +146,12 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Не удалось добавить чат: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить чат: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(returnChat); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
@@ -168,11 +187,23 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if err := validator.Check(usersToAdd); err != nil {
+		log.Printf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	addedUsers, err := c.service.AddUsersIntoChat(r.Context(), r.Cookies(), usersToAdd.UsersId, chatUUID)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(addedUsers); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
@@ -214,11 +245,23 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if err := validator.Check(usersToDelete); err != nil {
+		log.Printf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	delUsers, err := c.service.DeleteUsersFromChat(r.Context(), user.ID, chatUUID, usersToDelete)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(delUsers); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
@@ -328,6 +371,12 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if err := validator.Check(chatUpdate); err != nil {
+		log.Printf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
 		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
@@ -354,6 +403,12 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		responser.SendError(ctx, w, fmt.Sprintf("Внутренняя ошибка: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(updatedChat); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
@@ -403,6 +458,12 @@ func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		responser.SendError(ctx, w, err.Error(), 500)
+		return
+	}
+
+	if err := validator.Check(ids); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 

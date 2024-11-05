@@ -12,6 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -95,6 +96,12 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	var messageDTO models.Message
 	err = json.NewDecoder(r.Body).Decode(&messageDTO)
 
+	if err := validator.Check(messageDTO); err != nil {
+		log.Printf("входные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
@@ -146,6 +153,12 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		log.Println("Error reading message:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Error reading message:%v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(messages); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
