@@ -12,6 +12,8 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
+//go:generate mockgen -source=usecase.go -destination=mocks/mocks.go
+
 type repository interface {
 	GetUserByUsername(ctx context.Context, username string) (models.UserDAO, error)
 	CreateUser(ctx context.Context, username, name, password string) error

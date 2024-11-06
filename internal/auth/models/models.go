@@ -1,6 +1,10 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 type contextKey string
 
@@ -8,6 +12,11 @@ const (
 	UserIDKey    contextKey = "userId"
 	UserKey      contextKey = "user"
 	MuxParamsKey contextKey = "muxParams"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("A user with that username already exists")
+	ErrTokenExpired      = errors.New("token expired")
 )
 
 // @Schema
@@ -54,7 +63,7 @@ type UserDataRespDTO struct {
 	ID        uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
 	Username  string    `json:"username" example:"user12" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
 	Name      string    `json:"name" example:"Dr Peper" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
-	AvatarURL *string   `json:"avatarURL" example:"/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/avatar/[a-zA-Z0-9\\-]+\\.png$),optional"`
+	AvatarURL *string   `json:"avatarURL" example:"/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
 }
 
 type User struct {
@@ -79,4 +88,8 @@ type UserDAO struct {
 	Password  string
 	Version   int64
 	AvatarURL *string
+}
+
+type CsrfDTO struct {
+	Token string `json:"csrf"`
 }

@@ -42,8 +42,8 @@ swagger:
 
 test:
 
-	go test -coverprofile=coverage.out ./... ; \
-	go tool cover -func=coverage.out
+	go test -coverprofile=coverage.out ./...; \
+	go tool cover -func=<(grep -v '/mocks/' coverage.out | grep -v '/docs/')
 
 
 # Команда для установки зависимостей

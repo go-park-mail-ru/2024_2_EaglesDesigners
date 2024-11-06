@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+//go:generate mockgen -source=repository.go -destination=mocks/mocks.go
+
 type Repository struct {
 	db    *pgxpool.Pool
 	close func()
