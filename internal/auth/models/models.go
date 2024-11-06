@@ -54,7 +54,7 @@ type UserDataRespDTO struct {
 	ID        uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
 	Username  string    `json:"username" example:"user12" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
 	Name      string    `json:"name" example:"Dr Peper" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
-	AvatarURL *string   `json:"avatarURL" example:"/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/avatar/[a-zA-Z0-9\\-]+\\.png$),optional"`
+	AvatarURL *string   `json:"avatarURL" example:"/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
 }
 
 type User struct {

@@ -28,7 +28,7 @@ type ChatDTOOutput struct {
 	CountOfUsers int            `json:"countOfUsers" example:"52" valid:"int"`
 	ChatType     string         `json:"chatType" example:"personal" valid:"in(personal|group|channel)"`
 	LastMessage  models.Message `json:"lastMessage" valid:"-"`
-	AvatarPath   string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/chat/[a-zA-Z0-9\\-]+\\.png$),optional"`
+	AvatarPath   string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
 }
 
 type ChatDTOInput struct {
@@ -65,7 +65,7 @@ type ChatUpdate struct {
 
 type ChatUpdateOutput struct {
 	ChatName string `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
-	Avatar   string `json:"updatedAvatarPath" example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"matches(^/uploads/chat/[a-zA-Z0-9\\-]+\\.png$),optional"`
+	Avatar   string `json:"updatedAvatarPath" example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
 }
 
 func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) ChatDTOOutput {
