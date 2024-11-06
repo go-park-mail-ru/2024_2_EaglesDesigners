@@ -108,7 +108,11 @@ func TestRegisterHandler(t *testing.T) {
 			handler := http.HandlerFunc(delivery.RegisterHandler)
 
 			mockUsecase.EXPECT().Registration(gomock.Any(), tt.username, tt.nickname, tt.password).Return(tt.mockReturn)
-			mockToken.EXPECT().CreateJWT(gomock.Any(), tt.username).Return()
+
+			if tt.mockReturn == nil {
+				mockUsecase.EXPECT().GetUserDataByUsername(gomock.Any(), tt.username).Return(models.UserData{}, nil)
+				mockToken.EXPECT().CreateJWT(gomock.Any(), tt.username).Return("", nil)
+			}
 
 			reqBody, _ := json.Marshal(models.RegisterReqDTO{
 				Username: tt.username,

@@ -42,7 +42,7 @@ swagger:
 
 test:
 
-	go test -coverprofile=coverage.out $(go list ./... | grep -v /mocks/ | grep -v /docs/); \
+	go test -coverprofile=coverage.out ./...; \
 	go tool cover -func=<(grep -v '/mocks/' coverage.out | grep -v '/docs/')
 
 
