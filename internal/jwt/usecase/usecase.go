@@ -17,6 +17,8 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 )
 
+//go:generate mockgen -source=usecase.go -destination=mocks/mocks.go
+
 var jwtSecret = GenerateJWTSecret()
 
 type repository interface {

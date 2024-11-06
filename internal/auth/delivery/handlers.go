@@ -18,6 +18,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+//go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
+
 type usecase interface {
 	Authenticate(ctx context.Context, username, password string) bool
 	Registration(ctx context.Context, username, name, password string) error

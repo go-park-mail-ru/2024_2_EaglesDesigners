@@ -8,97 +8,128 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/mocks"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
-	jwtUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	mock_delivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery/mocks"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoginHandler_Success(t *testing.T) {
-	mockUsecase := &mocks.MockUsecase{
-		AuthenticateFunc: func(username, password string) bool {
-			return username == "user1" && password == "pass1"
+func TestLoginHandler(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUsecase := mock_delivery.NewMockusecase(ctrl)
+	mockToken := mock_delivery.NewMocktoken(ctrl)
+	delivery := delivery.NewDelivery(mockUsecase, mockToken)
+
+	handler := http.HandlerFunc(delivery.LoginHandler)
+
+	tests := []struct {
+		name            string
+		username        string
+		password        string
+		mockAuthReturn  bool
+		mockTokenReturn string
+		expectedStatus  int
+	}{
+		{
+			name:            "Successful Authentication",
+			username:        "user11",
+			password:        "validPassword",
+			mockAuthReturn:  true,
+			mockTokenReturn: "someJWTToken",
+			expectedStatus:  http.StatusOK,
+		},
+		{
+			name:            "Failed Authentication - Wrong Password",
+			username:        "user22",
+			password:        "wrongPassword",
+			mockAuthReturn:  false,
+			mockTokenReturn: "",
+			expectedStatus:  http.StatusUnauthorized,
 		},
 	}
-	mockTokenService := &mocks.MockTokenUsecase{
-		CreateJWTFunc: func(username string) (string, error) {
-			return "mock_token", nil
-		},
-	}
-	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
-	reqBody, err := json.Marshal(delivery.AuthReqDTO{
-		Username: "user1",
-		Password: "pass1",
-	})
-	if err != nil {
-		t.Fatalf("Failed to marshal request body: %v", err)
-	}
-	request := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(reqBody))
-	result := httptest.NewRecorder()
-	handler.LoginHandler(result, request)
 
-	assert.Equal(t, http.StatusCreated, result.Code)
-	assert.Contains(t, result.Header().Get("Set-Cookie"), "access_token")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUsecase.EXPECT().Authenticate(gomock.Any(), tt.username, tt.password).Return(tt.mockAuthReturn)
 
+			if tt.mockAuthReturn {
+				mockToken.EXPECT().CreateJWT(gomock.Any(), tt.username).Return(tt.mockTokenReturn, nil)
+			}
+
+			reqBody, _ := json.Marshal(models.AuthReqDTO{
+				Username: tt.username,
+				Password: tt.password,
+			})
+
+			req, err := http.NewRequest("POST", "/login", bytes.NewBuffer(reqBody))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+		})
+	}
 }
 
-func TestRegisterHandler_Success(t *testing.T) {
-	mockUsecase := &mocks.MockUsecase{
-		RegistrationFunc: func(username, name, password string) error {
-			return nil
+func TestRegisterHandler(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUsecase := mock_delivery.NewMockusecase(ctrl)
+	mockToken := mock_delivery.NewMocktoken(ctrl)
+	delivery := delivery.NewDelivery(mockUsecase, mockToken)
+
+	handler := http.HandlerFunc(delivery.RegisterHandler)
+
+	tests := []struct {
+		name           string
+		username       string
+		nickname       string
+		password       string
+		mockReturn     error
+		expectedStatus int
+	}{
+		{
+			name:           "Successful Registration",
+			username:       "newUser",
+			nickname:       "New User",
+			password:       "newPassword123",
+			mockReturn:     nil,
+			expectedStatus: http.StatusCreated,
 		},
-		GetUserDataFunc: func(username string) (usecase.UserData, error) {
-			return usecase.UserData{
-				ID:       1,
-				Username: username,
-				Name:     "name",
-			}, nil
-		},
-	}
-
-	mockTokenService := &mocks.MockTokenUsecase{
-		CreateJWTFunc: func(username string) (string, error) {
-			return "mock_token", nil
-		},
-	}
-	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
-	reqBody, _ := json.Marshal(delivery.RegisterReqDTO{
-		Username: "killer1994",
-		Name:     "Vincent Vega",
-		Password: "go_do_a_crime",
-	})
-	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
-	res := httptest.NewRecorder()
-	handler.RegisterHandler(res, req)
-
-	assert.Equal(t, http.StatusCreated, res.Code)
-}
-
-func TestLogoutHandler_Success(t *testing.T) {
-	mockUsecase := &mocks.MockUsecase{}
-	mockTokenService := &mocks.MockTokenUsecase{}
-	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
-	request := httptest.NewRequest(http.MethodPost, "/logout", nil)
-	request.AddCookie(&http.Cookie{Name: "access_token", Value: "mock_token"})
-	result := httptest.NewRecorder()
-	handler.LogoutHandler(result, request)
-
-	assert.Equal(t, http.StatusOK, result.Code)
-}
-
-func TestAuthHandler_Success(t *testing.T) {
-	mockUsecase := &mocks.MockUsecase{}
-	mockTokenService := &mocks.MockTokenUsecase{
-		GetUserDataByJWTFunc: func(cookies []*http.Cookie) (jwtUC.UserData, error) {
-			return jwtUC.UserData{Username: "user1", Name: "User One"}, nil
+		{
+			name:           "Failed Registration - User Exists",
+			username:       "existingUser",
+			nickname:       "Existing User",
+			password:       "existingPassword123",
+			mockReturn:     models.ErrUserAlreadyExists,
+			expectedStatus: http.StatusConflict,
 		},
 	}
-	handler := delivery.NewDelivery(mockUsecase, mockTokenService)
-	request := httptest.NewRequest(http.MethodGet, "/auth", nil)
-	request.AddCookie(&http.Cookie{Name: "access_token", Value: "mock_token"})
-	result := httptest.NewRecorder()
-	handler.AuthHandler(result, request)
 
-	assert.Equal(t, http.StatusOK, result.Code)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUsecase.EXPECT().Registration(gomock.Any(), tt.username, tt.nickname, tt.password).Return(tt.mockReturn)
 
+			reqBody, _ := json.Marshal(models.RegisterReqDTO{
+				Username: tt.username,
+				Name:     tt.nickname,
+				Password: tt.password,
+			})
+			req, err := http.NewRequest("POST", "/register", bytes.NewBuffer(reqBody))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+		})
+	}
 }

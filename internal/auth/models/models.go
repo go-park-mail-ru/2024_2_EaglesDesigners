@@ -1,6 +1,10 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 type contextKey string
 
@@ -8,6 +12,11 @@ const (
 	UserIDKey    contextKey = "userId"
 	UserKey      contextKey = "user"
 	MuxParamsKey contextKey = "muxParams"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("A user with that username already exists")
+	ErrTokenExpired      = errors.New("token expired")
 )
 
 // @Schema
