@@ -15,6 +15,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -110,7 +111,12 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userid := vars["userid"]
 
-	id := uuid.MustParse(userid)
+	id, err := uuid.Parse(userid)
+	if err != nil {
+		log.WithFields(logrus.Fields{"userid": userid}).Errorf("userid не является uuid: %v", err)
+		responser.SendError(ctx, w, "Invalid userid", http.StatusBadRequest)
+		return
+	}
 
 	profileData, err := d.usecase.GetProfile(ctx, id)
 	if err != nil {

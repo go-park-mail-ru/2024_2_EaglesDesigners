@@ -77,7 +77,7 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	feature = fmt.Sprintf("%s[%s]%s", "\033[33m", feature, "\033[0m")
 	function = fmt.Sprintf("%s[%s]%s", "\033[36m", function, "\033[0m")
 
-	log := fmt.Sprintf("%s[%s][%s]%s%s %s\n",
+	logMessage := fmt.Sprintf("%s[%s][%s]%s%s %s",
 		level,
 		timestamp,
 		requestID,
@@ -86,5 +86,17 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		entry.Message,
 	)
 
-	return []byte(log), nil
+	if len(entry.Data) > 0 {
+		var additionalFields string
+		for key, value := range entry.Data {
+			if key != "request_id" && key != "feature" && key != "function" { // Исключаем уже добавленные поля
+				additionalFields += fmt.Sprintf(", %s=%s", key, value)
+			}
+		}
+		logMessage += fmt.Sprintf(" %s", strings.TrimPrefix(additionalFields, ", "))
+	}
+
+	logMessage += "\n"
+
+	return []byte(logMessage), nil
 }
