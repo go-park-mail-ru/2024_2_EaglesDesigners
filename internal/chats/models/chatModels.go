@@ -60,7 +60,7 @@ type ChatsDTO struct {
 
 type ChatUpdate struct {
 	ChatName string          `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
-	Avatar   *multipart.File `json:"-"`
+	Avatar   *multipart.File `json:"-" valid:"-"`
 }
 
 type ChatUpdateOutput struct {
