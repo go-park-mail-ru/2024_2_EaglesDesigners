@@ -1,21 +1,39 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	authController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/controller"
-	userRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/repository"
-	userService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/service"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/auth/utils"
-	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/controller"
-	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/repository"
-	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/src/chat_list/service"
+	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/delivery"
+	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
+	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/delivery"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
+	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	contactsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/delivery"
+	contactsRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/repository"
+	contactsUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/usecase"
+	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/delivery"
+	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
+	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
+	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/delivery"
+	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/repository"
+	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
+	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/uploads/delivery"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/redis/go-redis/v9"
 )
 
 // swag init
@@ -39,27 +57,114 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
+
 func main() {
+	ctx := context.Background()
+
+	pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@postgres:5432/patefon")
+
+	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
+	if err != nil {
+		log.Fatalf("Unable to connection to database: %v\n", err)
+	}
+	defer pool.Close()
+	log.Println("База данных подключена")
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "redis:6379",
+		// Addr:     "localhost:6379",
+		Password: "1234",
+		PoolSize: 1000,
+		DB:       0,
+	})
+	status := redisClient.Ping(context.Background())
+
+	if err := status.Err(); err != nil {
+		log.Println("Не удалось подкллючить Redis: ", err)
+		return
+	}
+	defer redisClient.Close()
+	log.Println("Redis подключен")
+
+	govalidator.SetFieldsRequiredByDefault(true)
+
 	router := mux.NewRouter()
 
-	router.MethodNotAllowedHandler = http.HandlerFunc(utils.MethodNotAllowedHandler)
+	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
-	userRepo := userRepository.NewUserRepository()
-	tokenService := userService.NewTokenService(userRepo)
-	authService := userService.NewAuthService(userRepo, tokenService)
-	auth := authController.NewAuthController(authService, tokenService)
+	// auth
+	authRepo := authRepo.NewRepository(pool)
+	tokenUC := tokenUC.NewUsecase(authRepo)
+	authUC := authUC.NewUsecase(authRepo, tokenUC)
+	auth := authDelivery.NewDelivery(authUC, tokenUC)
 
-	chatRepo := chatRepository.NewChatRepository()
-	chatService := chatService.NewChatService(tokenService, chatRepo)
-	chat := chatController.NewChatController(chatService)
+	// uploads
 
-	router.HandleFunc("/", auth.AuthHandler).Methods("GET", "OPTIONS")
-	router.HandleFunc("/auth", auth.AuthHandler).Methods("GET", "OPTIONS")
+	uploads := uploadsDelivery.New()
+
+	// profile
+	profileRepo := profileRepo.New(pool)
+	profileUC := profileUC.New(profileRepo)
+	profile := profileDelivery.New(profileUC, tokenUC)
+
+	// chats
+	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
+
+	chatRepo, _ := chatRepository.NewChatRepository(pool)
+
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, redisClient)
+
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, messageUsecase.GetOnlineUsers(), redisClient)
+	chat := chatController.NewChatDelivery(chatService)
+
+	// contacts
+	contactsRepo := contactsRepo.New(pool)
+	contactsUC := contactsUC.New(contactsRepo)
+	contacts := contactsDelivery.New(contactsUC, tokenUC)
+
+	// messages
+
+	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
+
+	// добавление request_id в ctx всем запросам
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestID := uuid.New().String()
+			ctx = context.WithValue(r.Context(), logger.RequestIDKey, requestID)
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
+	})
+
+	router.HandleFunc("/", auth.Authorize(auth.AuthHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/auth", auth.Authorize(auth.AuthHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chats", auth.Middleware(chat.Handler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/uploads/{folder}/{name}", uploads.GetImage).Methods("GET", "OPTIONS")
+	router.HandleFunc("/profile", auth.Authorize(profile.GetSelfProfileHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/profile", auth.Authorize(auth.Csrf(profile.UpdateProfileHandler))).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/profile/{userid}", profile.GetProfileHandler).Methods("GET", "OPTIONS")
+	router.HandleFunc("/contacts", auth.Authorize(contacts.GetContactsHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/contacts", auth.Authorize(auth.Csrf(contacts.AddContactHandler))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/contacts", auth.Authorize(auth.Csrf(contacts.DeleteContactHandler))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+
+	// tmpl := template.Must(template.ParseFiles("index.html"))
+
+	// router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
+	// 	tmpl.Execute(w, nil)
+	// })
+
+	router.HandleFunc("/chats", auth.Authorize(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/addchat", auth.Authorize(auth.Csrf(chat.AddNewChat))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/addusers", auth.Authorize(auth.Csrf(chat.AddUsersIntoChat))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/delete", auth.Authorize(auth.Csrf(chat.DeleteChatOrGroup))).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}", auth.Authorize(auth.Csrf(chat.UpdateGroup))).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/users", auth.Authorize(chat.GetUsersFromChat)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/startwebsocket", auth.Authorize(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
@@ -73,7 +178,7 @@ func main() {
 			"http://212.233.98.59:8080",
 			"https://212.233.98.59:8080"},
 		AllowCredentials:   true,
-		AllowedMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
+		AllowedMethods:     []string{"GET", "POST", "PUT", "OPTIONS", "DELETE"},
 		AllowedHeaders:     []string{"*"},
 		OptionsPassthrough: false,
 	})
