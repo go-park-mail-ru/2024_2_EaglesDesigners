@@ -4,15 +4,15 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/mocks"
-	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/repository"
+	models "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase"
+	mocks "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/usecase/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthenticate_Success(t *testing.T) {
-	mockRepo := &mocks.MockRepository{
-		GetUserByUsernameFunc: func(username string) (repo.User, error) {
+	mockRepo := &mocks.Mockrepository{
+		GetUserByUsernameFunc: func(username string) (models.User, error) {
 			return repo.User{
 				Username: username,
 				Password: usecase.HashPassword("pass1"),
@@ -21,11 +21,11 @@ func TestAuthenticate_Success(t *testing.T) {
 	}
 	authUC := usecase.NewUsecase(mockRepo, nil)
 
-	assert.True(t, authUC.Authenticate("user1", "pass1"))
+	assert.True(t, authUC.Authenticate("user11", "pass1"))
 }
 
 func TestAuthenticate_Failure_UserNotFound(t *testing.T) {
-	mockRepo := &mocks.MockRepository{
+	mockRepo := &mocks.Mockrepository{
 		GetUserByUsernameFunc: func(username string) (repo.User, error) {
 			return repo.User{}, errors.New("user does not exist")
 		},
@@ -36,7 +36,7 @@ func TestAuthenticate_Failure_UserNotFound(t *testing.T) {
 }
 
 func TestRegistration_Success(t *testing.T) {
-	mockRepo := &mocks.MockRepository{
+	mockRepo := &mocks.Mockrepository{
 		CreateUserFunc: func(username, name, password string) error {
 			return nil
 		},
@@ -48,8 +48,8 @@ func TestRegistration_Success(t *testing.T) {
 }
 
 func TestRegistration_Failure_UserExists(t *testing.T) {
-	mockRepo := &mocks.MockRepository{
-		CreateUserFunc: func(username, name, password string) error {
+	mockRepo := &mocks.Mockrepository{
+		CreateUser: func(username, name, password string) error {
 			return errors.New("user does not exist")
 		},
 	}

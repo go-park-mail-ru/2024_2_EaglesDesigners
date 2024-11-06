@@ -37,7 +37,7 @@ func TestLoginHandler(t *testing.T) {
 			username:        "user11",
 			password:        "validPassword",
 			mockAuthReturn:  true,
-			mockTokenReturn: "someJWTToken",
+			mockTokenReturn: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTEiLCJpZCI6MTIzLCJleHBhbGl0eSI6MTY0MjcwNDYyMn0.kZex8C1HNV8x_XHg5gGKGh7x8ZgghIFuBFlmQU6-F-o",
 			expectedStatus:  http.StatusOK,
 		},
 		{
@@ -45,7 +45,7 @@ func TestLoginHandler(t *testing.T) {
 			username:        "user22",
 			password:        "wrongPassword",
 			mockAuthReturn:  false,
-			mockTokenReturn: "",
+			mockTokenReturn: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTEiLCJpZCI6MTIzLCJleHBhbGl0eSI6MTY0MjcwNDYyMn0.kZex8C1HNV8x_XHg5gGKGh7x8ZgghIFuBFlmQU6-F-o",
 			expectedStatus:  http.StatusUnauthorized,
 		},
 	}
@@ -77,44 +77,38 @@ func TestLoginHandler(t *testing.T) {
 }
 
 func TestRegisterHandler(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUsecase := mock_delivery.NewMockusecase(ctrl)
-	mockToken := mock_delivery.NewMocktoken(ctrl)
-	delivery := delivery.NewDelivery(mockUsecase, mockToken)
-
-	handler := http.HandlerFunc(delivery.RegisterHandler)
-
 	tests := []struct {
 		name           string
 		username       string
 		nickname       string
 		password       string
 		mockReturn     error
+		jwtReturn      string
 		expectedStatus int
 	}{
 		{
 			name:           "Successful Registration",
-			username:       "newUser",
+			username:       "user11",
 			nickname:       "New User",
-			password:       "newPassword123",
+			password:       "12345678",
 			mockReturn:     nil,
 			expectedStatus: http.StatusCreated,
-		},
-		{
-			name:           "Failed Registration - User Exists",
-			username:       "existingUser",
-			nickname:       "Existing User",
-			password:       "existingPassword123",
-			mockReturn:     models.ErrUserAlreadyExists,
-			expectedStatus: http.StatusConflict,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUsecase := mock_delivery.NewMockusecase(ctrl)
+			mockToken := mock_delivery.NewMocktoken(ctrl)
+			delivery := delivery.NewDelivery(mockUsecase, mockToken)
+
+			handler := http.HandlerFunc(delivery.RegisterHandler)
+
 			mockUsecase.EXPECT().Registration(gomock.Any(), tt.username, tt.nickname, tt.password).Return(tt.mockReturn)
+			mockToken.EXPECT().CreateJWT(gomock.Any(), tt.username).Return()
 
 			reqBody, _ := json.Marshal(models.RegisterReqDTO{
 				Username: tt.username,

@@ -27,7 +27,13 @@ type Payload struct {
 }
 
 func CreateCSRF(accessToken string) (string, error) {
-	accessPayloadBase64 := strings.Split(accessToken, ".")[1]
+	parts := strings.Split(accessToken, ".")
+
+	if len(parts) < 2 {
+		return "", errors.New("invalid access token format")
+	}
+
+	accessPayloadBase64 := parts[1]
 
 	var accessPayload jwt.Payload
 
