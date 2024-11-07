@@ -3,7 +3,6 @@ package multiparthelper
 import (
 	"errors"
 	"io"
-	"log"
 	"mime/multipart"
 	"os"
 
@@ -14,6 +13,8 @@ import (
 const (
 	uploadPath = "/uploads/"
 )
+
+var ErrNotImage = errors.New("file is not image")
 
 // mb не нужон
 func ReadPhoto(photoId uuid.UUID) ([]byte, error) {
@@ -33,7 +34,7 @@ func ReadPhoto(photoId uuid.UUID) ([]byte, error) {
 
 func SavePhoto(file multipart.File, folderName string) (string, error) {
 	if ok := IsImageFile(file); !ok {
-		return "", errors.New("file is not image")
+		return "", ErrNotImage
 	}
 
 	filenameUUID := uuid.New()
@@ -48,21 +49,16 @@ func SavePhoto(file multipart.File, folderName string) (string, error) {
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		log.Printf("Unable to write into file %v: %v", filenameUUID, err)
 		return "", err
 	}
-
-	log.Println("Фото сохранено")
 
 	return path, nil
 }
 
 func RewritePhoto(file multipart.File, photoURL string) error {
 	if ok := IsImageFile(file); !ok {
-		return errors.New("file is not image")
+		return ErrNotImage
 	}
-
-	log.Printf("Открытие файла %s\n", photoURL)
 
 	dst, err := os.Create(photoURL)
 	if err != nil {
@@ -72,11 +68,18 @@ func RewritePhoto(file multipart.File, photoURL string) error {
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		log.Printf("Unable to rewrite into file %v: %v", photoURL, err)
 		return err
 	}
 
-	log.Println("Фото перезаписано")
+	return nil
+}
+
+func RemovePhoto(photoURL string) error {
+	err := os.Remove(photoURL)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

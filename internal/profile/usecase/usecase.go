@@ -11,7 +11,7 @@ import (
 
 type Repository interface {
 	GetProfileByUsername(ctx context.Context, id uuid.UUID) (models.ProfileDataDAO, error)
-	UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error)
+	UpdateProfile(ctx context.Context, profile models.Profile) (avatarNewURL *string, avatarOldURL *string, err error)
 }
 
 type Usecase struct {
@@ -29,17 +29,29 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 
 	profile := convertProfileFromDTO(profileDTO)
 
-	avatarURL, err := u.repo.UpdateProfile(ctx, profile)
+	avatarNewURL, avatarOldURL, err := u.repo.UpdateProfile(ctx, profile)
 	if err != nil {
 		log.Errorf("не удалось обновить профиль: %v", err)
 		return err
 	}
 
-	if profile.Avatar != nil {
-		err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarURL)
+	if avatarNewURL != nil {
+		log.Printf("Сохранение аватарки %s", *avatarNewURL)
+		err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarNewURL)
 		if err != nil {
-			log.Errorf("не удалось перезаписать аватарку: %v", err)
+			log.Errorf("не удалось сохранить аватарку: %v", err)
 			return err
+		}
+		log.Printf("Аватарка успешно сохранена")
+
+		if avatarOldURL != nil {
+			go func() {
+				log.Printf("Удаление старой аватарки %s", *avatarOldURL)
+				if err := multipartHepler.RemovePhoto(*avatarOldURL); err != nil {
+					log.Errorf("Не удалось удалить файл: %v", err)
+				}
+				log.Println("Удаление прошло успешно")
+			}()
 		}
 	}
 
@@ -73,10 +85,11 @@ func convertProfileDataFromDAO(dao models.ProfileDataDAO) models.ProfileData {
 
 func convertProfileFromDTO(dto models.UpdateProfileRequestDTO) models.Profile {
 	return models.Profile{
-		ID:        dto.ID,
-		Name:      dto.Name,
-		Bio:       dto.Bio,
-		Avatar:    dto.Avatar,
-		Birthdate: dto.Birthdate,
+		ID:           dto.ID,
+		Name:         dto.Name,
+		Bio:          dto.Bio,
+		Avatar:       dto.Avatar,
+		DeleteAvatar: dto.DeleteAvatar,
+		Birthdate:    dto.Birthdate,
 	}
 }
