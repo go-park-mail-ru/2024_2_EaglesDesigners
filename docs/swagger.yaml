@@ -216,6 +216,8 @@ definitions:
       birthdate:
         example: "2024-04-13T08:30:00Z"
         type: string
+      deleteAvatar:
+        type: boolean
       name:
         example: Vincent Vega
         type: string

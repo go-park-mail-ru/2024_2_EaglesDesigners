@@ -1268,6 +1268,9 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2024-04-13T08:30:00Z"
                 },
+                "deleteAvatar": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string",
                     "example": "Vincent Vega"

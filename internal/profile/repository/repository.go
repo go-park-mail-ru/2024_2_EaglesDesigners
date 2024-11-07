@@ -70,13 +70,13 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, id uuid.UUID) (mo
 // avatar_path = $5
 // WHERE id = $1
 // RETURNING avatar_path;
-func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) (avatarURL *string, err error) {
+func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) (avatarNewURL *string, avatarOldURL *string, err error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Errorf("не удалось соединиться с базой данных: %v\n", err)
-		return nil, err
+		return nil, nil, err
 	}
 	defer conn.Release()
 
@@ -88,14 +88,9 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 		profile.ID,
 	)
 
-	err = row.Scan(&avatarURL)
+	err = row.Scan(&avatarOldURL)
 	if err != nil {
-		return nil, errors.New("не получилось получить avatarURL")
-	}
-
-	if avatarURL == nil {
-		avatarURL = new(string)
-		*avatarURL = "/uploads/avatar/" + uuid.New().String() + ".png"
+		return nil, nil, errors.New("не получилось получить avatarURL")
 	}
 
 	query := `UPDATE public."user" SET `
@@ -115,7 +110,19 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 	}
 	if profile.Avatar != nil {
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("avatar_path = $%d", len(args)+1))
-		args = append(args, avatarURL)
+
+		avatarNewURL = new(string)
+		*avatarNewURL = "/uploads/avatar/" + uuid.New().String() + ".png"
+
+		args = append(args, avatarNewURL)
+	}
+	if profile.DeleteAvatar {
+		rowsWithFields = append(rowsWithFields, fmt.Sprintf("avatar_path = $%d", len(args)+1))
+
+		avatarNewURL = new(string)
+		avatarNewURL = nil
+
+		args = append(args, avatarNewURL)
 	}
 	if profile.Birthdate != nil {
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("birthdate = $%d", len(args)+1))
@@ -123,7 +130,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 	}
 
 	if len(args) == 1 {
-		return nil, errors.New("нет полей для обновления")
+		return nil, nil, errors.New("нет полей для обновления")
 	}
 
 	query += fmt.Sprintf("%s WHERE id = $1", strings.Join(rowsWithFields, ", ")) + " RETURNING avatar_path;"
@@ -132,10 +139,10 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 
 	row = conn.QueryRow(ctx, query, args...)
 
-	err = row.Scan(&avatarURL)
+	err = row.Scan(&avatarNewURL)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return avatarURL, nil
+	return avatarNewURL, avatarOldURL, nil
 }

@@ -11,6 +11,7 @@ import (
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+	multiparthelper "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/google/uuid"
@@ -189,6 +190,11 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if profile.Avatar != nil && profile.DeleteAvatar {
+		responser.SendError(ctx, w, "New avatar and avatar deletion flag in one request", http.StatusBadRequest)
+		return
+	}
+
 	avatar, _, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
 		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
@@ -205,7 +211,11 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := d.usecase.UpdateProfile(ctx, profile); err != nil {
-		responser.SendError(ctx, w, "Failed to update profile", http.StatusBadRequest)
+		if err == multiparthelper.ErrNotImage {
+			responser.SendError(ctx, w, "Avatar is not image", http.StatusBadRequest)
+		} else {
+			responser.SendError(ctx, w, "Failed to update profile", http.StatusBadRequest)
+		}
 		return
 	}
 
