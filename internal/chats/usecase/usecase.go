@@ -95,24 +95,11 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 
 	for _, chat := range chats {
 		if chat.ChatType == personal {
-			users, err := s.repository.GetUsersFromChat(ctx, chat.ChatId)
+			chat.ChatName, chat.AvatarURL, err = s.getAvatarAndNameForPersonalChat(ctx, user, chat.ChatId)
+
 			if err != nil {
+				log.Errorf("Chat usecase -> GetChats: не удалось обработать персональный чат: %v", err)
 				return nil, err
-			}
-			for _, id := range users {
-				if id != user.ID {
-					// находим имя пользователя и аватар
-					chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, id)
-
-					if err != nil {
-
-						log.Printf("Chat usecase -> GetChats: не удалось получить аватар и имя: %v", err)
-						return nil, err
-					}
-					chat.AvatarURL = avatar
-					chat.ChatName = chatName
-					break
-				}
 			}
 		}
 
@@ -259,7 +246,37 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		return chatModel.ChatDTOOutput{}, err
 	}
 
+	if newChatDTO.ChatType == personal {
+		newChatDTO.ChatName, newChatDTO.AvatarPath, err = s.getAvatarAndNameForPersonalChat(ctx, user, newChat.ChatId)
+
+		if err != nil {
+			log.Errorf("Chat usecase -> AddNewChat: не удалось обработать персональный чат: %v", err)
+			return chatModel.ChatDTOOutput{}, err
+		}
+	}
+
 	return newChatDTO, nil
+}
+
+func (s *ChatUsecaseImpl) getAvatarAndNameForPersonalChat(ctx context.Context, user usecase.User, chatId uuid.UUID) (string, string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	users, err := s.repository.GetUsersFromChat(ctx, chatId)
+	if err != nil {
+		return "", "", err
+	}
+	for _, id := range users {
+		if id != user.ID {
+			// находим имя пользователя и аватар
+			chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, id)
+
+			if err != nil {
+				log.Printf("Chat usecase -> GetChats: не удалось получить аватар и имя: %v", err)
+				return "", "", err
+			}
+			return chatName, avatar, err
+		}
+	}
+	return "", "", nil
 }
 
 func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error {
