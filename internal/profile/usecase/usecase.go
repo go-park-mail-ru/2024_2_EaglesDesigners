@@ -35,10 +35,9 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 		return err
 	}
 
-	if avatarNewURL != nil {
+	if avatarNewURL != nil && profile.Avatar != nil {
 		log.Printf("Сохранение аватарки %s", *avatarNewURL)
-		err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarNewURL)
-		if err != nil {
+		if err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarNewURL); err != nil {
 			log.Errorf("не удалось сохранить аватарку: %v", err)
 			return err
 		}
