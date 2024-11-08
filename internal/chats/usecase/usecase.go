@@ -304,6 +304,7 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 
 		return nil
 	case none, admin:
+		log.Printf("У пользователя %v нет прав на удаление чата %v", userId, chatId)
 		return &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: fmt.Sprintf("чат: %v", chatId.String()),

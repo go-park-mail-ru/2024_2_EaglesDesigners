@@ -304,7 +304,7 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 	err = c.service.DeleteChat(r.Context(), chatUUID, user.ID)
 
 	if err != nil {
-		if errors.As(err, &customerror.NoPermissionError{}) {
+		if errors.As(err, &noPerm) {
 			w.WriteHeader(http.StatusForbidden)
 			responser.SendError(ctx, w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
 			return
