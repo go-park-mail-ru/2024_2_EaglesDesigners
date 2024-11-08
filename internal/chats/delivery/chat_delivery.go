@@ -447,8 +447,8 @@ func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		//conn.400
-		log.Println("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid:", err)
-		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		log.Println("Chat delivery -> GetUsersFromChat: error parsing chat uuid:", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> GetUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
 	}
 

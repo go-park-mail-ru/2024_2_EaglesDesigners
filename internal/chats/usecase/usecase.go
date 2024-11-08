@@ -323,7 +323,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 	var updatedChat chatModel.ChatUpdateOutput
 	// проверяем есть ли права
 	switch role {
-	case owner, admin:
+	case owner, admin, none:
 		log.Printf("Chat usecase -> UpdateChat: обновление чата %v", chatId)
 
 		// send notification to chat
