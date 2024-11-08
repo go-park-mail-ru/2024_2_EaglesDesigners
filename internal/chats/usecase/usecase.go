@@ -156,7 +156,7 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	var notAddedUsers []uuid.UUID
 	// проверяем есть ли права
 	switch role {
-	case admin, owner:
+	case admin, owner, none:
 		log.Printf("Chat usecase -> AddUsersIntoChat: начато добавление пользователей в чат %v пользователем %v", chat_id, user.ID)
 
 		chat, err := s.repository.GetChatById(ctx, chat_id)
@@ -182,9 +182,12 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 
 		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers,
 			NotAddedUsers: notAddedUsers}, nil
+	default:
+		return chatModel.AddedUsersIntoChatDTO{}, &customerror.NoPermissionError{
+			User: user.ID.String(),
+			Area: fmt.Sprintf("Чат %v", chat_id),
+		}
 	}
-
-	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
 }
 
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error) {
