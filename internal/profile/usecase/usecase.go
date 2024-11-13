@@ -29,16 +29,22 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 
 	profile := convertProfileFromDTO(profileDTO)
 
+	if profile.Avatar != nil {
+		if !multipartHepler.IsImageFile(*profile.Avatar) {
+			log.Errorf("аватарка не картинка")
+			return multipartHepler.ErrNotImage
+		}
+	}
+
 	avatarNewURL, avatarOldURL, err := u.repo.UpdateProfile(ctx, profile)
 	if err != nil {
 		log.Errorf("не удалось обновить профиль: %v", err)
 		return err
 	}
 
-	if avatarNewURL != nil {
+	if avatarNewURL != nil && profile.Avatar != nil {
 		log.Printf("Сохранение аватарки %s", *avatarNewURL)
-		err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarNewURL)
-		if err != nil {
+		if err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarNewURL); err != nil {
 			log.Errorf("не удалось сохранить аватарку: %v", err)
 			return err
 		}

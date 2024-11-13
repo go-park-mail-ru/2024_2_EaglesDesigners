@@ -491,7 +491,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Пользователи чата",
                         "schema": {
-                            "$ref": "#/definitions/model.UsersInChat"
+                            "$ref": "#/definitions/model.UsersInChatDTO"
                         }
                     },
                     "400": {
@@ -1159,18 +1159,39 @@ const docTemplate = `{
                 }
             }
         },
-        "model.UsersInChat": {
+        "model.UserInChatDTO": {
             "type": "object",
             "properties": {
-                "usersId": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "owner"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "mavrodi777"
+                }
+            }
+        },
+        "model.UsersInChatDTO": {
+            "type": "object",
+            "properties": {
+                "users": {
                     "type": "array",
                     "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "uuid1",
-                        "uuid2"
-                    ]
+                        "$ref": "#/definitions/model.UserInChatDTO"
+                    }
                 }
             }
         },

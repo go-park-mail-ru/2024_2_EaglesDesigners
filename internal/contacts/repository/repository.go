@@ -7,8 +7,11 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/google/uuid"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
+
+var ErrContactAlreadyExist = errors.New("contact already exist")
 
 type Repository struct {
 	pool *pgxpool.Pool
@@ -99,6 +102,11 @@ func (r *Repository) AddContact(ctx context.Context, contactData models.ContactD
 	)
 
 	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+			log.Errorf("Контакт уже существует")
+			return models.ContactDAO{}, ErrContactAlreadyExist
+		}
+
 		log.Errorf("Не удалось создать контакт: %v", err)
 		return models.ContactDAO{}, err
 	}

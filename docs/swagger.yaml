@@ -100,14 +100,29 @@ definitions:
           type: string
         type: array
     type: object
-  model.UsersInChat:
+  model.UserInChatDTO:
     properties:
-      usersId:
-        example:
-        - uuid1
-        - uuid2
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      id:
+        example: f0364477-bfd4-496d-b639-d825b009d509
+        type: string
+      name:
+        example: Vincent Vega
+        type: string
+      role:
+        example: owner
+        type: string
+      username:
+        example: mavrodi777
+        type: string
+    type: object
+  model.UsersInChatDTO:
+    properties:
+      users:
         items:
-          type: string
+          $ref: '#/definitions/model.UserInChatDTO'
         type: array
     type: object
   models.AuthReqDTO:
@@ -584,7 +599,7 @@ paths:
         "200":
           description: Пользователи чата
           schema:
-            $ref: '#/definitions/model.UsersInChat'
+            $ref: '#/definitions/model.UsersInChatDTO'
         "400":
           description: Некорректный запрос
           schema:

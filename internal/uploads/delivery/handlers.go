@@ -1,9 +1,9 @@
 package delivery
 
 import (
-	"log"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/gorilla/mux"
 )
 
@@ -26,13 +26,15 @@ func New() *Delivery {
 // @Failure 404 {object} map[string]string "File not found"
 // @Router /uploads/{folder}/{name} [get]
 func (d *Delivery) GetImage(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+
 	vars := mux.Vars(r)
 	folder := vars["folder"]
 	name := vars["name"]
 
 	imagePath := "/uploads/" + folder + "/" + name
 
-	log.Println("Uploads delivery: пришел запрос на получение картинки ", imagePath)
+	log.Println("пришел запрос на получение картинки ", imagePath)
 
 	http.ServeFile(w, r, imagePath)
 }

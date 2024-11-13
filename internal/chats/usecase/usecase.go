@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
@@ -13,8 +14,12 @@ import (
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
+	"golang.org/x/net/html"
+	errGroup "golang.org/x/sync/errgroup"
 )
 
 const (
@@ -224,10 +229,10 @@ func (s *ChatUsecaseImpl) getAvatarAndNameForPersonalChat(ctx context.Context, u
 	if err != nil {
 		return "", "", err
 	}
-	for _, id := range users {
-		if id != user.ID {
+	for _, u := range users {
+		if u.ID != user.ID {
 			// находим имя пользователя и аватар
-			chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, id)
+			chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, u.ID)
 
 			if err != nil {
 				log.Printf("Chat usecase -> GetChats: не удалось получить аватар и имя: %v", err)
@@ -376,25 +381,66 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 	return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, errors.New("Участники не удалены")
 }
 
-func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.UsersInChat, error) {
+func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.UsersInChatDTO, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
-		return chatModel.UsersInChat{}, err
+		return chatModel.UsersInChatDTO{}, err
 	}
 
 	if role == notInChat {
-		return chatModel.UsersInChat{}, &customerror.NoPermissionError{
+		return chatModel.UsersInChatDTO{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: chatId.String(),
 		}
 	}
 
-	ids, err := s.repository.GetUsersFromChat(ctx, chatId)
+	users, err := s.repository.GetUsersFromChat(ctx, chatId)
 	if err != nil {
-		return chatModel.UsersInChat{}, err
+		return chatModel.UsersInChatDTO{}, err
 	}
 
-	return chatModel.UsersInChat{
-		UsersId: ids,
-	}, nil
+	return convertUsersInChatToDTO(users), nil
+}
+
+func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) chatModel.UsersInChatDTO {
+	var usersDTO []chatModel.UserInChatDTO
+
+	var mu sync.Mutex
+	var g errGroup.Group
+
+	for _, user := range users {
+		g.Go(func() error {
+			userDTO := chatModel.UserInChatDTO{
+				ID:         user.ID,
+				Username:   html.EscapeString(user.Username),
+				Name:       validator.EscapePtrString(user.Name),
+				AvatarPath: validator.EscapePtrString(user.AvatarPath),
+			}
+
+			if user.Role != nil {
+				userDTO.Role = new(string)
+				switch *user.Role {
+				case 1:
+					*userDTO.Role = none
+				case 2:
+					*userDTO.Role = owner
+				case 3:
+					*userDTO.Role = admin
+				}
+			}
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			usersDTO = append(usersDTO, userDTO)
+
+			return nil
+		})
+	}
+
+	g.Wait()
+
+	return chatModel.UsersInChatDTO{
+		Users: usersDTO,
+	}
 }

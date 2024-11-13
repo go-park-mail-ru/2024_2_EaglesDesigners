@@ -96,6 +96,22 @@ type DeletdeUsersFromChatDTO struct {
 	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2" valid:"-"`
 }
 
-type UsersInChat struct {
-	UsersId []uuid.UUID `json:"usersId" example:"uuid1,uuid2" valid:"-"`
+type UsersInChatDTO struct {
+	Users []UserInChatDTO `json:"users" valid:"-"`
+}
+
+type UserInChatDTO struct {
+	ID         uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
+	Username   string    `json:"username" example:"mavrodi777" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
+	Name       *string   `json:"name" example:"Vincent Vega" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$),optional"`
+	AvatarPath *string   `json:"avatarURL" example:"/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
+	Role       *string   `json:"role" example:"owner" valid:"in(admin|owner|none),optional"`
+}
+
+type UserInChatDAO struct {
+	ID         uuid.UUID
+	Username   string
+	Name       *string
+	AvatarPath *string
+	Role       *int
 }
