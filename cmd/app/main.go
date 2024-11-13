@@ -112,9 +112,9 @@ func main() {
 
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
 
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, redisClient)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC)
 
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, messageUsecase.GetOnlineUsers(), redisClient)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
