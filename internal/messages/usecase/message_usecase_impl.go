@@ -47,7 +47,6 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	message.SentAt = time.Now()
 	message.AuthorID = user.ID
 	message.ChatId = chatId
-	message.AuthorName = user.Username
 
 	log.Printf("Usecase: сообщение от прользователя: %v", message.AuthorID)
 

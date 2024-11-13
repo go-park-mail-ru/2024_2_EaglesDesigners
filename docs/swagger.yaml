@@ -166,8 +166,6 @@ definitions:
     properties:
       authorID:
         type: string
-      authorName:
-        type: string
       chatId:
         type: string
       datetime:
@@ -487,6 +485,8 @@ paths:
       responses:
         "200":
           description: Сообщение успешно отаправлены
+          schema:
+            $ref: '#/definitions/models.MessagesArrayDTO'
         "400":
           description: Некорректный запрос
           schema:
@@ -552,6 +552,8 @@ paths:
       responses:
         "200":
           description: Сообщение успешно отаправлены
+          schema:
+            $ref: '#/definitions/models.MessagesArrayDTO'
         "400":
           description: Некорректный запрос
           schema:
