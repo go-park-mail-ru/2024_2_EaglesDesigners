@@ -163,6 +163,7 @@ func main() {
 	router.HandleFunc("/chat/{chatId}", auth.Authorize(auth.Csrf(chat.UpdateGroup))).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/users", auth.Authorize(chat.GetUsersFromChat)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages/{lastMessageId}", auth.Authorize(messageDelivery.GetMessagesWithPage)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/startwebsocket", auth.Authorize(messageDelivery.HandleConnection))
 
