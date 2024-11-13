@@ -317,7 +317,7 @@ const docTemplate = `{
                 "tags": [
                     "message"
                 ],
-                "summary": "Add new message",
+                "summary": "Get All messages",
                 "parameters": [
                     {
                         "maxLength": 36,
@@ -398,6 +398,59 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Не удалось добавить сообщение",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/messages/{lastMessageId}": {
+            "get": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "получить 25 сообщений до определенного",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "lastMessageId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно отаправлены"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/customerror.NoPermissionError"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщениея",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -952,6 +1005,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "customerror.NoPermissionError": {
+            "type": "object",
+            "properties": {
+                "area": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
         "delivery.SuccessfullSuccess": {
             "type": "object",
             "properties": {

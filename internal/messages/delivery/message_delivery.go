@@ -2,11 +2,13 @@ package delivery
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
@@ -43,6 +45,8 @@ var upgrader = websocket.Upgrader{
 		return false
 	},
 }
+
+var noPerm error = &customerror.NoPermissionError{User: "Alice", Area: "секретная зона"}
 
 type MessageController struct {
 	usecase usecase.MessageUsecase
@@ -115,7 +119,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 }
 
 // GetAllMessages godoc
-// @Summary Add new message
+// @Summary Get All messages
 // @Tags message
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Param message body models.MessagesArrayDTO true "Messages"
@@ -169,6 +173,66 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResp)
+}
+
+// GetMessagesWithPage godoc
+// @Summary получить 25 сообщений до определенного
+// @Tags message
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Param lastMessageId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Success 200 "Сообщение успешно отаправлены"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
+// @Router /chat/{chatId}/messages/{lastMessageId} [get]
+func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+
+	ctx := r.Context()
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+	chatId := mapVars["chatId"]
+	lastMessageId := mapVars["lastMessageId"]
+	log.Printf("chatid: %s, lastMessageId: %v", chatId, lastMessageId)
+
+	chatUUID, err := uuid.Parse(chatId)
+	if err != nil {
+		//conn.400
+		log.Printf("получен кривой Id юзера: %v", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during parsing uuid:%v", err), http.StatusBadRequest)
+		return
+	}
+
+	lastMessageUUID, err := uuid.Parse(lastMessageId)
+	if err != nil {
+		//conn.400
+		log.Printf("получен кривой Id сообщения: %v", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during parsing uuid:%v", err), http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	log.Println(user)
+	if !ok {
+		log.Println("нет юзера в контексте")
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+
+	messages, err := h.usecase.GetMessagesWithPage(ctx, user.ID, chatUUID, lastMessageUUID)
+	if err != nil {
+		if errors.As(err, &noPerm) {
+			responser.SendError(ctx, w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
+			return
+		}
+		responser.SendError(ctx, w, fmt.Sprintf("внутренняя ошибка: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendStruct(ctx, w, messages, http.StatusOK)
 }
 
 func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
