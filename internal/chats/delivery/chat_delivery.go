@@ -435,7 +435,7 @@ type SuccessfullSuccess struct {
 // @Tags chat
 // @Security BearerAuth
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")// @Success 200 {object} model.ChatUpdateOutput "Чат обновлен"
-// @Success 200 {object} model.UsersInChat "Пользователи чата"
+// @Success 200 {object} model.UsersInChatDTO "Пользователи чата"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
@@ -458,22 +458,21 @@ func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ids, err := c.service.GetUsersFromChat(r.Context(), chatUUID, user.ID)
-
+	users, err := c.service.GetUsersFromChat(r.Context(), chatUUID, user.ID)
 	if err != nil {
 		if errors.As(err, noPerm) {
-			responser.SendError(ctx, w, err.Error(), 403)
+			responser.SendError(ctx, w, err.Error(), http.StatusForbidden)
 			return
 		}
-		responser.SendError(ctx, w, err.Error(), 500)
+		responser.SendError(ctx, w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := validator.Check(ids); err != nil {
+	if err := validator.Check(users); err != nil {
 		log.Printf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	responser.SendStruct(ctx, w, ids, 200)
+	responser.SendStruct(ctx, w, users, http.StatusOK)
 }
