@@ -12,7 +12,6 @@ import (
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
-	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
@@ -43,18 +42,13 @@ type ChatUsecaseImpl struct {
 	tokenUsecase      *usecase.Usecase
 	messageRepository message.MessageRepository
 	repository        chatlist.ChatRepository
-	activeUsers       map[uuid.UUID]bool
-	redisClient       *redis.Client
 }
 
-func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository,
-	activeUsers map[uuid.UUID]bool, redisClient *redis.Client) ChatUsecase {
+func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository) ChatUsecase {
 	return &ChatUsecaseImpl{
 		tokenUsecase:      tokenService,
 		repository:        repository,
 		messageRepository: messageRepository,
-		activeUsers:       activeUsers,
-		redisClient:       redisClient,
 	}
 }
 
@@ -121,30 +115,6 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	return chatsDTO, nil
 }
 
-func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uuid.UUID, chatDTO chatModel.ChatDTOOutput, method string) error {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-	if _, ok := s.activeUsers[userId]; ok {
-
-		log.Printf("Chat usecase -> sendNotificationToUser: начата отправка уведомления пользователю: %v", userId)
-		err := s.redisClient.XAdd(ctx, &redis.XAddArgs{
-			Stream: userId.String(),
-			MaxLen: 0,
-			ID:     "",
-			Values: map[string]interface{}{
-				method: chatDTO,
-			},
-		}).Err()
-
-		if err != nil {
-			log.Printf("Chat usecase -> sendNotificationToUser: уведомление не отправлено пользователю: %v. Ошибка: %v", userId, err)
-		}
-
-		return err
-	}
-	log.Printf("Chat usecase -> sendNotificationToUser: уведомление пользователю отправлено: %v", userId)
-	return nil
-}
-
 func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
@@ -163,23 +133,12 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	case admin, owner, none:
 		log.Printf("Chat usecase -> AddUsersIntoChat: начато добавление пользователей в чат %v пользователем %v", chat_id, user.ID)
 
-		chat, err := s.repository.GetChatById(ctx, chat_id)
-
-		if err != nil {
-			log.Println("Chat usecase -> AddUsersIntoChat: не удалось добавить юзера в чат^ %v", err)
-		}
-
 		for _, id := range user_ids {
 			err = s.repository.AddUserIntoChat(ctx, id, chat_id, none)
 			if err != nil {
 				notAddedUsers = append(notAddedUsers, id)
 				continue
 			}
-			chatDTO, err := s.createChatDTO(ctx, chat)
-			if err != nil {
-				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
-			}
-			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
 			addedUsers = append(addedUsers, id)
 		}
 		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
@@ -243,7 +202,6 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 
 	// добавляем основателя в чат
-	s.sendNotificationToUser(ctx, user.ID, newChatDTO, messageUsecase.FeatNewUser)
 
 	log.Printf("Chat usecase -> AddNewChat: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
 	_, err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)

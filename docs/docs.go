@@ -341,7 +341,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Сообщение успешно отаправлены"
+                        "description": "Сообщение успешно отаправлены",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -435,7 +438,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Сообщение успешно отаправлены"
+                        "description": "Сообщение успешно отаправлены",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -1268,9 +1274,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "authorID": {
-                    "type": "string"
-                },
-                "authorName": {
                     "type": "string"
                 },
                 "chatId": {

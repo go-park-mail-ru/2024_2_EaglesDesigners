@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
@@ -123,7 +122,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 // @Tags message
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Param message body models.MessagesArrayDTO true "Messages"
-// @Success 200 "Сообщение успешно отаправлены"
+// @Success 200 {object} models.MessagesArrayDTO "Сообщение успешно отаправлены"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages [get]
@@ -180,7 +179,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 // @Tags message
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Param lastMessageId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Success 200 "Сообщение успешно отаправлены"
+// @Success 200 {object} models.MessagesArrayDTO "Сообщение успешно отаправлены"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
@@ -233,60 +232,4 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 	}
 
 	responser.SendStruct(ctx, w, messages, http.StatusOK)
-}
-
-func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
-	log := logger.LoggerWithCtx(r.Context(), logger.Log)
-	// начало
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println("Delivery: error during connection upgrade:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer log.Println("Message delivery: websocket is closing")
-	defer conn.Close()
-
-	// Здесь можно хранить список старых сообщений (например, в массиве или в базе данных)
-	messageChannel := make(chan models.WebScoketDTO, 10)
-	errChannel := make(chan error, 10)
-	closeChannel := make(chan bool, 1)
-
-	defer func() {
-		closeChannel <- true
-		close(closeChannel)
-	}()
-
-	if err != nil {
-		log.Println("Error reading message:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	go h.usecase.ScanForNewMessages(r.Context(), messageChannel, errChannel, closeChannel)
-
-	// пока соеденено
-	duration := 500 * time.Millisecond
-
-	for {
-		select {
-		case err = <-errChannel:
-
-			if err != nil {
-				log.Printf("Delivery: ошибка в поиске новых сообщений: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		case message := <-messageChannel:
-			// запись новых сообщений
-			log.Println("Message delivery websocket: получены новые сообщения")
-
-			conn.WriteJSON(message)
-
-		default:
-			time.Sleep(duration)
-		}
-
-	}
 }
