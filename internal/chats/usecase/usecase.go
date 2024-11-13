@@ -17,7 +17,6 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"golang.org/x/net/html"
 	errGroup "golang.org/x/sync/errgroup"
 )
