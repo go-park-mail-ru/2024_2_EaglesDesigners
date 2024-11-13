@@ -9,6 +9,7 @@ import (
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
+	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/repository"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
@@ -143,6 +144,11 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	contact, err := d.usecase.AddContact(ctx, contactData)
 	if err != nil {
+		if err == repo.ErrContactAlreadyExist {
+			responser.SendError(ctx, w, "Contact already exists", http.StatusBadRequest)
+			return
+		}
+
 		responser.SendError(ctx, w, "Failed to create contact", http.StatusBadRequest)
 		return
 	}
