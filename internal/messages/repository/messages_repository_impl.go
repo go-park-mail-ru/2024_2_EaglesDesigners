@@ -121,7 +121,6 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	}
 	defer conn.Release()
 
-
 	// нужно чё-то придумать со стикерами
 	row := conn.QueryRow(context.Background(),
 		`SELECT
@@ -169,8 +168,8 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	return messageModel, nil
 }
 
-func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time.Time, lastMessageId uuid.UUID) ([]models.Message, error) {
-	conn, err := r.pool.Acquire(context.Background())
+func (r *MessageRepositoryImpl) GetAllMessagesAfter(ctx context.Context, chatId uuid.UUID, lastMessageId uuid.UUID) ([]models.Message, error) {
+	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
 		return nil, err
@@ -178,7 +177,7 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time
 	defer conn.Release()
 	log.Printf("Repository: соединение успешно установлено")
 
-	rows, err := conn.Query(context.Background(),
+	rows, err := conn.Query(ctx,
 		`SELECT
 	m.id,
 	m.author_id,
@@ -188,12 +187,14 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time
 	u.username
 	FROM public.message AS m
 	JOIN public.user AS u ON u.id = m.author_id
-	WHERE m.chat_id = $1 AND m.sent_at >= $2 AND m.id != $3
-	ORDER BY sent_at DESC;`,
+	WHERE m.chat_id = $1 AND m.sent_at <= (SELECT sent_at FROM message WHERE id = $2) AND m.id != $2
+	ORDER BY sent_at DESC
+	LIMIT $3;`,
 		chatId,
-		after,
 		lastMessageId,
+		pageSize,
 	)
+
 	if err != nil {
 		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
 		return nil, err

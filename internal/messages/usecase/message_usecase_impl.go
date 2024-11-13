@@ -8,6 +8,7 @@ import (
 	"time"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
@@ -127,6 +128,31 @@ func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID)
 	return models.MessagesArrayDTO{
 		Messages: messages,
 	}, nil
+}
+
+func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, lastMessageId uuid.UUID) (models.MessagesArrayDTO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	log.Printf("запрошены сообщения из чата: %v, запрос получен от пользовтеля: %v", chatId, userId)
+
+	_, err := u.chatRepository.GetUserRoleInChat(ctx, userId, chatId)
+	if err != nil {
+		log.Printf("пользователь %v не состоит в чате %v", userId, chatId)
+		return models.MessagesArrayDTO{},
+			&customerror.NoPermissionError{
+				Area: fmt.Sprintf("чат %v", chatId),
+				User: fmt.Sprintf("пользователь %v", userId),
+			}
+	}
+
+	messages, err := u.messageRepository.GetAllMessagesAfter(ctx, chatId, lastMessageId)
+	if err != nil {
+		return models.MessagesArrayDTO{}, err
+	}
+
+	return models.MessagesArrayDTO{
+		Messages: messages,
+	}, nil
+
 }
 
 // sendMessagesToUsers - отправляет каждоиму подписчику из activeUsers сообщение
