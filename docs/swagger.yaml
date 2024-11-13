@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  customerror.NoPermissionError:
+    properties:
+      area:
+        type: string
+      user:
+        type: string
+    type: object
   delivery.SuccessfullSuccess:
     properties:
       success:
@@ -552,7 +559,7 @@ paths:
         "403":
           description: Нет доступа
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/customerror.NoPermissionError'
         "500":
           description: Не удалось получить сообщениея
           schema:

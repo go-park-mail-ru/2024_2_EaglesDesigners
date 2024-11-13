@@ -182,7 +182,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 // @Param lastMessageId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Success 200 "Сообщение успешно отаправлены"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
-// @Failure 403	{object} responser.ErrorResponse "Нет доступа"
+// @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages/{lastMessageId} [get]
 func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.Request) {

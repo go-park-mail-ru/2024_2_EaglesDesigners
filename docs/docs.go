@@ -446,7 +446,7 @@ const docTemplate = `{
                     "403": {
                         "description": "Нет доступа",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/customerror.NoPermissionError"
                         }
                     },
                     "500": {
@@ -1005,6 +1005,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "customerror.NoPermissionError": {
+            "type": "object",
+            "properties": {
+                "area": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
         "delivery.SuccessfullSuccess": {
             "type": "object",
             "properties": {
