@@ -231,7 +231,7 @@ func (s *ChatUsecaseImpl) getAvatarAndNameForPersonalChat(ctx context.Context, u
 	for _, u := range users {
 		if u.ID != user.ID {
 			// находим имя пользователя и аватар
-			chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, u.ID)
+			chatName, avatar, err := s.repository.GetNameAndAvatar(ctx, u.ID)
 
 			if err != nil {
 				log.Printf("Chat usecase -> GetChats: не удалось получить аватар и имя: %v", err)
