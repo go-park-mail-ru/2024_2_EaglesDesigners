@@ -149,7 +149,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	log.Println(mapVars["chatId"])
 	log.Printf("Message Delivery: starting getting all messages for chat: %v", chatUUID)
 
-	messages, err := h.usecase.GetMessages(r.Context(), chatUUID)
+	messages, err := h.usecase.GetFirstMessages(r.Context(), chatUUID)
 	if err != nil {
 		log.Println("Error reading message:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Error reading message:%v", err), http.StatusInternalServerError)

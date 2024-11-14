@@ -96,8 +96,9 @@ type DeletdeUsersFromChatDTO struct {
 	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2" valid:"-"`
 }
 
-type UsersInChatDTO struct {
-	Users []UserInChatDTO `json:"users" valid:"-"`
+type ChatInfoDTO struct {
+	Users    []UserInChatDTO  `json:"users" valid:"-"`
+	Messages []models.Message `json:"messages" valid:"-"`
 }
 
 type UserInChatDTO struct {

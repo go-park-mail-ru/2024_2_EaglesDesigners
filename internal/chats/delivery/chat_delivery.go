@@ -430,17 +430,17 @@ type SuccessfullSuccess struct {
 	Success string `json:success`
 }
 
-// GetUsersFromChat godoc
-// @Summary Получаем id пользователей
+// GetChatInfo godoc
+// @Summary Получаем пользователей и последние сообщении чата
 // @Tags chat
 // @Security BearerAuth
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")// @Success 200 {object} model.ChatUpdateOutput "Чат обновлен"
-// @Success 200 {object} model.UsersInChatDTO "Пользователи чата"
+// @Success 200 {object} model.ChatInfoDTO "Пользователи чата"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
-// @Router /chat/{chatId}/users [get]
-func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) {
+// @Router /chat/{chatId} [get]
+func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -458,7 +458,7 @@ func (c *ChatDelivery) GetUsersFromChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	users, err := c.service.GetUsersFromChat(r.Context(), chatUUID, user.ID)
+	users, err := c.service.GetChatInfo(r.Context(), chatUUID, user.ID)
 	if err != nil {
 		if errors.As(err, noPerm) {
 			responser.SendError(ctx, w, err.Error(), http.StatusForbidden)

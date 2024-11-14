@@ -58,6 +58,17 @@ definitions:
       lastMessage:
         $ref: '#/definitions/models.Message'
     type: object
+  model.ChatInfoDTO:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
+      users:
+        items:
+          $ref: '#/definitions/model.UserInChatDTO'
+        type: array
+    type: object
   model.ChatUpdate:
     properties:
       chatName:
@@ -117,13 +128,6 @@ definitions:
       username:
         example: mavrodi777
         type: string
-    type: object
-  model.UsersInChatDTO:
-    properties:
-      users:
-        items:
-          $ref: '#/definitions/model.UserInChatDTO'
-        type: array
     type: object
   models.AuthReqDTO:
     properties:
@@ -336,6 +340,38 @@ paths:
       tags:
       - auth
   /chat/{chatId}:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи чата
+          schema:
+            $ref: '#/definitions/model.ChatInfoDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить учатсников
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получаем пользователей и последние сообщении чата
+      tags:
+      - chat
     put:
       consumes:
       - multipart/form-data
@@ -584,39 +620,6 @@ paths:
       summary: получить 25 сообщений до определенного
       tags:
       - message
-  /chat/{chatId}/users:
-    get:
-      parameters:
-      - description: Chat ID (UUID)
-        example: '"123e4567-e89b-12d3-a456-426614174000"'
-        in: path
-        maxLength: 36
-        minLength: 36
-        name: chatId
-        required: true
-        type: string
-      responses:
-        "200":
-          description: Пользователи чата
-          schema:
-            $ref: '#/definitions/model.UsersInChatDTO'
-        "400":
-          description: Некорректный запрос
-          schema:
-            $ref: '#/definitions/responser.ErrorResponse'
-        "403":
-          description: Нет полномочий
-          schema:
-            $ref: '#/definitions/responser.ErrorResponse'
-        "500":
-          description: Не удалось получить учатсников
-          schema:
-            $ref: '#/definitions/responser.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получаем id пользователей
-      tags:
-      - chat
   /chats:
     get:
       parameters:

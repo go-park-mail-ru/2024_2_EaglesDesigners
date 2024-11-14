@@ -60,11 +60,11 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	return nil
 }
 
-func (u *MessageUsecaseImplm) GetMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error) {
+func (u *MessageUsecaseImplm) GetFirstMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато получение сообщений")
 
-	messages, err := u.messageRepository.GetMessages(chatId)
+	messages, err := u.messageRepository.GetFirstMessages(ctx, chatId)
 	if err != nil {
 		log.Errorf("Usecase: не удалось получить сообщения: %v", err)
 		return models.MessagesArrayDTO{}, err

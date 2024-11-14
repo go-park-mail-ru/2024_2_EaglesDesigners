@@ -380,14 +380,14 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 	return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, errors.New("Участники не удалены")
 }
 
-func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.UsersInChatDTO, error) {
+func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.ChatInfoDTO, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
-		return chatModel.UsersInChatDTO{}, err
+		return chatModel.ChatInfoDTO{}, err
 	}
 
 	if role == notInChat {
-		return chatModel.UsersInChatDTO{}, &customerror.NoPermissionError{
+		return chatModel.ChatInfoDTO{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: chatId.String(),
 		}
@@ -395,13 +395,22 @@ func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID
 
 	users, err := s.repository.GetUsersFromChat(ctx, chatId)
 	if err != nil {
-		return chatModel.UsersInChatDTO{}, err
+		return chatModel.ChatInfoDTO{}, err
+	}
+	usersDTO := convertUsersInChatToDTO(users)
+
+	messages, err := s.messageRepository.GetFirstMessages(ctx, chatId)
+	if err != nil {
+		return chatModel.ChatInfoDTO{}, err
 	}
 
-	return convertUsersInChatToDTO(users), nil
+	return chatModel.ChatInfoDTO{
+		Users:    usersDTO,
+		Messages: messages,
+	}, nil
 }
 
-func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) chatModel.UsersInChatDTO {
+func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) []chatModel.UserInChatDTO {
 	var usersDTO []chatModel.UserInChatDTO
 
 	var mu sync.Mutex
@@ -439,7 +448,5 @@ func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) chatModel.UsersInC
 
 	g.Wait()
 
-	return chatModel.UsersInChatDTO{
-		Users: usersDTO,
-	}
+	return usersDTO
 }
