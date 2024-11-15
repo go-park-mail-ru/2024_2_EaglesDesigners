@@ -492,7 +492,7 @@ func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uu
 	var username sql.NullString
 	var filename sql.NullString
 	err = conn.QueryRow(ctx,
-		`SELECT username, avatar_path FROM public.user WHERE id = $1;`,
+		`SELECT name, avatar_path FROM public.user WHERE id = $1;`,
 		userId,
 	).Scan(&username, &filename)
 
