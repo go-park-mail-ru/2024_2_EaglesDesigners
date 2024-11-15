@@ -17,6 +17,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
 	"github.com/google/uuid"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"golang.org/x/net/html"
 	errGroup "golang.org/x/sync/errgroup"
 )
@@ -41,13 +42,29 @@ type ChatUsecaseImpl struct {
 	tokenUsecase      *usecase.Usecase
 	messageRepository message.MessageRepository
 	repository        chatlist.ChatRepository
+	chatQuery amqp.Queue
 }
 
-func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository) ChatUsecase {
+func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository, ch *amqp.Channel) ChatUsecase {
+	// объявляем очередь для яатов
+	q, err := ch.QueueDeclare(
+		"chat", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	if err != nil {
+		log := logger.LoggerWithCtx(context.Background(), logger.Log)
+		log.Fatalf("failed to declare a queue. Error: %s", err)
+	}
+
 	return &ChatUsecaseImpl{
 		tokenUsecase:      tokenService,
 		repository:        repository,
 		messageRepository: messageRepository,
+		chatQuery: q,
 	}
 }
 

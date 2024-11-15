@@ -1,6 +1,16 @@
 package usecase
 
 
+// consumeMessages принимает информацию о сообщениях (добавление/изменение/удаление)
+func consumeMessages() {
+	
+}
+
+// consumeChats принимает информацию об изменении чатов
+func consumeChats() {
+
+}
+
 // func (u *MessageUsecaseImplm) publishMessageTochat(ctx context.Context, message models.Message) error {
 // 	log := logger.LoggerWithCtx(ctx, logger.Log)
 // 	err := u.redisClient.XAdd(ctx, &redis.XAddArgs{
@@ -295,3 +305,5 @@ package usecase
 // func (u *MessageUsecaseImplm) GetOnlineUsers() map[uuid.UUID]bool {
 // 	return u.activeUsers
 // }
+
+

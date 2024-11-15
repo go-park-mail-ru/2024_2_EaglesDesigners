@@ -33,7 +33,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
-	"github.com/redis/go-redis/v9"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // swag init
@@ -70,21 +70,24 @@ func main() {
 	defer pool.Close()
 	log.Println("База данных подключена")
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "redis:6379",
-		// Addr:     "localhost:6379",
-		Password: "1234",
-		PoolSize: 1000,
-		DB:       0,
-	})
-	status := redisClient.Ping(context.Background())
-
-	if err := status.Err(); err != nil {
-		log.Println("Не удалось подкллючить Redis: ", err)
-		return
+	// подключаем rebbit mq
+	conn, err := amqp.Dial("amqp://root:root@rabbitmq:5672/") // Создаем подключение к RabbitMQ
+	if err != nil {
+		log.Fatalf("unable to open connect to RabbitMQ server. Error: %s", err)
 	}
-	defer redisClient.Close()
-	log.Println("Redis подключен")
+	defer func() {
+		_ = conn.Close() // Закрываем подключение в случае удачной попытки
+	}()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		log.Fatalf("failed to open channel. Error: %s", err)
+	}
+	defer func() {
+		_ = ch.Close() // Закрываем канал в случае удачной попытки открытия
+	}()
+	log.Println("rebbit mq подключен")
+
 
 	govalidator.SetFieldsRequiredByDefault(true)
 
@@ -112,9 +115,9 @@ func main() {
 
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
 
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, ch)
 
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, ch)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
