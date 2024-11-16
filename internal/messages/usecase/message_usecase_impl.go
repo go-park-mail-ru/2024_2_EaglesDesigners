@@ -14,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 
 	"github.com/google/uuid"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Method = string
@@ -28,13 +29,29 @@ type MessageUsecaseImplm struct {
 	messageRepository repository.MessageRepository
 	chatRepository    chatRepository.ChatRepository
 	tokenUsecase      *usecase.Usecase
+	messageQuery      amqp.Queue
 }
 
-func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, tokenUsecase *usecase.Usecase) MessageUsecase {
+func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, tokenUsecase *usecase.Usecase, ch *amqp.Channel) MessageUsecase {
+	// объявляем очередь
+	q, err := ch.QueueDeclare(
+		"message", // name
+		false,     // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	if err != nil {
+		log := logger.LoggerWithCtx(context.Background(), logger.Log)
+		log.Fatalf("failed to declare a queue. Error: %s", err)
+	}
+
 	usecase := MessageUsecaseImplm{
 		messageRepository: messageRepository,
 		tokenUsecase:      tokenUsecase,
 		chatRepository:    chatRepository,
+		messageQuery:      q,
 	}
 	return &usecase
 }

@@ -30,6 +30,8 @@ import (
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/uploads/delivery"
 
+	websocket "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/websocket/usecase"
+
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
@@ -88,7 +90,6 @@ func main() {
 	}()
 	log.Println("rebbit mq подключен")
 
-
 	govalidator.SetFieldsRequiredByDefault(true)
 
 	router := mux.NewRouter()
@@ -129,6 +130,10 @@ func main() {
 
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
+	// websocket
+	websocketUsecase := websocket.NewWebsocketUsecase(ch)
+	log.Println(websocketUsecase)
+	
 	// добавление request_id в ctx всем запросам
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
