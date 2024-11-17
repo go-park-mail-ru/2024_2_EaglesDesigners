@@ -96,6 +96,55 @@ const docTemplate = `{
             }
         },
         "/chat/{chatId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Получаем пользователей и последние сообщении чата",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи чата",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatInfoDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить учатсников",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -317,7 +366,7 @@ const docTemplate = `{
                 "tags": [
                     "message"
                 ],
-                "summary": "Add new message",
+                "summary": "Get All messages",
                 "parameters": [
                     {
                         "maxLength": 36,
@@ -341,7 +390,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Сообщение успешно отаправлены"
+                        "description": "Сообщение успешно отаправлены",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -405,17 +457,12 @@ const docTemplate = `{
                 }
             }
         },
-        "/chat/{chatId}/users": {
+        "/chat/{chatId}/messages/{lastMessageId}": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "tags": [
-                    "chat"
+                    "message"
                 ],
-                "summary": "Получаем id пользователей",
+                "summary": "получить 25 сообщений до определенного",
                 "parameters": [
                     {
                         "maxLength": 36,
@@ -426,13 +473,23 @@ const docTemplate = `{
                         "name": "chatId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "lastMessageId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Пользователи чата",
+                        "description": "Сообщение успешно отаправлены",
                         "schema": {
-                            "$ref": "#/definitions/model.UsersInChat"
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
                         }
                     },
                     "400": {
@@ -442,13 +499,13 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Нет полномочий",
+                        "description": "Нет доступа",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/customerror.NoPermissionError"
                         }
                     },
                     "500": {
-                        "description": "Не удалось получить учатсников",
+                        "description": "Не удалось получить сообщениея",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -952,6 +1009,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "customerror.NoPermissionError": {
+            "type": "object",
+            "properties": {
+                "area": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
         "delivery.SuccessfullSuccess": {
             "type": "object",
             "properties": {
@@ -1026,6 +1094,23 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ChatInfoDTO": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Message"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.UserInChatDTO"
+                    }
+                }
+            }
+        },
         "model.ChatUpdate": {
             "type": "object",
             "properties": {
@@ -1089,18 +1174,28 @@ const docTemplate = `{
                 }
             }
         },
-        "model.UsersInChat": {
+        "model.UserInChatDTO": {
             "type": "object",
             "properties": {
-                "usersId": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "uuid1",
-                        "uuid2"
-                    ]
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "owner"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "mavrodi777"
                 }
             }
         },
@@ -1183,9 +1278,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "authorID": {
-                    "type": "string"
-                },
-                "authorName": {
                     "type": "string"
                 },
                 "chatId": {

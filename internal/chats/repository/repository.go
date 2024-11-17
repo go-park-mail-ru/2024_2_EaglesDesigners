@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	errGroup "golang.org/x/sync/errgroup"
 
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
@@ -392,42 +394,65 @@ func (r *ChatRepositoryImpl) DeleteUserFromChat(ctx context.Context, userId uuid
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error) {
+func (r *ChatRepositoryImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID) ([]chatModel.UserInChatDAO, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
-		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		log.Printf("Unable to acquire a database connection: %v", err)
 		return nil, err
 	}
 	defer conn.Release()
 
-	log.Printf("Chat repository -> GetUsersFromChat: начато получение пользователей из чата: %v", chatId)
+	log.Printf("начато получение пользователей из чата: %v", chatId)
 
 	rows, err := conn.Query(ctx,
-		`SELECT user_id
-		FROM chat_user
+		`SELECT 
+			u.id,
+			u.username,
+			u.name,
+			u.avatar_path,
+			ch.user_role_id
+		FROM public.chat_user AS ch
+		JOIN public."user" u ON ch.user_id = u.id 
 		WHERE chat_id = $1;`,
 		chatId,
 	)
 	if err != nil {
-		log.Printf("Unable to SELECT ids: %v\n", err)
+		log.Printf("Unable to SELECT ids: %v", err)
 		return nil, err
 	}
 
-	var ids []uuid.UUID
+	var users []chatModel.UserInChatDAO
+
+	log.Println("поиск параметров из запроса")
+
+	var mu sync.Mutex
+	var g errGroup.Group
+
 	for rows.Next() {
-		var userId uuid.UUID
+		g.Go(func() error {
+			var user chatModel.UserInChatDAO
 
-		log.Println("Repository: поиск параметров из запроса")
-		err = rows.Scan(&userId)
+			err = rows.Scan(&user.ID, &user.Username, &user.Name, &user.AvatarPath, &user.Role)
+			if err != nil {
+				return err
+			}
 
-		if err != nil {
-			log.Printf("Repository: unable to scan: %v", err)
-			return nil, err
+			mu.Lock()
+			defer mu.Unlock()
+
+			users = append(users, user)
+			return nil
+		})
+		if err := g.Wait(); err != nil {
+			log.Printf("unable to scan: %v", err)
+			return []chatModel.UserInChatDAO{}, err
 		}
-		ids = append(ids, userId)
 	}
-	return ids, nil
+
+	g.Wait()
+
+	return users, nil
 }
 
 func (r *ChatRepositoryImpl) UpdateChatPhoto(ctx context.Context, chatId uuid.UUID, filename string) error {
@@ -467,7 +492,7 @@ func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uu
 	var username sql.NullString
 	var filename sql.NullString
 	err = conn.QueryRow(ctx,
-		`SELECT username, avatar_path FROM public.user WHERE id = $1;`,
+		`SELECT name, avatar_path FROM public.user WHERE id = $1;`,
 		userId,
 	).Scan(&username, &filename)
 

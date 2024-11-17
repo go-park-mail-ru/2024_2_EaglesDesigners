@@ -5,18 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
-	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
+	"golang.org/x/net/html"
+	errGroup "golang.org/x/sync/errgroup"
 )
 
 const (
@@ -39,18 +41,13 @@ type ChatUsecaseImpl struct {
 	tokenUsecase      *usecase.Usecase
 	messageRepository message.MessageRepository
 	repository        chatlist.ChatRepository
-	activeUsers       map[uuid.UUID]bool
-	redisClient       *redis.Client
 }
 
-func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository,
-	activeUsers map[uuid.UUID]bool, redisClient *redis.Client) ChatUsecase {
+func NewChatUsecase(tokenService *usecase.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository) ChatUsecase {
 	return &ChatUsecaseImpl{
 		tokenUsecase:      tokenService,
 		repository:        repository,
 		messageRepository: messageRepository,
-		activeUsers:       activeUsers,
-		redisClient:       redisClient,
 	}
 }
 
@@ -95,24 +92,11 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 
 	for _, chat := range chats {
 		if chat.ChatType == personal {
-			users, err := s.repository.GetUsersFromChat(ctx, chat.ChatId)
+			chat.ChatName, chat.AvatarURL, err = s.getAvatarAndNameForPersonalChat(ctx, user, chat.ChatId)
+
 			if err != nil {
+				log.Errorf("Chat usecase -> GetChats: не удалось обработать персональный чат: %v", err)
 				return nil, err
-			}
-			for _, id := range users {
-				if id != user.ID {
-					// находим имя пользователя и аватар
-					chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, id)
-
-					if err != nil {
-
-						log.Printf("Chat usecase -> GetChats: не удалось получить аватар и имя: %v", err)
-						return nil, err
-					}
-					chat.AvatarURL = avatar
-					chat.ChatName = chatName
-					break
-				}
 			}
 		}
 
@@ -130,30 +114,6 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	return chatsDTO, nil
 }
 
-func (s *ChatUsecaseImpl) sendNotificationToUser(ctx context.Context, userId uuid.UUID, chatDTO chatModel.ChatDTOOutput, method string) error {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-	if _, ok := s.activeUsers[userId]; ok {
-
-		log.Printf("Chat usecase -> sendNotificationToUser: начата отправка уведомления пользователю: %v", userId)
-		err := s.redisClient.XAdd(ctx, &redis.XAddArgs{
-			Stream: userId.String(),
-			MaxLen: 0,
-			ID:     "",
-			Values: map[string]interface{}{
-				method: chatDTO,
-			},
-		}).Err()
-
-		if err != nil {
-			log.Printf("Chat usecase -> sendNotificationToUser: уведомление не отправлено пользователю: %v. Ошибка: %v", userId, err)
-		}
-
-		return err
-	}
-	log.Printf("Chat usecase -> sendNotificationToUser: уведомление пользователю отправлено: %v", userId)
-	return nil
-}
-
 func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.Cookie, user_ids []uuid.UUID, chat_id uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
@@ -169,14 +129,8 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 	var notAddedUsers []uuid.UUID
 	// проверяем есть ли права
 	switch role {
-	case admin, owner:
+	case admin, owner, none:
 		log.Printf("Chat usecase -> AddUsersIntoChat: начато добавление пользователей в чат %v пользователем %v", chat_id, user.ID)
-
-		chat, err := s.repository.GetChatById(ctx, chat_id)
-
-		if err != nil {
-			log.Println("Chat usecase -> AddUsersIntoChat: не удалось добавить юзера в чат^ %v", err)
-		}
 
 		for _, id := range user_ids {
 			err = s.repository.AddUserIntoChat(ctx, id, chat_id, none)
@@ -184,20 +138,18 @@ func (s *ChatUsecaseImpl) AddUsersIntoChat(ctx context.Context, cookie []*http.C
 				notAddedUsers = append(notAddedUsers, id)
 				continue
 			}
-			chatDTO, err := s.createChatDTO(ctx, chat)
-			if err != nil {
-				log.Printf("Chat usecase -> AddUsersIntoChat: не удалось создать DTO: %v", err)
-			}
-			s.sendNotificationToUser(ctx, id, chatDTO, messageUsecase.FeatNewUser)
 			addedUsers = append(addedUsers, id)
 		}
 		log.Printf("Chat usecase -> AddUsersIntoChat: участники добавлены в чат %v пользователем %v", chat_id, user.ID)
 
 		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers,
 			NotAddedUsers: notAddedUsers}, nil
+	default:
+		return chatModel.AddedUsersIntoChatDTO{}, &customerror.NoPermissionError{
+			User: user.ID.String(),
+			Area: fmt.Sprintf("Чат %v", chat_id),
+		}
 	}
-
-	return chatModel.AddedUsersIntoChatDTO{}, errors.New("Участники не добавлены")
 }
 
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error) {
@@ -249,7 +201,6 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 
 	// добавляем основателя в чат
-	s.sendNotificationToUser(ctx, user.ID, newChatDTO, messageUsecase.FeatNewUser)
 
 	log.Printf("Chat usecase -> AddNewChat: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
 	_, err = s.AddUsersIntoChat(ctx, cookie, chat.UsersToAdd, chatId)
@@ -259,7 +210,37 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 		return chatModel.ChatDTOOutput{}, err
 	}
 
+	if newChatDTO.ChatType == personal {
+		newChatDTO.ChatName, newChatDTO.AvatarPath, err = s.getAvatarAndNameForPersonalChat(ctx, user, newChat.ChatId)
+
+		if err != nil {
+			log.Errorf("Chat usecase -> AddNewChat: не удалось обработать персональный чат: %v", err)
+			return chatModel.ChatDTOOutput{}, err
+		}
+	}
+
 	return newChatDTO, nil
+}
+
+func (s *ChatUsecaseImpl) getAvatarAndNameForPersonalChat(ctx context.Context, user usecase.User, chatId uuid.UUID) (string, string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	users, err := s.repository.GetUsersFromChat(ctx, chatId)
+	if err != nil {
+		return "", "", err
+	}
+	for _, u := range users {
+		if u.ID != user.ID {
+			// находим имя пользователя и аватар
+			chatName, avatar, err := s.repository.GetUserNameAndAvatar(ctx, u.ID)
+
+			if err != nil {
+				log.Printf("Chat usecase -> GetChats: не удалось получить аватар и имя: %v", err)
+				return "", "", err
+			}
+			return chatName, avatar, err
+		}
+	}
+	return "", "", nil
 }
 
 func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) error {
@@ -284,6 +265,7 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 
 		return nil
 	case none, admin:
+		log.Printf("У пользователя %v нет прав на удаление чата %v", userId, chatId)
 		return &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: fmt.Sprintf("чат: %v", chatId.String()),
@@ -303,7 +285,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 	var updatedChat chatModel.ChatUpdateOutput
 	// проверяем есть ли права
 	switch role {
-	case owner, admin:
+	case owner, admin, none:
 		log.Printf("Chat usecase -> UpdateChat: обновление чата %v", chatId)
 
 		// send notification to chat
@@ -398,25 +380,73 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 	return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, errors.New("Участники не удалены")
 }
 
-func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.UsersInChat, error) {
+func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.ChatInfoDTO, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
-		return chatModel.UsersInChat{}, err
+		return chatModel.ChatInfoDTO{}, err
 	}
 
 	if role == notInChat {
-		return chatModel.UsersInChat{}, &customerror.NoPermissionError{
+		return chatModel.ChatInfoDTO{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: chatId.String(),
 		}
 	}
 
-	ids, err := s.repository.GetUsersFromChat(ctx, chatId)
+	users, err := s.repository.GetUsersFromChat(ctx, chatId)
 	if err != nil {
-		return chatModel.UsersInChat{}, err
+		return chatModel.ChatInfoDTO{}, err
+	}
+	usersDTO := convertUsersInChatToDTO(users)
+
+	messages, err := s.messageRepository.GetFirstMessages(ctx, chatId)
+	if err != nil {
+		return chatModel.ChatInfoDTO{}, err
 	}
 
-	return chatModel.UsersInChat{
-		UsersId: ids,
+	return chatModel.ChatInfoDTO{
+		Users:    usersDTO,
+		Messages: messages,
 	}, nil
+}
+
+func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) []chatModel.UserInChatDTO {
+	var usersDTO []chatModel.UserInChatDTO
+
+	var mu sync.Mutex
+	var g errGroup.Group
+
+	for _, user := range users {
+		g.Go(func() error {
+			userDTO := chatModel.UserInChatDTO{
+				ID:         user.ID,
+				Username:   html.EscapeString(user.Username),
+				Name:       validator.EscapePtrString(user.Name),
+				AvatarPath: validator.EscapePtrString(user.AvatarPath),
+			}
+
+			if user.Role != nil {
+				userDTO.Role = new(string)
+				switch *user.Role {
+				case 1:
+					*userDTO.Role = none
+				case 2:
+					*userDTO.Role = owner
+				case 3:
+					*userDTO.Role = admin
+				}
+			}
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			usersDTO = append(usersDTO, userDTO)
+
+			return nil
+		})
+	}
+
+	g.Wait()
+
+	return usersDTO
 }

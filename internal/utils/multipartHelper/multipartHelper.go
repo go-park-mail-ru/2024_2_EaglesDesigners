@@ -56,10 +56,6 @@ func SavePhoto(file multipart.File, folderName string) (string, error) {
 }
 
 func RewritePhoto(file multipart.File, photoURL string) error {
-	if ok := IsImageFile(file); !ok {
-		return ErrNotImage
-	}
-
 	dst, err := os.Create(photoURL)
 	if err != nil {
 		return err

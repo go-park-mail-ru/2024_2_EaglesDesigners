@@ -330,8 +330,8 @@ INSERT INTO  public.user_role ( value) VALUES
 --
 
 INSERT INTO public."user" (id, username, version, password, name, bio, birthdate, avatar_path) VALUES
-    (gen_random_uuid(), 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
-    (gen_random_uuid(), 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', '/uploads/avatar/d60053d3-e3a9-4a30-b9a3-cdfdc3431fde.png'),
+    ('39a9aea0-d461-437d-b4eb-bf030a0efc80', 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
+    ('fa4e08e4-1024-49cb-a799-4aa2a4f3a9df', 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', '/uploads/avatar/d60053d3-e3a9-4a30-b9a3-cdfdc3431fde.png'),
     (gen_random_uuid(), 'user33', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Dr Peper', 'Люблю газированные напитки 🥤', '1988-12-01T00:00:00Z', NULL),
     (gen_random_uuid(), 'user44', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Vincent Vega', 'Фанат кино 🎬', '1985-07-14T00:00:00Z', '/uploads/avatar/8027453b-fb36-452d-92dc-c356075fabef.png');
 
@@ -350,11 +350,16 @@ INSERT INTO contact (id, user_id, contact_id) VALUES
 
 
 INSERT INTO chat (chat_name, chat_type_id, id) VALUES
-    ('oleg', 1, gen_random_uuid()),
-      ('kizaru', 1, gen_random_uuid());
+    ('oleg', 1, 'a9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('kizaru', 1, 'b9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+   ('marsel', 2, 'c9a9aea0-d461-437d-b4eb-bf030a0efc80');
 
 INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     (gen_random_uuid(), 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
     (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
-     (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33'));
+    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
+    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33')),
+    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user11')),
+    (gen_random_uuid(), 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user22')),
+    (gen_random_uuid(), 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user33')),
+    (gen_random_uuid(), 3,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user44'));

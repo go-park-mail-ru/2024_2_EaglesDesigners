@@ -25,7 +25,7 @@ func NewMessageRepositoryImpl(pool *pgxpool.Pool) MessageRepository {
 	}
 }
 
-func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message, error) {
+func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uuid.UUID) ([]models.Message, error) {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
@@ -41,13 +41,13 @@ func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message,
 	m.author_id,
 	m.message,
 	m.sent_at, 
-	m.is_redacted,
-	u.username
+	m.is_redacted
 	FROM public.message AS m
-	JOIN public.user AS u ON u.id = m.author_id
 	WHERE m.chat_id = $1
-	ORDER BY sent_at DESC;`,
+	ORDER BY sent_at DESC
+	LIMIT $2;`,
 		chatId,
+		pageSize,
 	)
 	if err != nil {
 		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
@@ -59,12 +59,11 @@ func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message,
 	for rows.Next() {
 		var messageId uuid.UUID
 		var authorID uuid.UUID
-		var authorName string
 		var message string
 		var sentAt time.Time
 		var isRedacted bool
 
-		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &authorName)
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
@@ -73,7 +72,6 @@ func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message,
 		messages = append(messages, models.Message{
 			MessageId:  messageId,
 			AuthorID:   authorID,
-			AuthorName: authorName,
 			Message:    message,
 			SentAt:     sentAt,
 			IsRedacted: isRedacted,
@@ -121,7 +119,6 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	}
 	defer conn.Release()
 
-
 	// нужно чё-то придумать со стикерами
 	row := conn.QueryRow(context.Background(),
 		`SELECT
@@ -129,10 +126,8 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	m.author_id,
 	m.message,
 	m.sent_at, 
-	m.is_redacted,
-	u.username
+	m.is_redacted
 	FROM public.message AS m
-	JOIN public.user AS u ON u.id = m.author_id
 	WHERE m.chat_id = $1
 	ORDER BY sent_at DESC
 	LIMIT 1;`,
@@ -141,12 +136,11 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 
 	var messageId uuid.UUID
 	var authorID uuid.UUID
-	var authorName string
 	var message string
 	var sentAt time.Time
 	var isRedacted bool
 
-	err = row.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &authorName)
+	err = row.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Message{}, nil
@@ -160,7 +154,6 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	messageModel := models.Message{
 		MessageId:  messageId,
 		AuthorID:   authorID,
-		AuthorName: authorName,
 		Message:    message,
 		SentAt:     sentAt,
 		IsRedacted: isRedacted,
@@ -169,8 +162,8 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	return messageModel, nil
 }
 
-func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time.Time, lastMessageId uuid.UUID) ([]models.Message, error) {
-	conn, err := r.pool.Acquire(context.Background())
+func (r *MessageRepositoryImpl) GetAllMessagesAfter(ctx context.Context, chatId uuid.UUID, lastMessageId uuid.UUID) ([]models.Message, error) {
+	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
 		return nil, err
@@ -178,22 +171,22 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time
 	defer conn.Release()
 	log.Printf("Repository: соединение успешно установлено")
 
-	rows, err := conn.Query(context.Background(),
+	rows, err := conn.Query(ctx,
 		`SELECT
 	m.id,
 	m.author_id,
 	m.message,
 	m.sent_at, 
-	m.is_redacted,
-	u.username
+	m.is_redacted
 	FROM public.message AS m
-	JOIN public.user AS u ON u.id = m.author_id
-	WHERE m.chat_id = $1 AND m.sent_at >= $2 AND m.id != $3
-	ORDER BY sent_at DESC;`,
+	WHERE m.chat_id = $1 AND m.sent_at <= (SELECT sent_at FROM message WHERE id = $2) AND m.id != $2
+	ORDER BY sent_at DESC
+	LIMIT $3;`,
 		chatId,
-		after,
 		lastMessageId,
+		pageSize,
 	)
+
 	if err != nil {
 		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
 		return nil, err
@@ -204,12 +197,11 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time
 	for rows.Next() {
 		var messageId uuid.UUID
 		var authorID uuid.UUID
-		var authorName string
 		var message string
 		var sentAt time.Time
 		var isRedacted bool
 
-		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &authorName)
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
@@ -218,7 +210,6 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(chatId uuid.UUID, after time
 		messages = append(messages, models.Message{
 			MessageId:  messageId,
 			AuthorID:   authorID,
-			AuthorName: authorName,
 			Message:    message,
 			SentAt:     sentAt,
 			IsRedacted: isRedacted,

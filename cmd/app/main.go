@@ -112,9 +112,9 @@ func main() {
 
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
 
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, redisClient)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC)
 
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, messageUsecase.GetOnlineUsers(), redisClient)
+	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
@@ -161,10 +161,11 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/addusers", auth.Authorize(auth.Csrf(chat.AddUsersIntoChat))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/delete", auth.Authorize(auth.Csrf(chat.DeleteChatOrGroup))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}", auth.Authorize(auth.Csrf(chat.UpdateGroup))).Methods("PUT", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/users", auth.Authorize(chat.GetUsersFromChat)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}", auth.Authorize(chat.GetChatInfo)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages/{lastMessageId}", auth.Authorize(messageDelivery.GetMessagesWithPage)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
-	router.HandleFunc("/chat/startwebsocket", auth.Authorize(messageDelivery.HandleConnection))
+	// router.HandleFunc("/chat/startwebsocket", auth.Authorize(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
