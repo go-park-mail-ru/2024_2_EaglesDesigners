@@ -97,6 +97,7 @@ type DeletdeUsersFromChatDTO struct {
 }
 
 type ChatInfoDTO struct {
+	Role     string           `json:"role" example:"owner" valid:"in(admin|owner|none)"`
 	Users    []UserInChatDTO  `json:"users" valid:"-"`
 	Messages []models.Message `json:"messages" valid:"-"`
 }
@@ -115,4 +116,8 @@ type UserInChatDAO struct {
 	Name       *string
 	AvatarPath *string
 	Role       *int
+}
+
+type AddBranch struct {
+	ID uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
 }

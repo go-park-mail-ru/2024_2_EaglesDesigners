@@ -20,4 +20,6 @@ type ChatUsecase interface {
 
 	DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error)
 	GetChatInfo(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.ChatInfoDTO, error)
+
+	AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID, userId uuid.UUID) (chatModel.AddBranch, error)
 }

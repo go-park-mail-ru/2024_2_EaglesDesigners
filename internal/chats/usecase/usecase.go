@@ -11,6 +11,7 @@ import (
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/multipartHelper"
@@ -282,11 +283,31 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 		return chatModel.ChatUpdateOutput{}, err
 	}
 
-	var updatedChat chatModel.ChatUpdateOutput
+	chatType, err := s.repository.GetChatType(ctx, chatId)
+	if err != nil {
+		return chatModel.ChatUpdateOutput{}, err
+	}
+
+	// по умолчанию равно false
+	var hasPermission bool
+
 	// проверяем есть ли права
-	switch role {
-	case owner, admin, none:
-		log.Printf("Chat usecase -> UpdateChat: обновление чата %v", chatId)
+	if chatType == channel {
+		switch role {
+		case owner, admin:
+			hasPermission = true
+		}
+	} else {
+		switch role {
+		case owner, admin, none:
+			hasPermission = true
+		}
+	}
+
+	var updatedChat chatModel.ChatUpdateOutput
+
+	if hasPermission {
+		log.Printf("обновление чата %v", chatId)
 
 		// send notification to chat
 		if chatUpdate.Avatar != nil {
@@ -299,41 +320,41 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 
 				err = multipartHepler.RewritePhoto(*chatUpdate.Avatar, chat.AvatarURL)
 				if err != nil {
-					log.Printf("Chat usecase -> UpdateChat: не удалось обновить аватарку: %v", err)
+					log.Errorf("не удалось обновить аватарку: %v", err)
 					return chatModel.ChatUpdateOutput{}, err
 				}
 				updatedChat.Avatar = chat.AvatarURL
 			} else {
-				log.Println("Chat usecase -> UpdateChat: нет старой аватарки -> установка новой")
+				log.Println("нет старой аватарки -> установка новой")
 				filename, err := multipartHepler.SavePhoto(*chatUpdate.Avatar, chatDir)
 				if err != nil {
-					log.Printf("Не удалось записать аватарку: %v", err)
+					log.Errorf("Не удалось записать аватарку: %v", err)
 					return chatModel.ChatUpdateOutput{}, err
 				}
 				err = s.repository.UpdateChatPhoto(ctx, chatId, filename)
 
 				if err != nil {
-					log.Printf("Chat usecase -> UpdateChat: не удалось установить аватарку: %v", err)
+					log.Errorf("не удалось установить аватарку: %v", err)
 					return chatModel.ChatUpdateOutput{}, err
 				}
 				updatedChat.Avatar = filename
 			}
-			log.Println("Chat usecase -> UpdateChat: аватар обновлен")
+			log.Println("аватар обновлен")
 
 		}
 
 		if chatUpdate.ChatName != "" {
 			err = s.repository.UpdateChat(ctx, chatId, chatUpdate.ChatName)
 			if err != nil {
-				log.Printf("Chat usecase -> UpdateChat: не удалось обновить имя чата: %v", err)
+				log.Errorf("не удалось обновить имя чата: %v", err)
 				return chatModel.ChatUpdateOutput{}, err
 			}
-			log.Println("Chat usecase -> UpdateChat: имя чата обновлено")
+			log.Println("имя чата обновлено")
 			updatedChat.ChatName = chatUpdate.ChatName
 		}
 		return updatedChat, nil
-	default:
-		log.Printf("Chat usecase -> UpdateChat: у пользователя %v нет привелегий", userId)
+	} else {
+		log.Printf("у пользователя %v нет привелегий", userId)
 		return chatModel.ChatUpdateOutput{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: fmt.Sprintf("чат: %v", chatId.String()),
@@ -393,21 +414,57 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 		}
 	}
 
-	users, err := s.repository.GetUsersFromChat(ctx, chatId)
-	if err != nil {
-		return chatModel.ChatInfoDTO{}, err
-	}
-	usersDTO := convertUsersInChatToDTO(users)
+	var g errGroup.Group
 
-	messages, err := s.messageRepository.GetFirstMessages(ctx, chatId)
-	if err != nil {
+	var users []chatModel.UserInChatDAO
+	var usersDTO []chatModel.UserInChatDTO
+	var messages []messageModel.Message
+
+	g.Go(func() error {
+		users, err = s.repository.GetUsersFromChat(ctx, chatId)
+		if err != nil {
+			return err
+		}
+		usersDTO = convertUsersInChatToDTO(users)
+
+		return nil
+	})
+
+	g.Go(func() error {
+		messages, err = s.messageRepository.GetFirstMessages(ctx, chatId)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
 		return chatModel.ChatInfoDTO{}, err
 	}
 
 	return chatModel.ChatInfoDTO{
+		Role:     role,
 		Users:    usersDTO,
 		Messages: messages,
 	}, nil
+}
+
+func (s *ChatUsecaseImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID, userId uuid.UUID) (chatModel.AddBranch, error) {
+	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
+	if err != nil {
+		return chatModel.AddBranch{}, err
+	}
+
+	if role == notInChat {
+		return chatModel.AddBranch{}, &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: chatId.String(),
+		}
+	}
+
+	branch, err := s.repository.AddBranch(ctx, chatId, messageID)
+	if err != nil {
+		return chatModel.AddBranch{}, err
+	}
+
+	return branch, nil
 }
 
 func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) []chatModel.UserInChatDTO {
