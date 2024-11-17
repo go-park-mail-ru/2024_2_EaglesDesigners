@@ -1,22 +1,37 @@
 package usecase
 
 import (
-	"log"
+	"context"
 
 	chatEvent "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
+	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+// ивент может быть либо изменение сущности чата, либо сообщение
+type AnyEvent struct {
+	TypeOfEvent string
+	Event       interface{}
+}
+
 type WebsocketUsecase struct {
-	ch          *amqp.Channel
-	activeChats map[uuid.UUID]chan chatEvent.Event
+	ch             *amqp.Channel
+	// мапа с чатами и каналами для ивентов по чатам
+	onlineChats    map[uuid.UUID]chan chatEvent.Event
+	// мапа с онлайн пользователями и 
+	onlineUsers    map[uuid.UUID]chan AnyEvent
+	chatRepository chatRepository.ChatRepository
 }
 
 func NewWebsocketUsecase(ch *amqp.Channel) *WebsocketUsecase {
 
 	socket := &WebsocketUsecase{
-		ch: ch,
+		ch:          ch,
+		onlineChats: map[uuid.UUID]chan chatEvent.Event{},
+		onlineUsers: map[uuid.UUID]chan AnyEvent{},
 	}
 
 	go socket.consumeMessages()
@@ -25,59 +40,10 @@ func NewWebsocketUsecase(ch *amqp.Channel) *WebsocketUsecase {
 	return socket
 }
 
-// consumeMessages принимает информацию о сообщениях (добавление/изменение/удаление)
-func (w *WebsocketUsecase) consumeMessages() {
-	for {
-		messages, err := w.ch.Consume(
-			"message", // queue
-			"",        // consumer
-			true,      // auto-ack
-			false,     // exclusive
-			false,     // no-local
-			false,     // no-wait
-			nil,       // args
-		)
 
-		if err != nil {
-			log.Fatalf("failed to register a consumer. Error: %s", err)
-		}
-		for message := range messages {
-			log.Printf("received a message: %s", message.Body)
-		}
 
-	}
-}
-
-// consumeChats принимает информацию об изменении чатов
-func (w *WebsocketUsecase) consumeChats() {
-	for {
-		messages, err := w.ch.Consume(
-			"chat", // queue
-			"",     // consumer
-			true,   // auto-ack
-			false,  // exclusive
-			false,  // no-local
-			false,  // no-wait
-			nil,    // args
-		)
-
-		if err != nil {
-			log.Fatalf("failed to register a consumer. Error: %s", err)
-		}
-		for message := range messages {
-			log.Printf("received a message: %s", message.Body)
-		}
-	}
-}
-
-func (w *WebsocketUsecase) addEventIntoChatRutine(event chatEvent.Event) {
-	// если нет рутины чата, то сначала создадим ее
-	if !w.isChatActive(event.ChatId) {
-		
-	}
-}
-
-func (w *WebsocketUsecase) isChatActive(chatId uuid.UUID) bool {
-	_, ok := w.activeChats[chatId]
-	return ok
+func (w *WebsocketUsecase) InitBrokersForUser(userId uuid.UUID, eventChannel <- chan AnyEvent) error {
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	
+	chats, err := w.chatRepository.GetUserChats(context.Background(), userId, 0)
 }

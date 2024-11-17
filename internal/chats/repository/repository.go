@@ -138,7 +138,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(ctx context.Context, chat chatModel.C
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID, pageNum int) ([]chatModel.Chat, error) {
+func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID) ([]chatModel.Chat, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
@@ -157,12 +157,8 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID,
 		FROM chat_user AS cu
 		JOIN chat AS c ON c.id = cu.chat_id
 		JOIN chat_type AS ch ON ch.id = c.chat_type_id
-		WHERE cu.user_id = $1
-		LIMIT $2
-		OFFSET $3;`,
+		WHERE cu.user_id = $1;`,
 		userId,
-		pageSize,
-		pageSize*pageNum,
 	)
 	if err != nil {
 		log.Printf("Unable to SELECT chats: %v\n", err)

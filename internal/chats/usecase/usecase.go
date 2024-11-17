@@ -99,7 +99,7 @@ func (s *ChatUsecaseImpl) createChatDTO(ctx context.Context, chat chatModel.Chat
 		message), nil
 }
 
-func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, pageNum int) ([]chatModel.ChatDTOOutput, error) {
+func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie) ([]chatModel.ChatDTOOutput, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie, p
 	}
 	log.Printf("Chat usecase: пришел запрос на получение всех чатов от пользователя: %v", user.ID)
 
-	chats, err := s.repository.GetUserChats(ctx, user.ID, pageNum)
+	chats, err := s.repository.GetUserChats(ctx, user.ID)
 	if err != nil {
 		return nil, err
 	}
