@@ -608,3 +608,140 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, me
 
 	return branch, nil
 }
+
+func (r *ChatRepositoryImpl) SearchUserChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Unable to acquire a database connection: %v\n", err)
+		return nil, err
+	}
+	defer conn.Release()
+	log.Debugln("Соединение с бд установлено")
+
+	rows, err := conn.Query(ctx,
+		`SELECT c.id,
+			c.chat_name,
+			ch.value,
+			c.avatar_path,
+			c.chat_link_name
+		FROM chat_user AS cu
+		JOIN chat AS c ON c.id = cu.chat_id
+		JOIN chat_type AS ch ON ch.id = c.chat_type_id
+		WHERE 
+			cu.user_id = $1 AND 
+			ch.value <> 'branch' AND 
+			(POSITION($2 IN c.chat_name) > 0 OR POSITION($2 IN c.chat_link_name) > 0);`,
+		userId,
+		keyWord,
+	)
+	if err != nil {
+		log.Errorf("Unable to SELECT chats: %v", err)
+		return nil, err
+	}
+	log.Debugln("Чаты получены")
+
+	chats := []chatModel.Chat{}
+	for rows.Next() {
+		var chatId uuid.UUID
+		var chatName string
+		var chatType string
+		var avatarURL sql.NullString
+		var chatURLName sql.NullString
+
+		log.Debugln("поиск параметров из запроса")
+		err = rows.Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
+
+		if err != nil {
+			log.Errorf("unable to scan: %v", err)
+			return nil, err
+		}
+
+		chats = append(chats, chatModel.Chat{
+			ChatId:      chatId,
+			ChatName:    chatName,
+			ChatType:    chatType,
+			AvatarURL:   avatarURL.String,
+			ChatURLName: chatURLName.String,
+		})
+	}
+
+	log.Debugf("чаты успешно найдеты. Количество чатов: %d", len(chats))
+
+	return chats, nil
+}
+
+func (r *ChatRepositoryImpl) SearchGlobalChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Unable to acquire a database connection: %v\n", err)
+		return nil, err
+	}
+	defer conn.Release()
+	log.Debugln("Соединение с бд установлено")
+
+	rows, err := conn.Query(ctx,
+		`SELECT 
+			ch.id,
+			ch.chat_name,
+			ch.value,
+			ch.avatar_path,
+			ch.chat_link_name
+		FROM (
+			SELECT 
+				c.id,
+				c.chat_name,
+				ch.value,
+				c.avatar_path,
+				c.chat_link_name
+			FROM public.chat c
+			JOIN public.chat_type ch ON ch.id = c.chat_type_id
+			WHERE  
+				ch.value = 'channel' AND 
+				(POSITION($2 IN c.chat_name) > 0 OR POSITION($2 IN c.chat_link_name) > 0)
+		) AS ch
+		WHERE ch.id NOT IN (
+			SELECT c.id
+			FROM public.chat_user cu
+			JOIN public.chat c ON cu.chat_id = c.id 
+			WHERE cu.user_id = $1
+		);`,
+		userId,
+		keyWord,
+	)
+	if err != nil {
+		log.Errorf("Unable to SELECT chats: %v", err)
+		return nil, err
+	}
+	log.Debugln("Чаты получены")
+
+	chats := []chatModel.Chat{}
+	for rows.Next() {
+		var chatId uuid.UUID
+		var chatName string
+		var chatType string
+		var avatarURL sql.NullString
+		var chatURLName sql.NullString
+
+		log.Debugln("поиск параметров из запроса")
+		err = rows.Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
+
+		if err != nil {
+			log.Errorf("unable to scan: %v", err)
+			return nil, err
+		}
+
+		chats = append(chats, chatModel.Chat{
+			ChatId:      chatId,
+			ChatName:    chatName,
+			ChatType:    chatType,
+			AvatarURL:   avatarURL.String,
+			ChatURLName: chatURLName.String,
+		})
+	}
+
+	log.Debugf("чаты успешно найдеты. Количество чатов: %d", len(chats))
+
+	return chats, nil
+}

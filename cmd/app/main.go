@@ -175,6 +175,8 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/startwebsocket", auth.Authorize(websocketDelivery.HandleConnection))
 	router.HandleFunc("/chat/{chatid}/{messageId}/branch", auth.Authorize(auth.Csrf(chat.AddBranch))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chats/search", auth.Authorize(chat.SearchChats)).Methods("GET", "OPTIONS")
+	// router.HandleFunc("/chat/startwebsocket", auth.Authorize(messageDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{

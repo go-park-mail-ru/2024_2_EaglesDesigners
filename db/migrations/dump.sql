@@ -360,25 +360,35 @@ INSERT INTO public."user" (id, username, version, password, name, bio, birthdate
 --
 
 INSERT INTO contact (id, user_id, contact_id) VALUES 
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user22')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user33')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user44')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user11')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user33')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user33'), (SELECT id FROM public."user" WHERE username = 'user22'));
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user22')),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user44')),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user11')),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user33'), (SELECT id FROM public."user" WHERE username = 'user22'));
 
 
 INSERT INTO chat (chat_name, chat_type_id, id) VALUES
     ('oleg', 1, 'a9a9aea0-d461-437d-b4eb-bf030a0efc80'),
     ('kizaru', 1, 'b9a9aea0-d461-437d-b4eb-bf030a0efc80'),
-   ('marsel', 2, 'c9a9aea0-d461-437d-b4eb-bf030a0efc80');
+    ('marsel', 2, 'c9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('funny channel', 3, 'd9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('not funny channel', 3, 'e9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('my little channel', 3, 'f9a9aea0-d461-437d-b4eb-bf030a0efc80');
 
 INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
-    (gen_random_uuid(), 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user22')),
-    (gen_random_uuid(), 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user33')),
-    (gen_random_uuid(), 3,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user44'));
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33')),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user11')),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user22')),
+    ('f1a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user33')),
+    ('f2a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user44')),
+    ('f4a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user11')),
+    ('f5a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user22')),
+    ('f6a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user33')),
+    ('f7a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user22')),
+    ('f8a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user44')),
+    ('f9a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user33')),
+    ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'my little channel'), (SELECT id FROM public.user where username ='user44'));

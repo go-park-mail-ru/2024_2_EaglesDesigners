@@ -583,6 +583,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/chats/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Поиск чатов пользователя и глобальных каналов по названию",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "0",
+                        "description": "Ключевое слово для поиска",
+                        "name": "key_word",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SearchChatsDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщения"
+                    }
+                }
+            }
+        },
         "/contacts": {
             "get": {
                 "security": [
@@ -1223,6 +1266,23 @@ const docTemplate = `{
                         "uuid1",
                         "uuid2"
                     ]
+                }
+            }
+        },
+        "model.SearchChatsDTO": {
+            "type": "object",
+            "properties": {
+                "global_channels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ChatDTOOutput"
+                    }
+                },
+                "user_chats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ChatDTOOutput"
+                    }
                 }
             }
         },

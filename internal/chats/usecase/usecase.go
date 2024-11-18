@@ -120,7 +120,7 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie) (
 
 	for _, chat := range chats {
 		if chat.ChatType == personal {
-			chat.ChatName, chat.AvatarURL, err = s.getAvatarAndNameForPersonalChat(ctx, user, chat.ChatId)
+			chat.ChatName, chat.AvatarURL, err = s.getAvatarAndNameForPersonalChat(ctx, user.ID, chat.ChatId)
 
 			if err != nil {
 				log.Errorf("Chat usecase -> GetChats: не удалось обработать персональный чат: %v", err)
@@ -242,7 +242,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	s.addUsersIntoChat(ctx, chat.UsersToAdd, chatId)
 
 	if newChatDTO.ChatType == personal {
-		newChatDTO.ChatName, newChatDTO.AvatarPath, err = s.getAvatarAndNameForPersonalChat(ctx, user, newChat.ChatId)
+		newChatDTO.ChatName, newChatDTO.AvatarPath, err = s.getAvatarAndNameForPersonalChat(ctx, user.ID, newChat.ChatId)
 
 		if err != nil {
 			log.Errorf("Chat usecase -> AddNewChat: не удалось обработать персональный чат: %v", err)
@@ -255,14 +255,14 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	return newChatDTO, nil
 }
 
-func (s *ChatUsecaseImpl) getAvatarAndNameForPersonalChat(ctx context.Context, user jwt.User, chatId uuid.UUID) (string, string, error) {
+func (s *ChatUsecaseImpl) getAvatarAndNameForPersonalChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID) (string, string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	users, err := s.repository.GetUsersFromChat(ctx, chatId)
 	if err != nil {
 		return "", "", err
 	}
 	for _, u := range users {
-		if u.ID != user.ID {
+		if u.ID != userID {
 			// находим имя пользователя и аватар
 			chatName, avatar, err := s.repository.GetNameAndAvatar(ctx, u.ID)
 
@@ -513,6 +513,81 @@ func (s *ChatUsecaseImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messa
 	}
 
 	return branch, nil
+}
+
+func (s *ChatUsecaseImpl) SearchChats(ctx context.Context, userID uuid.UUID, keyWord string) (chatModel.SearchChatsDTO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Debugf("пришел запрос на получение всех чатов от пользователя: %v", userID)
+
+	var g errGroup.Group
+
+	var userChatsDTO []chatModel.ChatDTOOutput
+	var globalChannelsDTO []chatModel.ChatDTOOutput
+
+	g.Go(func() error {
+		userChats, err := s.repository.SearchUserChats(ctx, userID, keyWord)
+		if err != nil {
+			return err
+		}
+		log.Debugln("чаты пользователя получены")
+
+		for _, chat := range userChats {
+			if chat.ChatType == personal {
+				chat.ChatName, chat.AvatarURL, err = s.getAvatarAndNameForPersonalChat(ctx, userID, chat.ChatId)
+
+				if err != nil {
+					log.Errorf("не удалось обработать персональный чат: %v", err)
+					return err
+				}
+			}
+
+			chatDTO, err := s.createChatDTO(ctx, chat)
+
+			if err != nil {
+				log.Errorf("не удалось создать DTO: %v", err)
+				return err
+			}
+
+			userChatsDTO = append(userChatsDTO,
+				chatDTO)
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		globalChannels, err := s.repository.SearchGlobalChats(ctx, userID, keyWord)
+		if err != nil {
+			return err
+		}
+		log.Debugln("глобальные каналы получены")
+
+		for _, chat := range globalChannels {
+			channelDTO, err := s.createChatDTO(ctx, chat)
+
+			if err != nil {
+				log.Errorf("не удалось создать DTO: %v", err)
+				return err
+			}
+
+			globalChannelsDTO = append(globalChannelsDTO,
+				channelDTO)
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return chatModel.SearchChatsDTO{}, err
+	}
+
+	outputDTO := chatModel.SearchChatsDTO{
+		UserChats:      userChatsDTO,
+		GlobalChannels: globalChannelsDTO,
+	}
+
+	return outputDTO, nil
 }
 
 func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) []chatModel.UserInChatDTO {
