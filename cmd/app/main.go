@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"text/template"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
 	"github.com/google/uuid"

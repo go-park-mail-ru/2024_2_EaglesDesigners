@@ -80,6 +80,29 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	return nil
 }
 
+func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, messageId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	log.Infof("начато удаление сообщения %v пользователем %v", messageId, user.ID)
+
+	message, err := u.messageRepository.GetMessageById(ctx, messageId)
+	if err != nil {
+		return err
+	}
+
+	if user.ID != message.AuthorID {
+		return &customerror.NoPermissionError{
+			Area: fmt.Sprintf("сообщение %v принадлежит другому пользователю", messageId),
+			User: user.ID.String(),
+		}
+	}
+	err = u.messageRepository.DeleteMessage(ctx, messageId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (u *MessageUsecaseImplm) GetFirstMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато получение сообщений")

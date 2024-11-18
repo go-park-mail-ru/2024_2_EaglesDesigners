@@ -8,8 +8,12 @@ import (
 )
 
 type MessageRepository interface {
-	GetFirstMessages(ctx context.Context, chatId uuid.UUID) ([]models.Message, error)
 	AddMessage(message models.Message, chatId uuid.UUID) error
+
+	DeleteMessage(ctx context.Context, messageId uuid.UUID) error
+
+	GetFirstMessages(ctx context.Context, chatId uuid.UUID) ([]models.Message, error)
+	GetMessageById(ctx context.Context, messageId uuid.UUID) (models.Message, error)
 	GetLastMessage(chatId uuid.UUID) (models.Message, error)
 	GetAllMessagesAfter(ctx context.Context, chatId uuid.UUID, lastMessageId uuid.UUID) ([]models.Message, error)
 }
