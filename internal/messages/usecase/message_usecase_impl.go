@@ -100,6 +100,7 @@ func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, 
 		return err
 	}
 
+	u.sendIvent(ctx, socketUsecase.DeleteMessage, message)
 	return nil
 }
 

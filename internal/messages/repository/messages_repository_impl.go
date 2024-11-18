@@ -153,7 +153,7 @@ func (r *MessageRepositoryImpl) GetMessageById(ctx context.Context, messageId uu
 		m.author_id,
 		m.message,
 		m.sent_at, 
-		m.is_redacted
+		m.is_redacted,
 		m.chat_id
 		FROM public.message AS m
 		WHERE m.id = $1
