@@ -215,7 +215,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 // @Success 200 {object} model.DeletdeUsersFromChatDTO "Пользователи удалены"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
-// @Router /chat/{chatId}/delusers [post]
+// @Router /chat/{chatId}/delusers [delete]
 func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
