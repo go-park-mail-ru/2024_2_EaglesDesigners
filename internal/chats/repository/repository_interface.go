@@ -22,4 +22,6 @@ type ChatRepository interface {
 	UpdateChatPhoto(ctx context.Context, chatId uuid.UUID, filename string) error
 	GetNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error)
 	AddBranch(ctx context.Context, chatId uuid.UUID, messageId uuid.UUID) (chatModel.AddBranch, error)
+	SearchUserChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error)
+	SearchGlobalChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error)
 }

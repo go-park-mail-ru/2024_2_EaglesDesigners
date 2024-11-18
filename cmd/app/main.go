@@ -179,6 +179,7 @@ func main() {
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/startwebsocket", auth.Authorize(websocketDelivery.HandleConnection))
 
+
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
 			"http://127.0.0.1:8001",

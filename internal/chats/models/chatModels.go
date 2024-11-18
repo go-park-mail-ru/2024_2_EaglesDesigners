@@ -151,3 +151,8 @@ func DeserializeEvent(data []byte) (Event, error) {
 type AddBranch struct {
 	ID uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
 }
+
+type SearchChatsDTO struct {
+	UserChats      []ChatDTOOutput `json:"user_chats" valid:"-"`
+	GlobalChannels []ChatDTOOutput `json:"global_channels" valid:"-"`
+}
