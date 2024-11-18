@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
@@ -15,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
+	"github.com/gorilla/mux"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -44,7 +44,6 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 // @Summary Get chats of user
 // @Tags chat
 // @Produce json
-// @Param page query int false "Page number for pagination" default(0)
 // @Success 200 {object} model.ChatsDTO
 // @Failure 500	"Не удалось получить сообщения"
 // @Router /chats [get]
@@ -53,14 +52,8 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 
 	log.Printf("Пришёл запрос на получения чатов с параметрами: %v", r.URL.Query())
-	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
 
-	if err != nil {
-		log.Printf("Неверно указан параметр запроса page. page = %s. ERROR: %v", r.URL.Query().Get("page"), err)
-		pageNum = 0
-	}
-
-	chats, err := c.service.GetChats(r.Context(), r.Cookies(), pageNum)
+	chats, err := c.service.GetChats(r.Context(), r.Cookies())
 
 	if err != nil {
 		fmt.Println(err)
@@ -196,7 +189,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	addedUsers, err := c.service.AddUsersIntoChat(r.Context(), r.Cookies(), usersToAdd.UsersId, chatUUID)
+	addedUsers, err := c.service.AddUsersIntoChatWithCheckPermission(r.Context(), usersToAdd.UsersId, chatUUID)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
@@ -458,9 +451,9 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.service.GetChatInfo(r.Context(), chatUUID, user.ID)
+	users, err := c.service.GetChatInfo(ctx, chatUUID, user.ID)
 	if err != nil {
-		if errors.As(err, noPerm) {
+		if errors.Is(err, noPerm) {
 			responser.SendError(ctx, w, err.Error(), http.StatusForbidden)
 			return
 		}
@@ -475,4 +468,51 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responser.SendStruct(ctx, w, users, http.StatusOK)
+}
+
+// UpdateGroup godoc
+// @Summary Добавить ветку к сообщению в чате
+// @Tags chat
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} model.AddBranch "Ветка добавлена"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
+// @Router /chat/{chatid}/{messageId}/branch [post]
+func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Println("пришел запрос /chat/{chatid}/{messageId}/branch [post]")
+
+	vars := mux.Vars(r)
+	chatID := vars["chatid"]
+	messageID := vars["messageId"]
+
+	messageUUID, err := uuid.Parse(messageID)
+	if err != nil {
+		log.Errorf("не удалось распарсить messageId: %v", err)
+		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
+	}
+
+	chatUUID, err := uuid.Parse(chatID)
+	if err != nil {
+		log.Errorf("не удалось распарсить chatid: %v", err)
+		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
+	}
+
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
+		return
+	}
+
+	branch, err := c.service.AddBranch(ctx, chatUUID, messageUUID, user.ID)
+	if err != nil {
+		log.Errorf("не удалось создать ветку: %v", err)
+		responser.SendError(ctx, w, "invalid data", http.StatusBadRequest)
+	}
+
+	responser.SendStruct(ctx, w, branch, http.StatusCreated)
 }

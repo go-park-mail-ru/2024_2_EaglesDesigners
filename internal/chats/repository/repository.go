@@ -138,7 +138,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(ctx context.Context, chat chatModel.C
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID, pageNum int) ([]chatModel.Chat, error) {
+func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID) ([]chatModel.Chat, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
@@ -157,12 +157,8 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID,
 		FROM chat_user AS cu
 		JOIN chat AS c ON c.id = cu.chat_id
 		JOIN chat_type AS ch ON ch.id = c.chat_type_id
-		WHERE cu.user_id = $1
-		LIMIT $2
-		OFFSET $3;`,
+		WHERE cu.user_id = $1;`,
 		userId,
-		pageSize,
-		pageSize*pageNum,
 	)
 	if err != nil {
 		log.Printf("Unable to SELECT chats: %v\n", err)
@@ -197,6 +193,34 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID,
 
 	log.Printf("Repository: чаты успешно найдеты. Количество чатов: %d", len(chats))
 	return chats, nil
+}
+
+func (r *ChatRepositoryImpl) GetChatType(ctx context.Context, chatId uuid.UUID) (string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Repository: Unable to acquire a database connection: %v", err)
+		return "", err
+	}
+	defer conn.Release()
+
+	var chatType string
+
+	err = conn.QueryRow(ctx,
+		`SELECT ct.value 
+		FROM chat ch
+		JOIN chat_type ct ON ct.id = ch.chat_type_id 
+		WHERE ch.id = $1;`,
+		chatId,
+	).Scan(&chatType)
+
+	if err != nil {
+		log.Errorf("Не удалось найти тип чата: %v", err)
+		return "", err
+	}
+
+	return chatType, nil
 }
 
 func (r *ChatRepositoryImpl) GetUserRoleInChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) (string, error) {
@@ -480,7 +504,7 @@ func (r *ChatRepositoryImpl) UpdateChatPhoto(ctx context.Context, chatId uuid.UU
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error) {
+func (r *ChatRepositoryImpl) GetNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
@@ -489,17 +513,98 @@ func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uu
 	}
 	defer conn.Release()
 
-	var username sql.NullString
+	var name sql.NullString
 	var filename sql.NullString
 	err = conn.QueryRow(ctx,
 		`SELECT name, avatar_path FROM public.user WHERE id = $1;`,
 		userId,
-	).Scan(&username, &filename)
+	).Scan(&name, &filename)
 
 	if err != nil {
-		log.Printf("Chat repository -> GetUserNameAndAvatar: не удалось получитьб юзера: %v", err)
+		log.Printf("Chat repository -> GetNameAndAvatar: не удалось получитьб юзера: %v", err)
 		return "", "", err
 	}
 
-	return username.String, filename.String, nil
+	return name.String, filename.String, nil
+}
+
+func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID) (chatModel.AddBranch, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return chatModel.AddBranch{}, err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Conn().Begin(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to create transaction: %v\n", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	var branch chatModel.AddBranch
+	branch.ID = uuid.New()
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO public.chat 
+		(id,
+		chat_name,
+		chat_type_id
+		)
+		VALUES ($1, 'branch', (SELECT id FROM public.chat_type WHERE value = 'branch'))`,
+		branch.ID,
+	)
+
+	if err != nil {
+		log.Errorf("Не удалось добавить ветку: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`UPDATE public.message 
+		SET branch_id = $2
+		WHERE id = $1;`,
+		messageID,
+		branch.ID,
+	)
+
+	if err != nil {
+		log.Errorf("Не удалось привязать ветку к сообщению: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	log.Debugf("вставка юзеров в ветку %s чата %s", branch.ID.String(), chatId)
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO public.chat_user 
+			(id, 
+			user_role_id, 
+			chat_id, 
+			user_id)
+		SELECT 
+			gen_random_uuid(),
+			(SELECT id FROM public.user_role WHERE value = 'none'), 
+			$2, 
+			cu.user_id 
+		FROM public.chat_user cu
+		WHERE cu.chat_id = $1;`,
+		chatId,
+		branch.ID,
+	)
+
+	if err != nil {
+		log.Errorf("Не удалось добавить пользователей в ветку: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Errorf("Не удалось подтвердить транзакцию: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	return branch, nil
 }

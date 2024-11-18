@@ -12,6 +12,12 @@ definitions:
       success:
         type: string
     type: object
+  model.AddBranch:
+    properties:
+      id:
+        example: f0364477-bfd4-496d-b639-d825b009d509
+        type: string
+    type: object
   model.AddUsersIntoChatDTO:
     properties:
       usersId:
@@ -64,6 +70,9 @@ definitions:
         items:
           $ref: '#/definitions/models.Message'
         type: array
+      role:
+        example: owner
+        type: string
       users:
         items:
           $ref: '#/definitions/model.UserInChatDTO'
@@ -184,6 +193,8 @@ definitions:
   models.Message:
     properties:
       authorID:
+        type: string
+      branchId:
         type: string
       chatId:
         type: string
@@ -620,6 +631,30 @@ paths:
       summary: получить 25 сообщений до определенного
       tags:
       - message
+  /chat/{chatid}/{messageId}/branch:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Ветка добавлена
+          schema:
+            $ref: '#/definitions/model.AddBranch'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Добавить ветку к сообщению в чате
+      tags:
+      - chat
   /chats:
     get:
       parameters:

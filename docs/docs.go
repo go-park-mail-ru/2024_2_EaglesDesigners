@@ -513,6 +513,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/{chatid}/{messageId}/branch": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Добавить ветку к сообщению в чате",
+                "responses": {
+                    "201": {
+                        "description": "Ветка добавлена",
+                        "schema": {
+                            "$ref": "#/definitions/model.AddBranch"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/chats": {
             "get": {
                 "produces": [
@@ -1028,6 +1067,15 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AddBranch": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
+                }
+            }
+        },
         "model.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {
@@ -1102,6 +1150,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Message"
                     }
+                },
+                "role": {
+                    "type": "string",
+                    "example": "owner"
                 },
                 "users": {
                     "type": "array",
@@ -1278,6 +1330,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "authorID": {
+                    "type": "string"
+                },
+                "branchId": {
                     "type": "string"
                 },
                 "chatId": {
