@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"text/template"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
 	"github.com/google/uuid"
@@ -178,7 +177,6 @@ func main() {
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/startwebsocket", auth.Authorize(websocketDelivery.HandleConnection))
-
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
