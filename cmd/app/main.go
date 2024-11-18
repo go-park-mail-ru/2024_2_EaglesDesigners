@@ -176,6 +176,8 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/{messageId}/branch", auth.Authorize(auth.Csrf(chat.AddBranch))).Methods("POST", "OPTIONS")
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
+
 	router.HandleFunc("/startwebsocket", auth.Authorize(websocketDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
