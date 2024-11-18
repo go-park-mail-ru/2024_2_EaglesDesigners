@@ -22,4 +22,6 @@ type ChatUsecase interface {
 	GetChatInfo(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.ChatInfoDTO, error)
 
 	AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID, userId uuid.UUID) (chatModel.AddBranch, error)
+
+	SearchChats(ctx context.Context, userID uuid.UUID, keyWord string) (chatModel.SearchChatsDTO, error)
 }

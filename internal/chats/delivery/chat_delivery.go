@@ -524,3 +524,50 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 
 	responser.SendStruct(ctx, w, branch, http.StatusCreated)
 }
+
+// SearchChats ищет чаты по названию, в query указать ключевое слово ?key_word=
+//
+// SearchChats godoc
+// @Summary Поиск чатов пользователя и глобальных каналов по названию
+// @Tags chat
+// @Produce json
+// @Param key_word query string false "Ключевое слово для поиска"
+// @Success 200 {object} model.SearchChatsDTO
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
+// @Failure 500	"Не удалось получить сообщения"
+// @Router /chats/search [get]
+func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Debugf("Пришёл запрос на получения чатов с параметрами: %v", r.URL.Query())
+	keyWord := r.URL.Query().Get("key_word")
+
+	if keyWord == "" {
+		log.Errorf("key_word отсутствует")
+		responser.SendError(ctx, w, "key_word not found", http.StatusBadRequest)
+		return
+	}
+
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
+		return
+	}
+
+	output, err := c.service.SearchChats(ctx, user.ID, keyWord)
+	if err != nil {
+		log.Errorf("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %v", err)
+		responser.SendError(ctx, w, "Server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(output); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
+	responser.SendStruct(ctx, w, output, http.StatusOK)
+}

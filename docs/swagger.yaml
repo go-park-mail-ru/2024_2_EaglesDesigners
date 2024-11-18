@@ -120,6 +120,17 @@ definitions:
           type: string
         type: array
     type: object
+  model.SearchChatsDTO:
+    properties:
+      global_channels:
+        items:
+          $ref: '#/definitions/model.ChatDTOOutput'
+        type: array
+      user_chats:
+        items:
+          $ref: '#/definitions/model.ChatDTOOutput'
+        type: array
+    type: object
   model.UserInChatDTO:
     properties:
       avatarURL:
@@ -673,6 +684,34 @@ paths:
         "500":
           description: Не удалось получить сообщения
       summary: Get chats of user
+      tags:
+      - chat
+  /chats/search:
+    get:
+      parameters:
+      - default: "0"
+        description: Ключевое слово для поиска
+        in: query
+        name: key_word
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SearchChatsDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить сообщения
+      summary: Поиск чатов пользователя и глобальных каналов по названию
       tags:
       - chat
   /contacts:
