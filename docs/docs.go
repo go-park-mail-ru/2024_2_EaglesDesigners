@@ -310,7 +310,7 @@ const docTemplate = `{
             }
         },
         "/chat/{chatId}/delusers": {
-            "post": {
+            "delete": {
                 "consumes": [
                     "application/json"
                 ],
