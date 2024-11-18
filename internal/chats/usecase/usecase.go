@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"sync"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
@@ -137,6 +138,8 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie) (
 		chatsDTO = append(chatsDTO,
 			chatDTO)
 	}
+
+	sort.Sort(chatModel.ByLastMessage(chatsDTO))
 
 	return chatsDTO, nil
 }
