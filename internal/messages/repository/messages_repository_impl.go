@@ -25,7 +25,7 @@ func NewMessageRepositoryImpl(pool *pgxpool.Pool) MessageRepository {
 	}
 }
 
-func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message, error) {
+func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uuid.UUID) ([]models.Message, error) {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
@@ -41,11 +41,15 @@ func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message,
 	m.author_id,
 	m.message,
 	m.sent_at, 
-	m.is_redacted
+	m.is_redacted,
+	m.branch_id,
+	m.chat_id
 	FROM public.message AS m
 	WHERE m.chat_id = $1
-	ORDER BY sent_at DESC;`,
+	ORDER BY sent_at DESC
+	LIMIT $2;`,
 		chatId,
+		pageSize,
 	)
 	if err != nil {
 		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
@@ -60,8 +64,10 @@ func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message,
 		var message string
 		var sentAt time.Time
 		var isRedacted bool
+		var branchID *uuid.UUID
+		var chatID uuid.UUID
 
-		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted)
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, branchID, &chatID)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
@@ -73,6 +79,8 @@ func (r *MessageRepositoryImpl) GetMessages(chatId uuid.UUID) ([]models.Message,
 			Message:    message,
 			SentAt:     sentAt,
 			IsRedacted: isRedacted,
+			BranchID:   branchID,
+			ChatId:     chatID,
 		})
 	}
 

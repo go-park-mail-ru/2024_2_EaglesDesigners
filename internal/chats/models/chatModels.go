@@ -96,8 +96,10 @@ type DeletdeUsersFromChatDTO struct {
 	DeletedUsers []uuid.UUID `json:"deletedUsers" example:"uuid1,uuid2" valid:"-"`
 }
 
-type UsersInChatDTO struct {
-	Users []UserInChatDTO `json:"users" valid:"-"`
+type ChatInfoDTO struct {
+	Role     string           `json:"role" example:"owner" valid:"in(admin|owner|none)"`
+	Users    []UserInChatDTO  `json:"users" valid:"-"`
+	Messages []models.Message `json:"messages" valid:"-"`
 }
 
 type UserInChatDTO struct {
@@ -133,4 +135,8 @@ func DeserializeEvent(data []byte) (Event, error) {
 		return Event{}, err
 	}
 	return event, nil
+}
+
+type AddBranch struct {
+	ID uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
 }

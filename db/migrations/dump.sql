@@ -73,6 +73,7 @@ CREATE TABLE public.message (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     chat_id uuid NOT NULL,
     author_id uuid NOT NULL,
+   	branch_id uuid,
     message text,
     sent_at timestamp with time zone NOT NULL,
     is_redacted boolean DEFAULT false NOT NULL,
@@ -250,8 +251,25 @@ ALTER TABLE ONLY public.user_role
 ALTER TABLE ONLY public.message
     ADD CONSTRAINT author_id_fk_messages_chat_id_pk_chat_users FOREIGN KEY (author_id, chat_id) REFERENCES public.chat_user(user_id, chat_id)
     ON DELETE CASCADE;
+   
+   
+--
+-- Name: message branch_id_fk_messages_chat_id_pk_chat; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
 
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT branch_id_fk_messages_chat_id_pk_chat FOREIGN KEY (branch_id) REFERENCES public.chat(id)
+    ON DELETE CASCADE;  
 
+   
+--
+-- Name: user uniq_branch_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT uniq_branch_id UNIQUE (branch_id); 
+   
+   
 --
 -- Name: chat_user chat_id_fk_chat_users_chat_id_pk_chats; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
@@ -317,7 +335,8 @@ ALTER TABLE ONLY public.chat_user
 INSERT INTO public.chat_type (value) VALUES
 ('personal'),
 ('group'),
-('channel');
+('channel'),
+('branch');
 
 INSERT INTO  public.user_role ( value) VALUES
 ('none'),

@@ -195,6 +195,34 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID)
 	return chats, nil
 }
 
+func (r *ChatRepositoryImpl) GetChatType(ctx context.Context, chatId uuid.UUID) (string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Repository: Unable to acquire a database connection: %v", err)
+		return "", err
+	}
+	defer conn.Release()
+
+	var chatType string
+
+	err = conn.QueryRow(ctx,
+		`SELECT ct.value 
+		FROM chat ch
+		JOIN chat_type ct ON ct.id = ch.chat_type_id 
+		WHERE ch.id = $1;`,
+		chatId,
+	).Scan(&chatType)
+
+	if err != nil {
+		log.Errorf("Не удалось найти тип чата: %v", err)
+		return "", err
+	}
+
+	return chatType, nil
+}
+
 func (r *ChatRepositoryImpl) GetUserRoleInChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	// идем в бд по двум полям: если есть то тру
@@ -498,4 +526,85 @@ func (r *ChatRepositoryImpl) GetNameAndAvatar(ctx context.Context, userId uuid.U
 	}
 
 	return name.String, filename.String, nil
+}
+
+func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID) (chatModel.AddBranch, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
+		return chatModel.AddBranch{}, err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Conn().Begin(ctx)
+	if err != nil {
+		log.Printf("Repository: Unable to create transaction: %v\n", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	var branch chatModel.AddBranch
+	branch.ID = uuid.New()
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO public.chat 
+		(id,
+		chat_name,
+		chat_type_id
+		)
+		VALUES ($1, 'branch', (SELECT id FROM public.chat_type WHERE value = 'branch'))`,
+		branch.ID,
+	)
+
+	if err != nil {
+		log.Errorf("Не удалось добавить ветку: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`UPDATE public.message 
+		SET branch_id = $2
+		WHERE id = $1;`,
+		messageID,
+		branch.ID,
+	)
+
+	if err != nil {
+		log.Errorf("Не удалось привязать ветку к сообщению: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	log.Debugf("вставка юзеров в ветку %s чата %s", branch.ID.String(), chatId)
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO public.chat_user 
+			(id, 
+			user_role_id, 
+			chat_id, 
+			user_id)
+		SELECT 
+			gen_random_uuid(),
+			(SELECT id FROM public.user_role WHERE value = 'none'), 
+			$2, 
+			cu.user_id 
+		FROM public.chat_user cu
+		WHERE cu.chat_id = $1;`,
+		chatId,
+		branch.ID,
+	)
+
+	if err != nil {
+		log.Errorf("Не удалось добавить пользователей в ветку: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Errorf("Не удалось подтвердить транзакцию: %v", err)
+		return chatModel.AddBranch{}, err
+	}
+
+	return branch, nil
 }

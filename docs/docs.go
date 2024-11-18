@@ -96,6 +96,55 @@ const docTemplate = `{
             }
         },
         "/chat/{chatId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Получаем пользователей и последние сообщении чата",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи чата",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatInfoDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить учатсников",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -464,34 +513,28 @@ const docTemplate = `{
                 }
             }
         },
-        "/chat/{chatId}/users": {
-            "get": {
+        "/chat/{chatid}/{messageId}/branch": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "chat"
                 ],
-                "summary": "Получаем id пользователей",
-                "parameters": [
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "type": "string",
-                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
-                        "description": "Chat ID (UUID)",
-                        "name": "chatId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "Добавить ветку к сообщению в чате",
                 "responses": {
-                    "200": {
-                        "description": "Пользователи чата",
+                    "201": {
+                        "description": "Ветка добавлена",
                         "schema": {
-                            "$ref": "#/definitions/model.UsersInChatDTO"
+                            "$ref": "#/definitions/model.AddBranch"
                         }
                     },
                     "400": {
@@ -502,12 +545,6 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Нет полномочий",
-                        "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Не удалось получить учатсников",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -1030,6 +1067,15 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AddBranch": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
+                }
+            }
+        },
         "model.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {
@@ -1093,6 +1139,27 @@ const docTemplate = `{
                 },
                 "lastMessage": {
                     "$ref": "#/definitions/models.Message"
+                }
+            }
+        },
+        "model.ChatInfoDTO": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Message"
+                    }
+                },
+                "role": {
+                    "type": "string",
+                    "example": "owner"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.UserInChatDTO"
+                    }
                 }
             }
         },
@@ -1184,17 +1251,6 @@ const docTemplate = `{
                 }
             }
         },
-        "model.UsersInChatDTO": {
-            "type": "object",
-            "properties": {
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.UserInChatDTO"
-                    }
-                }
-            }
-        },
         "models.AuthReqDTO": {
             "type": "object",
             "properties": {
@@ -1274,6 +1330,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "authorID": {
+                    "type": "string"
+                },
+                "branchId": {
                     "type": "string"
                 },
                 "chatId": {
