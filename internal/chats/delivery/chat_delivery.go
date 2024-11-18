@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
@@ -45,7 +44,6 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 // @Summary Get chats of user
 // @Tags chat
 // @Produce json
-// @Param page query int false "Page number for pagination" default(0)
 // @Success 200 {object} model.ChatsDTO
 // @Failure 500	"Не удалось получить сообщения"
 // @Router /chats [get]
@@ -54,14 +52,8 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 
 	log.Printf("Пришёл запрос на получения чатов с параметрами: %v", r.URL.Query())
-	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
 
-	if err != nil {
-		log.Printf("Неверно указан параметр запроса page. page = %s. ERROR: %v", r.URL.Query().Get("page"), err)
-		pageNum = 0
-	}
-
-	chats, err := c.service.GetChats(r.Context(), r.Cookies(), pageNum)
+	chats, err := c.service.GetChats(r.Context(), r.Cookies())
 
 	if err != nil {
 		fmt.Println(err)
@@ -197,7 +189,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	addedUsers, err := c.service.AddUsersIntoChat(r.Context(), r.Cookies(), usersToAdd.UsersId, chatUUID)
+	addedUsers, err := c.service.AddUsersIntoChatWithCheckPermission(r.Context(), usersToAdd.UsersId, chatUUID)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)

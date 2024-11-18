@@ -118,6 +118,25 @@ type UserInChatDAO struct {
 	Role       *int
 }
 
+type Event struct {
+	Action string      `json:"action"`
+	ChatId uuid.UUID   `json:"chatId"`
+	Users  []uuid.UUID `json:"users"`
+}
+
+func SerializeEvent(event Event) ([]byte, error) {
+	return json.Marshal(event)
+}
+
+func DeserializeEvent(data []byte) (Event, error) {
+	var event Event
+	err := json.Unmarshal(data, &event)
+	if err != nil {
+		return Event{}, err
+	}
+	return event, nil
+}
+
 type AddBranch struct {
 	ID uuid.UUID `json:"id" example:"f0364477-bfd4-496d-b639-d825b009d509" valid:"uuid"`
 }

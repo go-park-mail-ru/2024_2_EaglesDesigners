@@ -138,7 +138,7 @@ func (r *ChatRepositoryImpl) CreateNewChat(ctx context.Context, chat chatModel.C
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID, pageNum int) ([]chatModel.Chat, error) {
+func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID) ([]chatModel.Chat, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
@@ -157,12 +157,8 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID,
 		FROM chat_user AS cu
 		JOIN chat AS c ON c.id = cu.chat_id
 		JOIN chat_type AS ch ON ch.id = c.chat_type_id
-		WHERE cu.user_id = $1 AND ch.value <> 'branch'
-		LIMIT $2
-		OFFSET $3;`,
+		WHERE cu.user_id = $1;`,
 		userId,
-		pageSize,
-		pageSize*pageNum,
 	)
 	if err != nil {
 		log.Printf("Unable to SELECT chats: %v\n", err)
@@ -508,7 +504,7 @@ func (r *ChatRepositoryImpl) UpdateChatPhoto(ctx context.Context, chatId uuid.UU
 	return nil
 }
 
-func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error) {
+func (r *ChatRepositoryImpl) GetNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
@@ -517,19 +513,19 @@ func (r *ChatRepositoryImpl) GetUserNameAndAvatar(ctx context.Context, userId uu
 	}
 	defer conn.Release()
 
-	var username sql.NullString
+	var name sql.NullString
 	var filename sql.NullString
 	err = conn.QueryRow(ctx,
 		`SELECT name, avatar_path FROM public.user WHERE id = $1;`,
 		userId,
-	).Scan(&username, &filename)
+	).Scan(&name, &filename)
 
 	if err != nil {
-		log.Printf("Chat repository -> GetUserNameAndAvatar: не удалось получитьб юзера: %v", err)
+		log.Printf("Chat repository -> GetNameAndAvatar: не удалось получитьб юзера: %v", err)
 		return "", "", err
 	}
 
-	return username.String, filename.String, nil
+	return name.String, filename.String, nil
 }
 
 func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID) (chatModel.AddBranch, error) {
