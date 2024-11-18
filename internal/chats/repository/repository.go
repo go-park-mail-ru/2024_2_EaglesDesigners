@@ -223,6 +223,7 @@ func (r *ChatRepositoryImpl) GetChatType(ctx context.Context, chatId uuid.UUID) 
 	return chatType, nil
 }
 
+
 func (r *ChatRepositoryImpl) GetUserRoleInChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	// идем в бд по двум полям: если есть то тру

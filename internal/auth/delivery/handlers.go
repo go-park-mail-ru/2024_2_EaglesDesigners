@@ -237,19 +237,19 @@ func (d *Delivery) Authorize(next http.HandlerFunc) http.HandlerFunc {
 
 func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("not_csrf")
+		// token := r.Header.Get("not_csrf")
 
-		user := r.Context().Value(models.UserKey).(jwt.User)
+		// user := r.Context().Value(models.UserKey).(jwt.User)
 
-		err := csrf.CheckCSRF(token, user.ID, user.Username)
-		if err != nil {
-			if err == errTokenExpired {
-				responser.SendError(context.Background(), w, "csrf expired", http.StatusForbidden)
-				return
-			}
-			responser.SendError(context.Background(), w, "Invalid csrf", http.StatusForbidden)
-			return
-		}
+		// err := csrf.CheckCSRF(token, user.ID, user.Username)
+		// if err != nil {
+		// 	if err == errTokenExpired {
+		// 		responser.SendError(context.Background(), w, "csrf expired", http.StatusForbidden)
+		// 		return
+		// 	}
+		// 	responser.SendError(context.Background(), w, "Invalid csrf", http.StatusForbidden)
+		// 	return
+		// }
 
 		next(w, r)
 	}

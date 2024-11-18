@@ -9,6 +9,8 @@ import (
 
 type ChatRepository interface {
 	GetUserChats(ctx context.Context, userId uuid.UUID) (chats []chatModel.Chat, err error)
+
+	// если не состоит в чате, то вернет пустую строку
 	GetUserRoleInChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) (string, error)
 	CreateNewChat(ctx context.Context, chat chatModel.Chat) error
 	AddUserIntoChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, userROle string) error

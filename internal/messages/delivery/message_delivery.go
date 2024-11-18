@@ -309,3 +309,59 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 
 	responser.SendStruct(ctx, w, messages, http.StatusOK)
 }
+
+// SearchMessages godoc
+// @Summary поиск сообщений
+// @Tags message
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Param search_query query int false "Поиск" example(sosal?)
+// @Success 200 {object} models.MessagesArrayDTO "Сообщение успешно отаправлены"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
+// @Router /chat/{chatId}/search [get]
+func (h *MessageController) SearchMessages(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+
+	ctx := r.Context()
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+	chatId := mapVars["chatId"]
+	chatUUID, err := uuid.Parse(chatId)
+	if err != nil {
+		//conn.400
+		log.Printf("получен кривой Id юзера: %v", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during parsing uuid:%v", err), http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	log.Println(user)
+	if !ok {
+		log.Println("нет юзера в контексте")
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+	log.Println(r.URL.Query())
+	query := r.URL.Query().Get("search_query")
+	if query == "" {
+		log.Errorf("Поисковый запрос пуст")
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+
+	messages, err := h.usecase.SearchMessagesWithQuery(ctx, user, chatUUID, query)
+
+	if err != nil {
+		if errors.As(err, &noPerm) {
+			responser.SendError(ctx, w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
+			return
+		}
+		responser.SendError(ctx, w, fmt.Sprintf("внутренняя ошибка: %v", err), http.StatusInternalServerError)
+		return
+	}
+	responser.SendStruct(ctx, w, messages, http.StatusOK)
+}

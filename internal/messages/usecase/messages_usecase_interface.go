@@ -14,6 +14,7 @@ type MessageUsecase interface {
 	DeleteMessage(ctx context.Context, user jwt.User, messageId uuid.UUID) error
 	UpdateMessage(ctx context.Context, user jwt.User, messageId uuid.UUID, message models.Message) error
 
+	SearchMessagesWithQuery(ctx context.Context, user jwt.User, chatId uuid.UUID, searchQuery string) (models.MessagesArrayDTO, error)
 	GetMessagesWithPage(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, lastMessageId uuid.UUID) (models.MessagesArrayDTO, error)
 
 	GetFirstMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error)

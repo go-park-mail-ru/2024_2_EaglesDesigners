@@ -175,6 +175,8 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/{messageId}/branch", auth.Authorize(auth.Csrf(chat.AddBranch))).Methods("POST", "OPTIONS")
 
+	router.HandleFunc("/chat/{chatId}/search", auth.Authorize(auth.Csrf(messageDelivery.SearchMessages))).Methods("GET", "OPTIONS")
+
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
 

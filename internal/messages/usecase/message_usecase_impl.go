@@ -132,6 +132,36 @@ func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, 
 	return nil
 }
 
+const NotInChat = ""
+
+func (u *MessageUsecaseImplm) SearchMessagesWithQuery(ctx context.Context, user jwt.User, chatId uuid.UUID, searchQuery string) (models.MessagesArrayDTO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	log.Infof("Начат поиск сообщений в чате %v. Поисковая строка = %v", chatId, searchQuery)
+
+	role, err := u.chatRepository.GetUserRoleInChat(ctx, user.ID, chatId)
+	if err != nil {
+		return models.MessagesArrayDTO{}, err
+	}
+
+	if role == NotInChat {
+		return models.MessagesArrayDTO{},
+			&customerror.NoPermissionError{
+				Area: fmt.Sprintf("Нет доступа к чату %v", chatId),
+				User: user.ID.String(),
+			}
+	}
+
+	messages, err := u.messageRepository.SearchMessagesWithQuery(ctx, chatId, searchQuery)
+
+	if err != nil {
+		return models.MessagesArrayDTO{}, err
+	}
+
+	return models.MessagesArrayDTO{
+		Messages: messages,
+	}, nil
+}
+
 func (u *MessageUsecaseImplm) GetFirstMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато получение сообщений")
