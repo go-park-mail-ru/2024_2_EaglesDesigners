@@ -31,6 +31,17 @@ type ChatDTOOutput struct {
 	AvatarPath   string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
 }
 
+// для сортировки возвращаемого списка по убыванию
+type ByLastMessage []ChatDTOOutput
+
+func (a ByLastMessage) Len() int { return len(a) }
+
+func (a ByLastMessage) Less(i, j int) bool {
+	return a[i].LastMessage.SentAt.After(a[j].LastMessage.SentAt)
+}
+
+func (a ByLastMessage) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
 type ChatDTOInput struct {
 	ChatName   string          `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
 	ChatType   string          `json:"chatType" example:"personalMessages" valid:"in(personal|group|channel)"`
