@@ -12,6 +12,8 @@ type MessageRepository interface {
 
 	DeleteMessage(ctx context.Context, messageId uuid.UUID) error
 
+	UpdateMessage(ctx context.Context, messageId uuid.UUID, newText string) error
+
 	GetFirstMessages(ctx context.Context, chatId uuid.UUID) ([]models.Message, error)
 	GetMessageById(ctx context.Context, messageId uuid.UUID) (models.Message, error)
 	GetLastMessage(chatId uuid.UUID) (models.Message, error)

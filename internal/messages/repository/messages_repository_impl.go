@@ -140,6 +140,34 @@ func (r *MessageRepositoryImpl) DeleteMessage(ctx context.Context, messageId uui
 	return nil
 }
 
+func (r *MessageRepositoryImpl) UpdateMessage(ctx context.Context, messageId uuid.UUID, newText string) error {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return err
+	}
+	defer conn.Release()
+
+	row := conn.QueryRow(context.Background(),
+		`UPDATE message AS m SET
+		message = $1,
+		is_redacted = true
+		WHERE m.id = $2
+		RETURNING m.id;`,
+		messageId,
+		newText,
+	)
+
+	var msgId uuid.UUID
+	err = row.Scan(&msgId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *MessageRepositoryImpl) GetMessageById(ctx context.Context, messageId uuid.UUID) (models.Message, error) {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {

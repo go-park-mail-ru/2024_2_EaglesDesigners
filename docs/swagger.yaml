@@ -439,6 +439,30 @@ paths:
       summary: Обновляем фото и имя
       tags:
       - chat
+  /chat/{chatId}/{messageId}/branch:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Ветка добавлена
+          schema:
+            $ref: '#/definitions/model.AddBranch'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Добавить ветку к сообщению в чате
+      tags:
+      - chat
   /chat/{chatId}/addusers:
     post:
       consumes:
@@ -642,30 +666,6 @@ paths:
       summary: получить 25 сообщений до определенного
       tags:
       - message
-  /chat/{chatid}/{messageId}/branch:
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Ветка добавлена
-          schema:
-            $ref: '#/definitions/model.AddBranch'
-        "400":
-          description: Некорректный запрос
-          schema:
-            $ref: '#/definitions/responser.ErrorResponse'
-        "403":
-          description: Нет полномочий
-          schema:
-            $ref: '#/definitions/responser.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Добавить ветку к сообщению в чате
-      tags:
-      - chat
   /chats:
     get:
       produces:
@@ -683,8 +683,7 @@ paths:
   /chats/search:
     get:
       parameters:
-      - default: "0"
-        description: Ключевое слово для поиска
+      - description: Ключевое слово для поиска
         in: query
         name: key_word
         type: string
@@ -851,14 +850,6 @@ paths:
   /messages/{messageId}:
     delete:
       parameters:
-      - description: Chat ID (UUID)
-        example: '"123e4567-e89b-12d3-a456-426614174000"'
-        in: path
-        maxLength: 36
-        minLength: 36
-        name: chatId
-        required: true
-        type: string
       - description: messageId ID (UUID)
         example: '"123e4567-e89b-12d3-a456-426614174000"'
         in: path
@@ -883,6 +874,40 @@ paths:
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
       summary: Delete message
+      tags:
+      - message
+    put:
+      parameters:
+      - description: Message info
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.MessageInput'
+      - description: messageId ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: messageId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Сообщение успешно изменено
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/customerror.NoPermissionError'
+        "500":
+          description: Не удалось обновить сообщение
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Update message
       tags:
       - message
   /profile:

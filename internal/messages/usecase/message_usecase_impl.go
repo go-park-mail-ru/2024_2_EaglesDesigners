@@ -104,6 +104,34 @@ func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, 
 	return nil
 }
 
+func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, messageId uuid.UUID, message models.Message) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	log.Infof("Начато изменение сообщения %v. Запрос от пользователя %v", messageId, user.ID)
+
+	newText := message.Message
+
+	message, err := u.messageRepository.GetMessageById(ctx, messageId)
+	if err != nil {
+		return err
+	}
+
+	if user.ID != message.AuthorID {
+		return &customerror.NoPermissionError{
+			Area: fmt.Sprintf("сообщение %v принадлежит другому пользователю", messageId),
+			User: user.ID.String(),
+		}
+	}
+
+	u.messageRepository.UpdateMessage(ctx, messageId, newText)
+
+	// отправляем в сокет
+	message.Message = newText
+	message.IsRedacted = true
+	u.sendIvent(ctx, socketUsecase.UpdateMessage, message)
+
+	return nil
+}
+
 func (u *MessageUsecaseImplm) GetFirstMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато получение сообщений")

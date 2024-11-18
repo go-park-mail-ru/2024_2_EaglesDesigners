@@ -513,7 +513,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/chat/{chatid}/{messageId}/branch": {
+        "/chat/{chatId}/{messageId}/branch": {
             "post": {
                 "security": [
                     {
@@ -586,7 +586,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "default": "0",
                         "description": "Ключевое слово для поиска",
                         "name": "key_word",
                         "in": "query"
@@ -837,22 +836,62 @@ const docTemplate = `{
             }
         },
         "/messages/{messageId}": {
+            "put": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "Update message",
+                "parameters": [
+                    {
+                        "description": "Message info",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageInput"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "messageId ID (UUID)",
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно изменено"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/customerror.NoPermissionError"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось обновить сообщение",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "tags": [
                     "message"
                 ],
                 "summary": "Delete message",
                 "parameters": [
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "type": "string",
-                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
-                        "description": "Chat ID (UUID)",
-                        "name": "chatId",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "maxLength": 36,
                         "minLength": 36,

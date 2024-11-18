@@ -15,7 +15,8 @@ type MessageEvent struct {
 
 const (
 	DeleteMessage = "deleteMessage"
-	NewMessage    = "NewMessage"
+	NewMessage    = "newMessage"
+	UpdateMessage = "updateMessage"
 )
 
 func SerializeMessageEvent(event MessageEvent) ([]byte, error) {
