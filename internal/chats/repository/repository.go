@@ -220,6 +220,7 @@ func (r *ChatRepositoryImpl) GetChatType(ctx context.Context, chatId uuid.UUID) 
 	).Scan(&chatType)
 
 	if err != nil {
+		log.Errorf("Не удалось найти тип чата: %v", err)
 		return "", err
 	}
 

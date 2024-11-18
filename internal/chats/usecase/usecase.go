@@ -459,6 +459,15 @@ func (s *ChatUsecaseImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messa
 		}
 	}
 
+	chatType, err := s.repository.GetChatType(ctx, chatId)
+	if err != nil {
+		return chatModel.AddBranch{}, err
+	}
+
+	if chatType == personal {
+		return chatModel.AddBranch{}, errors.New("нельзя добавить ветку в личный чат")
+	}
+
 	branch, err := s.repository.AddBranch(ctx, chatId, messageID)
 	if err != nil {
 		return chatModel.AddBranch{}, err
