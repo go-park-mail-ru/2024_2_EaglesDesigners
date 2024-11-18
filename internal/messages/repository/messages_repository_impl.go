@@ -117,6 +117,80 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 	return nil
 }
 
+func (r *MessageRepositoryImpl) DeleteMessage(ctx context.Context, messageId uuid.UUID) error {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return err
+	}
+	defer conn.Release()
+
+	row := conn.QueryRow(context.Background(),
+		`DELETE FROM message WHERE id = $1 RETURNING id`,
+		messageId,
+	)
+
+	var msgId uuid.UUID
+	err = row.Scan(&msgId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *MessageRepositoryImpl) GetMessageById(ctx context.Context, messageId uuid.UUID) (models.Message, error) {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return models.Message{}, err
+	}
+	defer conn.Release()
+
+	row := conn.QueryRow(context.Background(),
+		`SELECT
+		m.author_id,
+		m.message,
+		m.sent_at, 
+		m.is_redacted,
+		m.chat_id
+		FROM public.message AS m
+		WHERE m.id = $1
+		ORDER BY sent_at DESC
+		LIMIT 1;`,
+		messageId,
+	)
+
+	var authorID uuid.UUID
+	var message string
+	var sentAt time.Time
+	var isRedacted bool
+	var chatId uuid.UUID
+
+	err = row.Scan(&authorID, &message, &sentAt, &isRedacted, &chatId)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return models.Message{}, nil
+	}
+	if err != nil {
+		log.Printf("Repository: unable to scan: %v", err)
+
+		return models.Message{}, err
+	}
+
+	messageModel := models.Message{
+		MessageId:  messageId,
+		AuthorID:   authorID,
+		Message:    message,
+		SentAt:     sentAt,
+		IsRedacted: isRedacted,
+		ChatId:     chatId,
+	}
+
+	return messageModel, nil
+}
+
 func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message, error) {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {

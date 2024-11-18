@@ -90,6 +90,53 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusCreated)
 }
 
+// DeleteMessage godoc
+// @Summary Delete message
+// @Tags message
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Param messageId path string true "messageId ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Success 200 "Сообщение успешно удалено"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось удалить сообщение"
+// @Router /messages/{messageId} [delete]
+func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+	ctx := r.Context()
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+
+	chatId := mapVars["messageId"]
+	log.Printf("messageId: %s", chatId)
+	messageUUID, err := uuid.Parse(chatId)
+	if err != nil {
+		//conn.400
+		log.Printf("Получен кривой Id сообщения %v", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Получен кривой Id сообщения %v", err), http.StatusBadRequest)
+		return
+	}
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
+		log.Println("нет юзера в контексте")
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+	err = h.usecase.DeleteMessage(ctx, user, messageUUID)
+
+	if err != nil {
+		if errors.As(err, &noPerm) {
+			responser.SendError(ctx, w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
+			return
+		}
+		responser.SendError(ctx, w, fmt.Sprintf("внутренняя ошибка: %v", err), http.StatusInternalServerError)
+		return
+	}
+	responser.SendOK(w, "Сообщение удалено", http.StatusOK)
+}
+
 // GetAllMessages godoc
 // @Summary Get All messages
 // @Tags message
@@ -114,8 +161,8 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		//conn.400
-		log.Printf("Message delivery -> GetAllMessages: получен кривой Id юзера: %v", err)
-		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during connection upgrade:%v", err), http.StatusBadRequest)
+		log.Printf("Получен кривой Id юзера: %v", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Получен кривой Id юзера: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -177,7 +224,7 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during parsing uuid:%v", err), http.StatusBadRequest)
 		return
 	}
-	
+
 	lastMessageUUID, err := uuid.Parse(lastMessageId)
 	if err != nil {
 		//conn.400

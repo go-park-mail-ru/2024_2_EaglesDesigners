@@ -479,7 +479,7 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 // @Success 201 {object} model.AddBranch "Ветка добавлена"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
-// @Router /chat/{chatid}/{messageId}/branch [post]
+// @Router /chat/{chatId}/{messageId}/branch [post]
 func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -487,7 +487,7 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 	log.Println("пришел запрос /chat/{chatid}/{messageId}/branch [post]")
 
 	vars := mux.Vars(r)
-	chatID := vars["chatid"]
+	chatID := vars["chatId"]
 	messageID := vars["messageId"]
 
 	messageUUID, err := uuid.Parse(messageID)

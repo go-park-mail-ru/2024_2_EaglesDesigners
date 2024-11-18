@@ -668,12 +668,6 @@ paths:
       - chat
   /chats:
     get:
-      parameters:
-      - default: 0
-        description: Page number for pagination
-        in: query
-        name: page
-        type: integer
       produces:
       - application/json
       responses:
@@ -854,6 +848,43 @@ paths:
       summary: Log out a user
       tags:
       - auth
+  /messages/{messageId}:
+    delete:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      - description: messageId ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: messageId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Сообщение успешно удалено
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/customerror.NoPermissionError'
+        "500":
+          description: Не удалось удалить сообщение
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Delete message
+      tags:
+      - message
   /profile:
     get:
       consumes:

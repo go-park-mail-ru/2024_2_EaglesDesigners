@@ -42,7 +42,7 @@
         msgs.insertBefore(node, msgs.childNodes[0]);
     }
 
-    conn = new WebSocket("ws://localhost:8080/chat/startwebsocket");
+    conn = new WebSocket("ws://localhost:8080/startwebsocket");
     conn.onmessage = function (event) {
         newMessage(JSON.parse(event.data));
     };

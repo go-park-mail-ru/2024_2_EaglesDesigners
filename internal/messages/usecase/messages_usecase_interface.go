@@ -11,6 +11,8 @@ import (
 
 type MessageUsecase interface {
 	SendMessage(ctx context.Context, user jwt.User, chatId uuid.UUID, message models.Message) error
+	DeleteMessage(ctx context.Context, user jwt.User, messageId uuid.UUID) error
+
 	GetMessagesWithPage(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, lastMessageId uuid.UUID) (models.MessagesArrayDTO, error)
 
 	GetFirstMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error)
