@@ -219,6 +219,60 @@ func (r *MessageRepositoryImpl) GetMessageById(ctx context.Context, messageId uu
 	return messageModel, nil
 }
 
+func (r *MessageRepositoryImpl) SearchMessagesWithQuery(ctx context.Context, chatId uuid.UUID, searchQuery string) ([]models.Message, error) {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(ctx,
+		`SELECT
+	m.id,
+	m.author_id,
+	m.message,
+	m.sent_at, 
+	m.is_redacted
+	FROM public.message AS m
+	WHERE m.chat_id = $1 AND lower(m.message) LIKE lower($2)
+	ORDER BY sent_at DESC;`,
+		chatId,
+		"%"+searchQuery+"%",
+	)
+
+	if err != nil {
+		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
+		return nil, err
+	}
+	log.Println("Repository: сообщения получены")
+
+	messages := []models.Message{}
+	for rows.Next() {
+		var messageId uuid.UUID
+		var authorID uuid.UUID
+		var message string
+		var sentAt time.Time
+		var isRedacted bool
+
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted)
+		if err != nil {
+			log.Printf("Repository: unable to scan: %v", err)
+			return nil, err
+		}
+
+		messages = append(messages, models.Message{
+			MessageId:  messageId,
+			AuthorID:   authorID,
+			Message:    message,
+			SentAt:     sentAt,
+			IsRedacted: isRedacted,
+		})
+	}
+	log.Printf("Сообщения успешно найдеты. Количество сообшений: %d", len(messages))
+	return messages, nil
+}
+
 func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message, error) {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {

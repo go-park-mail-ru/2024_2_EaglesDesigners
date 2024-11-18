@@ -14,6 +14,7 @@ type MessageRepository interface {
 
 	UpdateMessage(ctx context.Context, messageId uuid.UUID, newText string) error
 
+	SearchMessagesWithQuery(ctx context.Context, chatId uuid.UUID, searchQuery string) ([]models.Message, error)
 	GetFirstMessages(ctx context.Context, chatId uuid.UUID) ([]models.Message, error)
 	GetMessageById(ctx context.Context, messageId uuid.UUID) (models.Message, error)
 	GetLastMessage(chatId uuid.UUID) (models.Message, error)

@@ -513,6 +513,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/{chatId}/search": {
+            "get": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "поиск сообщений",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Поиск",
+                        "name": "search_query",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно отаправлены",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/customerror.NoPermissionError"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщениея",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/chat/{chatId}/{messageId}/branch": {
             "post": {
                 "security": [

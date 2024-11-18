@@ -26,10 +26,10 @@ import (
 )
 
 const (
-	admin     = "admin"
-	none      = "none"
-	owner     = "owner"
-	notInChat = ""
+	Admin     = "admin"
+	None      = "none"
+	Owner     = "owner"
+	NotInChat = ""
 )
 const (
 	personal = "personal"
@@ -151,7 +151,7 @@ func (s *ChatUsecaseImpl) addUsersIntoChat(ctx context.Context, user_ids []uuid.
 	log.Printf("начато добавление пользователей в чат %v", chatId)
 
 	for _, id := range user_ids {
-		err := s.repository.AddUserIntoChat(ctx, id, chatId, none)
+		err := s.repository.AddUserIntoChat(ctx, id, chatId, None)
 		if err != nil {
 			notAddedUsers = append(notAddedUsers, id)
 			continue
@@ -176,7 +176,7 @@ func (s *ChatUsecaseImpl) AddUsersIntoChatWithCheckPermission(ctx context.Contex
 	var notAddedUsers []uuid.UUID
 	// проверяем есть ли права
 	switch role {
-	case admin, owner, none:
+	case Admin, Owner, None:
 		addedUsers, notAddedUsers = s.addUsersIntoChat(ctx, userIds, chatId)
 		s.sendIvent(ctx, AddNewUsersInChat, chatId, addedUsers)
 		return chatModel.AddedUsersIntoChatDTO{AddedUsers: addedUsers,
@@ -225,7 +225,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 
 	// добавление владельца
-	err = s.repository.AddUserIntoChat(ctx, user.ID, chatId, owner)
+	err = s.repository.AddUserIntoChat(ctx, user.ID, chatId, Owner)
 
 	if err != nil {
 		log.Printf("Не удалось добавить владельца в чат: %v", err)
@@ -285,7 +285,7 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 
 	// проверяем есть ли права
 	switch role {
-	case owner:
+	case Owner:
 		log.Printf("Chat usecase -> DeleteChat: удаление чата %v", chatId)
 
 		// send notification to chat
@@ -298,7 +298,7 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 
 		s.sendIvent(ctx, DeleteChat, chatId, nil)
 		return nil
-	case none, admin:
+	case None, Admin:
 		log.Printf("У пользователя %v нет прав на удаление чата %v", userId, chatId)
 		return &customerror.NoPermissionError{
 			User: userId.String(),
@@ -327,12 +327,12 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 	// проверяем есть ли права
 	if chatType == channel {
 		switch role {
-		case owner, admin:
+		case Owner, Admin:
 			hasPermission = true
 		}
 	} else {
 		switch role {
-		case owner, admin, none:
+		case Owner, Admin, None:
 			hasPermission = true
 		}
 	}
@@ -407,7 +407,7 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 	var deletedIds []uuid.UUID
 	// проверяем есть ли права
 	switch role {
-	case admin, owner:
+	case Admin, Owner:
 		log.Printf("Chat usecase -> DeleteUsersFromChat: начато удаление пользователей в чат %v пользователем %v", chatId, userID)
 
 		for _, id := range usertToDelete.UsersId {
@@ -419,7 +419,7 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 			if id == userID {
 				continue
 			}
-			if userRole == owner {
+			if userRole == Owner {
 				continue
 			}
 
@@ -446,7 +446,7 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 		return chatModel.ChatInfoDTO{}, err
 	}
 
-	if role == notInChat {
+	if role == NotInChat {
 		return chatModel.ChatInfoDTO{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: chatId.String(),
@@ -491,7 +491,7 @@ func (s *ChatUsecaseImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messa
 		return chatModel.AddBranch{}, err
 	}
 
-	if role == notInChat {
+	if role == NotInChat {
 		return chatModel.AddBranch{}, &customerror.NoPermissionError{
 			User: userId.String(),
 			Area: chatId.String(),
@@ -609,11 +609,11 @@ func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) []chatModel.UserIn
 				userDTO.Role = new(string)
 				switch *user.Role {
 				case 1:
-					*userDTO.Role = none
+					*userDTO.Role = None
 				case 2:
-					*userDTO.Role = owner
+					*userDTO.Role = Owner
 				case 3:
-					*userDTO.Role = admin
+					*userDTO.Role = Admin
 				}
 			}
 
