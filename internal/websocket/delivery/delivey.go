@@ -1,59 +1,98 @@
 package delivery
 
+import (
+	"net/http"
+	"time"
 
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/websocket/usecase"
 
-// func (h *MessageController) HandleConnection(w http.ResponseWriter, r *http.Request) {
-// 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
-// 	// начало
+	"github.com/gorilla/websocket"
+)
 
-// 	conn, err := upgrader.Upgrade(w, r, nil)
-// 	if err != nil {
-// 		log.Println("Delivery: error during connection upgrade:", err)
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 		return
-// 	}
-// 	defer log.Println("Message delivery: websocket is closing")
-// 	defer conn.Close()
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  5024,
+	WriteBufferSize: 5024,
 
-// 	// Здесь можно хранить список старых сообщений (например, в массиве или в базе данных)
-// 	messageChannel := make(chan models.WebScoketDTO, 10)
-// 	errChannel := make(chan error, 10)
-// 	closeChannel := make(chan bool, 1)
+	// CheckOrigin: func(r *http.Request) bool {
+	// 	allowedOrigins := []string{
+	// 		"http://127.0.0.1:8001",
+	// 		"https://127.0.0.1:8001",
+	// 		"http://localhost:8001",
+	// 		"https://localhost:8001",
+	// 		"http://213.87.152.18:8001",
+	// 		"http://212.233.98.59:8001",
+	// 		"https://213.87.152.18:8001",
+	// 		"http://212.233.98.59:8080",
+	// 		"https://212.233.98.59:8080",
+	// 	}
 
-// 	defer func() {
-// 		closeChannel <- true
-// 		close(closeChannel)
-// 	}()
+	// 	for _, origin := range allowedOrigins {
+	// 		if r.Header.Get("Origin") == origin {
+	// 			return true
+	// 		}
+	// 	}
+	// 	return false
+	// },
+}
 
-// 	if err != nil {
-// 		log.Println("Error reading message:", err)
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 		return
-// 	}
+type Webcosket struct {
+	usecase websocketUsecase.WebsocketUsecase
+}
 
-// 	go h.usecase.ScanForNewMessages(r.Context(), messageChannel, errChannel, closeChannel)
+func NewWebsocket(usecase websocketUsecase.WebsocketUsecase) Webcosket {
+	return Webcosket{
+		usecase: usecase,
+	}
+}
 
-// 	// пока соеденено
-// 	duration := 500 * time.Millisecond
+func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+	// начало
 
-// 	for {
-// 		select {
-// 		case err = <-errChannel:
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	log.Println(user)
+	if !ok {
+		log.Println("Message delivery -> AddNewMessage: нет юзера в контексте")
+		responser.SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
 
-// 			if err != nil {
-// 				log.Printf("Delivery: ошибка в поиске новых сообщений: %v", err)
-// 				w.WriteHeader(http.StatusInternalServerError)
-// 				return
-// 			}
-// 		case message := <-messageChannel:
-// 			// запись новых сообщений
-// 			log.Println("Message delivery websocket: получены новые сообщения")
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Delivery: error during connection upgrade:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer log.Println("Message delivery: websocket is closing")
+	defer conn.Close()
 
-// 			conn.WriteJSON(message)
+	eventChannel := make(chan websocketUsecase.AnyEvent, 10)
 
-// 		default:
-// 			time.Sleep(duration)
-// 		}
+	err = h.usecase.InitBrokersForUser(user.ID, eventChannel)
+	if err != nil {
+		log.Errorf("Не удалось иницировать брокеры для пользователя")
+		responser.SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
 
-// 	}
-// }
+	// пока соеденено
+	duration := 500 * time.Millisecond
+
+	for {
+		select {
+		case message := <-eventChannel:
+			// запись новых сообщений
+			log.Println("Message delivery websocket: получены новые сообщения")
+
+			conn.WriteJSON(message)
+
+		default:
+			time.Sleep(duration)
+		}
+
+	}
+}
