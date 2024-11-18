@@ -16,34 +16,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 )
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  5024,
-	WriteBufferSize: 5024,
-
-	CheckOrigin: func(r *http.Request) bool {
-		allowedOrigins := []string{
-			"http://127.0.0.1:8001",
-			"https://127.0.0.1:8001",
-			"http://localhost:8001",
-			"https://localhost:8001",
-			"http://213.87.152.18:8001",
-			"http://212.233.98.59:8001",
-			"https://213.87.152.18:8001",
-			"http://212.233.98.59:8080",
-			"https://212.233.98.59:8080",
-		}
-
-		for _, origin := range allowedOrigins {
-			if r.Header.Get("Origin") == origin {
-				return true
-			}
-		}
-		return false
-	},
-}
 
 var noPerm error = &customerror.NoPermissionError{User: "Alice", Area: "секретная зона"}
 
@@ -204,7 +177,7 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 		responser.SendError(ctx, w, fmt.Sprintf("Delivery: error during parsing uuid:%v", err), http.StatusBadRequest)
 		return
 	}
-
+	
 	lastMessageUUID, err := uuid.Parse(lastMessageId)
 	if err != nil {
 		//conn.400

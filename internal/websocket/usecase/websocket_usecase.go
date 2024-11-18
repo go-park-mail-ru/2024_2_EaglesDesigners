@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 
-	chatEvent "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatModels "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
@@ -19,7 +18,7 @@ type AnyEvent struct {
 }
 
 type ChatInfo struct {
-	events chan chatEvent.Event
+	events chan chatModels.Event
 	users  map[uuid.UUID]struct{}
 }
 
@@ -32,12 +31,13 @@ type WebsocketUsecase struct {
 	chatRepository chatRepository.ChatRepository
 }
 
-func NewWebsocketUsecase(ch *amqp.Channel) *WebsocketUsecase {
+func NewWebsocketUsecase(ch *amqp.Channel, chatRepository chatRepository.ChatRepository) *WebsocketUsecase {
 
 	socket := &WebsocketUsecase{
-		ch:          ch,
-		onlineChats: map[uuid.UUID]ChatInfo{},
-		onlineUsers: map[uuid.UUID]chan AnyEvent{},
+		ch:             ch,
+		onlineChats:    map[uuid.UUID]ChatInfo{},
+		onlineUsers:    map[uuid.UUID]chan AnyEvent{},
+		chatRepository: chatRepository,
 	}
 
 	go socket.consumeMessages()
@@ -46,7 +46,7 @@ func NewWebsocketUsecase(ch *amqp.Channel) *WebsocketUsecase {
 	return socket
 }
 
-func (w *WebsocketUsecase) InitBrokersForUser(userId uuid.UUID, eventChannel <-chan AnyEvent) error {
+func (w *WebsocketUsecase) InitBrokersForUser(userId uuid.UUID, eventChannel chan AnyEvent) error {
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 
 	chats, err := w.chatRepository.GetUserChats(context.Background(), userId)
@@ -54,7 +54,8 @@ func (w *WebsocketUsecase) InitBrokersForUser(userId uuid.UUID, eventChannel <-c
 		return err
 	}
 
-	w.onlineUsers[userId] = make(chan AnyEvent, 10)
+	w.onlineUsers[userId] = eventChannel
+	log.Infof("Пользователь %v онлайн", userId)
 
 	// Добавляем в брокеры пользователей
 	for _, chat := range chats {
@@ -63,7 +64,7 @@ func (w *WebsocketUsecase) InitBrokersForUser(userId uuid.UUID, eventChannel <-c
 				Action: AddWebcosketUser,
 				Users:  []uuid.UUID{userId},
 			}
-			log.Debugf("Пользователь %v добавлен в броке для чата %v", userId, chat.ChatId)
+			log.Infof("Пользователь %v добавлен в брокер для чата %v", userId, chat.ChatId)
 		}
 	}
 	return nil

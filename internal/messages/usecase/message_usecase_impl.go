@@ -7,11 +7,11 @@ import (
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/repository"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/messages/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/websocket/usecase"
 
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -28,11 +28,12 @@ const (
 type MessageUsecaseImplm struct {
 	messageRepository repository.MessageRepository
 	chatRepository    chatRepository.ChatRepository
-	tokenUsecase      *usecase.Usecase
-	messageQuery      amqp.Queue
+	tokenUsecase      *jwt.Usecase
+	queryName         string
+	ch                *amqp.Channel
 }
 
-func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, tokenUsecase *usecase.Usecase, ch *amqp.Channel) MessageUsecase {
+func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, tokenUsecase *jwt.Usecase, ch *amqp.Channel) MessageUsecase {
 	// объявляем очередь
 	q, err := ch.QueueDeclare(
 		"message", // name
@@ -51,7 +52,8 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatR
 		messageRepository: messageRepository,
 		tokenUsecase:      tokenUsecase,
 		chatRepository:    chatRepository,
-		messageQuery:      q,
+		queryName:         q.Name,
+		ch:                ch,
 	}
 	return &usecase
 }
@@ -74,6 +76,7 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	}
 
 	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
+	u.sendIvent(ctx, socketUsecase.NewMessage, message)
 	return nil
 }
 
@@ -116,4 +119,30 @@ func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uu
 		Messages: messages,
 	}, nil
 
+}
+
+func (s *MessageUsecaseImplm) sendIvent(ctx context.Context, action string, message models.Message) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	newEvent := socketUsecase.MessageEvent{
+		Action:  action,
+		Message: message,
+	}
+
+	body, err := socketUsecase.SerializeMessageEvent(newEvent)
+	if err != nil {
+		log.Errorf("Не удалось сериализовать объект")
+		return
+	}
+	err = s.ch.PublishWithContext(ctx,
+		"",          // exchange
+		s.queryName, // имя очереди
+		false,       // mandatory
+		false,       // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(body),
+		})
+	if err != nil {
+		log.Fatalf("failed to publish a message. Error: %s", err)
+	}
 }

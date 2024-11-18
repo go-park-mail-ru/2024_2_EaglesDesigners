@@ -118,7 +118,7 @@ type UserInChatDAO struct {
 
 type Event struct {
 	Action string      `json:"action"`
-	ChatId uuid.UUID      `json:"chatId"`
+	ChatId uuid.UUID   `json:"chatId"`
 	Users  []uuid.UUID `json:"users"`
 }
 

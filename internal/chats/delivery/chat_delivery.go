@@ -188,7 +188,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	addedUsers, err := c.service.AddUsersIntoChat(r.Context(), r.Cookies(), usersToAdd.UsersId, chatUUID)
+	addedUsers, err := c.service.AddUsersIntoChatWithCheckPermission(r.Context(), usersToAdd.UsersId, chatUUID)
 
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)

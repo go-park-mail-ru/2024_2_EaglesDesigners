@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	chatEvent "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
@@ -31,7 +30,7 @@ func (w *WebsocketUsecase) consumeChats() {
 			log.Fatalf("failed to register a consumer. Error: %s", err)
 		}
 		for message := range messages {
-			log.Printf("received a message: %s", message.Body)
+			log.Infof("received a message: %s", message.Body)
 			event, err := chatEvent.DeserializeEvent(message.Body)
 			if err != nil {
 				log.Errorf("Невозморжно десериализовать оюъект: %v", err)
@@ -45,9 +44,13 @@ func (w *WebsocketUsecase) consumeChats() {
 
 func (w *WebsocketUsecase) addChatEventIntoChatRutine(event chatEvent.Event) {
 	// если нет рутины чата, то сначала создадим ее
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Infof("Отправляем новый ивент %v в брокер", event)
 	if !w.isChatActive(event.ChatId) {
+		log.Infof("Чат %v не активен", event.ChatId)
 		err := w.initNewChatBroker(event.ChatId)
 		if err != nil {
+			log.Errorf("Не удалось иницализировать нового брокера для чата %v: %v", event.ChatId, err)
 			return
 		}
 	}
@@ -61,10 +64,16 @@ func (w *WebsocketUsecase) isChatActive(chatId uuid.UUID) bool {
 }
 
 func (w *WebsocketUsecase) initNewChatBroker(chatId uuid.UUID) error {
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+
+	log.Infof("Инициализация нового брокера для чата %v", chatId)
+
 	users, err := w.getOnlineUsersInChat(chatId)
 	if err != nil {
 		return err
 	}
+	log.Infof("Онлайн пользователи в чате %v: %v", chatId, users)
+
 	w.onlineChats[chatId] = ChatInfo{
 		events: make(chan chatEvent.Event, 10),
 		users:  users,
@@ -106,6 +115,9 @@ const (
 )
 
 func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID) {
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Infof("Создан новый брокер для чата %v", chatId)
+
 	// здесь надо сходить посмотреть всех юзеров
 	chatInfo := w.onlineChats[chatId]
 	events := chatInfo.events
@@ -113,8 +125,7 @@ func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID) {
 	for {
 		// если ноль пользователей онлайн, то закрываем брокер
 		if len(users) == 0 {
-			log := logger.LoggerWithCtx(context.Background(), logger.Log)
-			log.Debugf("Брокер для чата %v закрывается", chatId)
+			log.Infof("Брокер для чата %v закрывается", chatId)
 
 			close(w.onlineChats[chatId].events)
 			delete(w.onlineChats, chatId)
@@ -122,7 +133,7 @@ func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID) {
 		}
 
 		newEvent := <-events
-		fmt.Println(newEvent)
+		log.Infof("В брокер для чата %v пишел новый event %v", chatId, newEvent)
 		switch newEvent.Action {
 		case AddWebcosketUser:
 			// достаем из массива event.Users пользователя
@@ -145,6 +156,7 @@ func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID) {
 				}
 			}
 		case AddNewUsersInChat:
+			log.Infof("Добавляем новыйх подписчиков на брокер чата %v", chatId)
 			// если пользователь онлайны, то добавляем в подписчики
 			for _, userId := range newEvent.Users {
 				if _, ok := w.onlineUsers[userId]; ok {
@@ -157,8 +169,10 @@ func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID) {
 }
 
 func (w *WebsocketUsecase) sendEventToAllUsers(users map[uuid.UUID]struct{}, event chatEvent.Event) {
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	for userId := range users {
 		if _, ok := w.onlineUsers[userId]; ok {
+			log.Infof("Отправляем ивент пользователю %v", userId)
 			w.onlineUsers[userId] <- AnyEvent{
 				TypeOfEvent: Chat,
 				Event:       event,

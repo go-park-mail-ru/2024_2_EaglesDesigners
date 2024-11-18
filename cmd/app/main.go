@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -30,7 +31,8 @@ import (
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/profile/usecase"
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/uploads/delivery"
 
-	websocket "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/websocket/usecase"
+	websocketDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/websocket/delivery"
+	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/websocket/usecase"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
@@ -131,9 +133,9 @@ func main() {
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
 	// websocket
-	websocketUsecase := websocket.NewWebsocketUsecase(ch)
-	log.Println(websocketUsecase)
-	
+	websocketUsecase := websocketUsecase.NewWebsocketUsecase(ch, chatRepo)
+	websocketDelivery := websocketDelivery.NewWebsocket(*websocketUsecase)
+
 	// добавление request_id в ctx всем запросам
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +175,7 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages/{lastMessageId}", auth.Authorize(messageDelivery.GetMessagesWithPage)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
-	// router.HandleFunc("/chat/startwebsocket", auth.Authorize(messageDelivery.HandleConnection))
+	router.HandleFunc("/chat/startwebsocket", auth.Authorize(websocketDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
