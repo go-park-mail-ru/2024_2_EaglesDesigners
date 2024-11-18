@@ -51,7 +51,7 @@ func (w *WebsocketUsecase) addChatEventIntoChatRutine(event chatEvent.Event) {
 			return
 		}
 	}
-	channel := w.onlineChats[event.ChatId]
+	channel := w.onlineChats[event.ChatId].events
 	channel <- event
 }
 
@@ -61,13 +61,15 @@ func (w *WebsocketUsecase) isChatActive(chatId uuid.UUID) bool {
 }
 
 func (w *WebsocketUsecase) initNewChatBroker(chatId uuid.UUID) error {
-	w.onlineChats[chatId] = make(chan chatEvent.Event, 10)
 	users, err := w.getOnlineUsersInChat(chatId)
 	if err != nil {
 		return err
 	}
-
-	go w.chatBroker(chatId, w.onlineChats[chatId], users)
+	w.onlineChats[chatId] = ChatInfo{
+		events: make(chan chatEvent.Event, 10),
+		users:  users,
+	}
+	go w.chatBroker(chatId)
 	return nil
 }
 
@@ -98,18 +100,23 @@ const (
 	NewChat             = "newChat"
 	DeleteUsersFromChat = "delUsers"
 	AddNewUsersInChat   = "addUsers"
+
+	// пользователь стал онлайн
+	AddWebcosketUser = "addWebSocketUser"
 )
 
-func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID, events <-chan chatEvent.Event, users map[uuid.UUID]struct{}) {
+func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID) {
 	// здесь надо сходить посмотреть всех юзеров
-
+	chatInfo := w.onlineChats[chatId]
+	events := chatInfo.events
+	users := chatInfo.users
 	for {
 		// если ноль пользователей онлайн, то закрываем брокер
 		if len(users) == 0 {
 			log := logger.LoggerWithCtx(context.Background(), logger.Log)
 			log.Debugf("Брокер для чата %v закрывается", chatId)
 
-			close(w.onlineChats[chatId])
+			close(w.onlineChats[chatId].events)
 			delete(w.onlineChats, chatId)
 			return
 		}
@@ -117,6 +124,11 @@ func (w *WebsocketUsecase) chatBroker(chatId uuid.UUID, events <-chan chatEvent.
 		newEvent := <-events
 		fmt.Println(newEvent)
 		switch newEvent.Action {
+		case AddWebcosketUser:
+			// достаем из массива event.Users пользователя
+			for _, userId := range newEvent.Users {
+				users[userId] = struct{}{}
+			}
 		case DeleteChat:
 			go w.sendEventToAllUsers(users, newEvent)
 			delete(w.onlineChats, chatId)
@@ -156,6 +168,7 @@ func (w *WebsocketUsecase) sendEventToAllUsers(users map[uuid.UUID]struct{}, eve
 }
 
 const (
+	// current - имеется ввиду пользователь, который щас подписан на вебсокет
 	CurrentUserDeleeted = "currentUserDeleeted"
 )
 
