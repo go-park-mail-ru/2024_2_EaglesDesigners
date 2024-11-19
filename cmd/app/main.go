@@ -140,6 +140,11 @@ func main() {
 			requestID := uuid.New().String()
 			ctx = context.WithValue(r.Context(), logger.RequestIDKey, requestID)
 			r = r.WithContext(ctx)
+
+			log := logger.LoggerWithCtx(ctx, logger.Log)
+
+			log.Printf("Пришел запрос %s", r.URL.String())
+
 			next.ServeHTTP(w, r)
 		})
 	})
@@ -155,6 +160,7 @@ func main() {
 	router.HandleFunc("/contacts", auth.Authorize(contacts.GetContactsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Authorize(auth.Csrf(contacts.AddContactHandler))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/contacts", auth.Authorize(auth.Csrf(contacts.DeleteContactHandler))).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/contacts/search", auth.Authorize(contacts.SearchContactsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
@@ -166,17 +172,18 @@ func main() {
 
 	router.HandleFunc("/chats", auth.Authorize(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Authorize(auth.Csrf(chat.AddNewChat))).Methods("POST", "OPTIONS")
+	router.HandleFunc("/chat/search", auth.Authorize(auth.Csrf(chat.SearchChats))).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/addusers", auth.Authorize(auth.Csrf(chat.AddUsersIntoChat))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/delusers", auth.Authorize(auth.Csrf(chat.DeleteUsersFromChat))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/delete", auth.Authorize(auth.Csrf(chat.DeleteChatOrGroup))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}", auth.Authorize(auth.Csrf(chat.UpdateGroup))).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}", auth.Authorize(chat.GetChatInfo)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(messageDelivery.GetAllMessages)).Methods("GET", "OPTIONS")
-	router.HandleFunc("/chat/{chatId}/messages/{lastMessageId}", auth.Authorize(messageDelivery.GetMessagesWithPage)).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages/pages/{lastMessageId}", auth.Authorize(messageDelivery.GetMessagesWithPage)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/{messageId}/branch", auth.Authorize(auth.Csrf(chat.AddBranch))).Methods("POST", "OPTIONS")
 
-	router.HandleFunc("/chat/{chatId}/search", auth.Authorize(auth.Csrf(messageDelivery.SearchMessages))).Methods("GET", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/messages/search", auth.Authorize(auth.Csrf(messageDelivery.SearchMessages))).Methods("GET", "OPTIONS")
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")

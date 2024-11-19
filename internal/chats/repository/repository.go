@@ -223,7 +223,6 @@ func (r *ChatRepositoryImpl) GetChatType(ctx context.Context, chatId uuid.UUID) 
 	return chatType, nil
 }
 
-
 func (r *ChatRepositoryImpl) GetUserRoleInChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	// идем в бд по двум полям: если есть то тру
@@ -632,7 +631,7 @@ func (r *ChatRepositoryImpl) SearchUserChats(ctx context.Context, userId uuid.UU
 		WHERE 
 			cu.user_id = $1 AND 
 			ch.value <> 'branch' AND 
-			(POSITION($2 IN c.chat_name) > 0 OR POSITION($2 IN c.chat_link_name) > 0);`,
+			(POSITION(LOWER($2) IN LOWER(c.chat_name)) > 0 OR POSITION(LOWER($2) IN LOWER(c.chat_link_name)) > 0);`,
 		userId,
 		keyWord,
 	)
@@ -700,7 +699,7 @@ func (r *ChatRepositoryImpl) SearchGlobalChats(ctx context.Context, userId uuid.
 			JOIN public.chat_type ch ON ch.id = c.chat_type_id
 			WHERE  
 				ch.value = 'channel' AND 
-				(POSITION($2 IN c.chat_name) > 0 OR POSITION($2 IN c.chat_link_name) > 0)
+				(POSITION(LOWER($2) IN LOWER(c.chat_name)) > 0 OR POSITION(LOWER($2) IN LOWER(c.chat_link_name)) > 0)
 		) AS ch
 		WHERE ch.id NOT IN (
 			SELECT c.id

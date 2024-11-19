@@ -5,12 +5,17 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/contacts/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+	"github.com/google/uuid"
+
+	errGroup "golang.org/x/sync/errgroup"
 )
 
 type Repository interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.ContactDAO, err error)
 	AddContact(ctx context.Context, contactData models.ContactDataDAO) (models.ContactDAO, error)
 	DeleteContact(ctx context.Context, contactData models.ContactDataDAO) error
+	SearchUserContacts(ctx context.Context, userID uuid.UUID, keyWord string) ([]models.ContactDAO, error)
+	SearchGlobalUsers(ctx context.Context, userID uuid.UUID, keyWord string) ([]models.ContactDAO, error)
 }
 
 type Usecase struct {
@@ -72,8 +77,73 @@ func (u *Usecase) DeleteContact(ctx context.Context, contactData models.ContactD
 	return nil
 }
 
+func (u *Usecase) SearchContacts(ctx context.Context, userID uuid.UUID, keyWord string) (models.SearchContactsDTO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Debugf("пришел запрос на поиск контактов от пользователя: %v", userID)
+
+	var g errGroup.Group
+
+	var userContactsDTO []models.ContactRespDTO
+	var globalUsersDTO []models.ContactRespDTO
+
+	g.Go(func() error {
+		userContacts, err := u.repo.SearchUserContacts(ctx, userID, keyWord)
+		if err != nil {
+			return err
+		}
+		log.Debugln("контакты пользователя получены")
+
+		for _, contact := range userContacts {
+			contactDTO := convertContactToDTO(contact)
+
+			userContactsDTO = append(userContactsDTO,
+				contactDTO)
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		globalUsers, err := u.repo.SearchGlobalUsers(ctx, userID, keyWord)
+		if err != nil {
+			return err
+		}
+		log.Debugln("глобальные пользователи получены")
+
+		for _, user := range globalUsers {
+			userDTO := convertContactToDTO(user)
+
+			globalUsersDTO = append(globalUsersDTO,
+				userDTO)
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return models.SearchContactsDTO{}, err
+	}
+
+	outputDTO := models.SearchContactsDTO{
+		UserContacts: userContactsDTO,
+		GlobalUsers:  globalUsersDTO,
+	}
+
+	return outputDTO, nil
+}
+
 func convertContactFromDAO(dao models.ContactDAO) models.Contact {
 	return models.Contact{
+		ID:        dao.ID.String(),
+		Username:  dao.Username,
+		Name:      dao.Name,
+		AvatarURL: dao.AvatarURL,
+	}
+}
+
+func convertContactToDTO(dao models.ContactDAO) models.ContactRespDTO {
+	return models.ContactRespDTO{
 		ID:        dao.ID.String(),
 		Username:  dao.Username,
 		Name:      dao.Name,

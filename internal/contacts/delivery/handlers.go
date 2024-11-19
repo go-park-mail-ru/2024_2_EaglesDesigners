@@ -14,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
+	"github.com/google/uuid"
 )
 
 const (
@@ -25,6 +26,7 @@ type usecase interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.Contact, err error)
 	AddContact(ctx context.Context, contactData models.ContactData) (models.Contact, error)
 	DeleteContact(ctx context.Context, contactData models.ContactData) error
+	SearchContacts(ctx context.Context, userID uuid.UUID, keyWord string) (models.SearchContactsDTO, error)
 }
 
 type token interface {
@@ -214,6 +216,55 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 	log.Println("контакт успешно удален")
 
 	responser.SendOK(w, "contact deleted", http.StatusOK)
+}
+
+// SearchChats ищет контакты по имени или нику, в query указать ключевое слово ?key_word=
+//
+// SearchChats godoc
+// @Summary Поиск контактов пользователя и глобальных пользователей по имени или нику
+// @Tags contacts
+// @Produce json
+// @Security BearerAuth
+// @Param key_word query string false "Ключевое слово для поиска"
+// @Success 200 {object} models.SearchContactsDTO
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
+// @Failure 500	"Не удалось получить контакты"
+// @Router /contacts/search [get]
+func (d *Delivery) SearchContactsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Debugf("Пришёл запрос на поиск контактов с параметрами: %v", r.URL.Query())
+	keyWord := r.URL.Query().Get("key_word")
+
+	if keyWord == "" {
+		log.Errorf("key_word отсутствует")
+		responser.SendError(ctx, w, "key_word not found", http.StatusBadRequest)
+		return
+	}
+
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
+		return
+	}
+
+	output, err := d.usecase.SearchContacts(ctx, user.ID, keyWord)
+	if err != nil {
+		log.Errorf("не удалось получить контакты: %v", err)
+		responser.SendError(ctx, w, "Server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(output); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
+	responser.SendStruct(ctx, w, output, http.StatusOK)
+
 }
 
 func convertContactToDTO(contact models.Contact) models.ContactRespDTO {

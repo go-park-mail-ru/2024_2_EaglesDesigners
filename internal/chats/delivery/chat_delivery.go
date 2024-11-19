@@ -523,12 +523,13 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 // @Summary Поиск чатов пользователя и глобальных каналов по названию
 // @Tags chat
 // @Produce json
+// @Security BearerAuth
 // @Param key_word query string false "Ключевое слово для поиска"
 // @Success 200 {object} model.SearchChatsDTO
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	"Не удалось получить сообщения"
-// @Router /chats/search [get]
+// @Router /chat/search [get]
 func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
