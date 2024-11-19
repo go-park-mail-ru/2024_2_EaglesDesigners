@@ -172,3 +172,114 @@ func (r *Repository) DeleteContact(ctx context.Context, contactData models.Conta
 
 	return nil
 }
+
+func (r *Repository) SearchUserContacts(ctx context.Context, userID uuid.UUID, keyWord string) ([]models.ContactDAO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Не удалось соединиться с базой данных: %v", err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	var contacts []models.ContactDAO
+
+	rows, err := conn.Query(
+		ctx,
+		`SELECT
+			id,
+			username,
+			name,
+			avatar_path
+		FROM public."user"
+		WHERE id IN 
+		(
+			SELECT contact_id 
+			FROM public."contact"
+			WHERE 
+				user_id = $1 AND 
+				(POSITION(LOWER($2) IN LOWER(username)) > 0 OR POSITION(LOWER($2) IN LOWER(name)) > 0)
+		);`,
+		userID,
+		keyWord,
+	)
+	if err != nil {
+		log.Errorf("Не удалось получить контакты: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var contact models.ContactDAO
+
+		if err = rows.Scan(&contact.ID, &contact.Username, &contact.Name, &contact.AvatarURL); err != nil {
+			log.Errorf("Не удалось получить контакты: %v", err)
+			return nil, err
+		}
+		contacts = append(contacts, contact)
+	}
+
+	log.Debugln("данные получены")
+
+	return contacts, nil
+}
+
+func (r *Repository) SearchGlobalUsers(ctx context.Context, userID uuid.UUID, keyWord string) ([]models.ContactDAO, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Не удалось соединиться с базой данных: %v", err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	var contacts []models.ContactDAO
+
+	rows, err := conn.Query(
+		ctx,
+		`SELECT
+			u.id,
+			u.username,
+			u.name,
+			u.avatar_path
+		FROM (
+			SELECT
+				id,
+				username,
+				name,
+				avatar_path
+			FROM public."user"
+			WHERE 
+				id <> $1 AND
+				(POSITION(LOWER($2) IN LOWER(username)) > 0 OR POSITION(LOWER($2) IN LOWER(name)) > 0)
+		) AS u
+		WHERE id NOT IN (
+			SELECT contact_id 
+			FROM public."contact"
+			WHERE user_id = $1
+		);`,
+		userID,
+		keyWord,
+	)
+	if err != nil {
+		log.Errorf("Не удалось получить контакты: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var contact models.ContactDAO
+
+		if err = rows.Scan(&contact.ID, &contact.Username, &contact.Name, &contact.AvatarURL); err != nil {
+			log.Errorf("Не удалось получить контакты: %v", err)
+			return nil, err
+		}
+		contacts = append(contacts, contact)
+	}
+
+	log.Debugln("данные получены")
+
+	return contacts, nil
+}

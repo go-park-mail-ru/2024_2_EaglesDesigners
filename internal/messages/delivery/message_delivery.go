@@ -259,7 +259,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
-// @Router /chat/{chatId}/messages/{lastMessageId} [get]
+// @Router /chat/{chatId}/messages/pages/{lastMessageId} [get]
 func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 
@@ -319,7 +319,7 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
-// @Router /chat/{chatId}/search [get]
+// @Router /chat/{chatId}/messages/search [get]
 func (h *MessageController) SearchMessages(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 

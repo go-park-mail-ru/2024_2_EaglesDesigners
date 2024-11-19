@@ -254,6 +254,17 @@ definitions:
       user:
         $ref: '#/definitions/models.UserDataRespDTO'
     type: object
+  models.SearchContactsDTO:
+    properties:
+      global_users:
+        items:
+          $ref: '#/definitions/models.ContactRespDTO'
+        type: array
+      user_contacts:
+        items:
+          $ref: '#/definitions/models.ContactRespDTO'
+        type: array
+    type: object
   models.UpdateProfileRequestDTO:
     properties:
       bio:
@@ -627,7 +638,7 @@ paths:
       summary: Add new message
       tags:
       - message
-  /chat/{chatId}/messages/{lastMessageId}:
+  /chat/{chatId}/messages/pages/{lastMessageId}:
     get:
       parameters:
       - description: Chat ID (UUID)
@@ -666,7 +677,7 @@ paths:
       summary: получить 25 сообщений до определенного
       tags:
       - message
-  /chat/{chatId}/search:
+  /chat/{chatId}/messages/search:
     get:
       parameters:
       - description: Chat ID (UUID)
@@ -701,21 +712,7 @@ paths:
       summary: поиск сообщений
       tags:
       - message
-  /chats:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.ChatsDTO'
-        "500":
-          description: Не удалось получить сообщения
-      summary: Get chats of user
-      tags:
-      - chat
-  /chats/search:
+  /chat/search:
     get:
       parameters:
       - description: Ключевое слово для поиска
@@ -739,7 +736,23 @@ paths:
             $ref: '#/definitions/responser.ErrorResponse'
         "500":
           description: Не удалось получить сообщения
+      security:
+      - BearerAuth: []
       summary: Поиск чатов пользователя и глобальных каналов по названию
+      tags:
+      - chat
+  /chats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ChatsDTO'
+        "500":
+          description: Не удалось получить сообщения
+      summary: Get chats of user
       tags:
       - chat
   /contacts:
@@ -831,6 +844,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Add new contact
+      tags:
+      - contacts
+  /contacts/search:
+    get:
+      parameters:
+      - description: Ключевое слово для поиска
+        in: query
+        name: key_word
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SearchContactsDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить контакты
+      security:
+      - BearerAuth: []
+      summary: Поиск контактов пользователя и глобальных пользователей по имени или
+        нику
       tags:
       - contacts
   /login:

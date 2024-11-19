@@ -43,3 +43,8 @@ type ContactDataDAO struct {
 	UserID          string
 	ContactUsername string
 }
+
+type SearchContactsDTO struct {
+	UserContacts []ContactRespDTO `json:"user_contacts" valid:"-"`
+	GlobalUsers  []ContactRespDTO `json:"global_users" valid:"-"`
+}

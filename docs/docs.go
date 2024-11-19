@@ -95,6 +95,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Поиск чатов пользователя и глобальных каналов по названию",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ключевое слово для поиска",
+                        "name": "key_word",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SearchChatsDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщения"
+                    }
+                }
+            }
+        },
         "/chat/{chatId}": {
             "get": {
                 "security": [
@@ -457,7 +504,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/chat/{chatId}/messages/{lastMessageId}": {
+        "/chat/{chatId}/messages/pages/{lastMessageId}": {
             "get": {
                 "tags": [
                     "message"
@@ -513,7 +560,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/chat/{chatId}/search": {
+        "/chat/{chatId}/messages/search": {
             "get": {
                 "tags": [
                     "message"
@@ -618,48 +665,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.ChatsDTO"
-                        }
-                    },
-                    "500": {
-                        "description": "Не удалось получить сообщения"
-                    }
-                }
-            }
-        },
-        "/chats/search": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "chat"
-                ],
-                "summary": "Поиск чатов пользователя и глобальных каналов по названию",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Ключевое слово для поиска",
-                        "name": "key_word",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.SearchChatsDTO"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный запрос",
-                        "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Нет полномочий",
-                        "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
                         }
                     },
                     "500": {
@@ -808,6 +813,53 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/contacts/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Поиск контактов пользователя и глобальных пользователей по имени или нику",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ключевое слово для поиска",
+                        "name": "key_word",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SearchContactsDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить контакты"
                     }
                 }
             }
@@ -1596,6 +1648,23 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.UserDataRespDTO"
+                }
+            }
+        },
+        "models.SearchContactsDTO": {
+            "type": "object",
+            "properties": {
+                "global_users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ContactRespDTO"
+                    }
+                },
+                "user_contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ContactRespDTO"
+                    }
                 }
             }
         },

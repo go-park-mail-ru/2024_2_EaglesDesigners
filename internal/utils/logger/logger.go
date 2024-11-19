@@ -39,6 +39,14 @@ func LoggerWithCtx(ctx context.Context, log *logrus.Logger) *logrus.Entry {
 		feature = parts[len(parts)-2]
 	}
 
+	if feature == "" {
+		feature = "unknown"
+	}
+
+	if funcName == "" {
+		funcName = "anonymous"
+	}
+
 	fields := logrus.Fields{
 		"request_id": reqID[:6],
 		"function":   funcName,
