@@ -265,6 +265,63 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 	responser.SendStruct(ctx, w, delUsers, 200)
 }
 
+// DeleteUserFromChat godoc
+// @Summary Удалить пользователя из чата
+// @Tags chat
+// @Accept userId
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Success 200 {object} model.DeletdeUsersFromChatDTO "Пользователь удален"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
+// @Router /chat/{chatId}/deluser/{userId} [delete]
+func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+	ctx := r.Context()
+	chatUUID, err := getChatIdFromContext(r.Context())
+
+	if err != nil {
+		//conn.400
+		log.Println("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid:", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	userToDelId := vars["userId"]
+
+	userToDelUUID, err := uuid.Parse(userToDelId)
+	if err != nil {
+		log.Errorf("не удалось распарсить messageId: %v", err)
+		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
+		return
+	}
+
+	delUsers, err := c.service.DeleteUsersFromChat(r.Context(), user.ID, chatUUID, model.DeleteUsersFromChatDTO{
+		UsersId: []uuid.UUID{userToDelUUID},
+	})
+
+	if err != nil {
+		log.Printf("Не удалось добавить пользователей в чат: %v", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if err := validator.Check(delUsers); err != nil {
+		log.Printf("выходные данные не прошли проверку валидации: %v", err)
+		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
+		return
+	}
+
+	responser.SendStruct(ctx, w, delUsers, 200)
+}
+
 // DeleteChatOrGroup godoc
 // @Summary Удаличть чат или группу
 // @Tags chat
@@ -500,6 +557,7 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("не удалось распарсить chatid: %v", err)
 		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
+		return
 	}
 
 	user, ok := ctx.Value(auth.UserKey).(jwt.User)
