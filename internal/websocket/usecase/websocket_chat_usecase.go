@@ -12,6 +12,16 @@ import (
 const Chat = "chat"
 const Message = "message"
 
+type ChatEventMain struct {
+	Action  string    `json:"action"`
+	Payload ChatEvent `json:"payload"`
+}
+
+type ChatEvent struct {
+	ChatId uuid.UUID   `json:"chatId"`
+	Users  []uuid.UUID `json:"users"`
+}
+
 // consumeChats принимает информацию об изменении чатов
 func (w *WebsocketUsecase) consumeChats() {
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
@@ -175,7 +185,13 @@ func (w *WebsocketUsecase) sendEventToAllUsers(users map[uuid.UUID]struct{}, eve
 			log.Infof("Отправляем ивент пользователю %v", userId)
 			w.onlineUsers[userId] <- AnyEvent{
 				TypeOfEvent: Chat,
-				Event:       event,
+				Event: ChatEventMain{
+					Action: event.Action,
+					Payload: ChatEvent{
+						ChatId: event.ChatId,
+						Users:  event.Users,
+					},
+				},
 			}
 		}
 	}
