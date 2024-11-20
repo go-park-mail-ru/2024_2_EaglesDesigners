@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"html/template"
 	"log"
 	"net/http"
 
