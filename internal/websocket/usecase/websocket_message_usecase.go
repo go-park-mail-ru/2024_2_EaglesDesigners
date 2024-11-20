@@ -57,7 +57,9 @@ func (w *WebsocketUsecase) consumeMessages() {
 				log.Errorf("Невозморжно десериализовать оюъект: %v", err)
 				continue
 			}
-
+			if _, ok := w.onlineChats[msg.Message.ChatId]; !ok {
+				w.initNewChatBroker(msg.Message.ChatId)
+			}
 			w.sendMessage(msg)
 		}
 
