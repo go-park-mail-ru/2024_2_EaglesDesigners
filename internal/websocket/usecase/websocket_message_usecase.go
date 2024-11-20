@@ -10,7 +10,7 @@ import (
 
 type MessageEvent struct {
 	Action  string `json:"action"`
-	Message messageModel.Message
+	Message messageModel.Message `json:"payload"`
 }
 
 const (
