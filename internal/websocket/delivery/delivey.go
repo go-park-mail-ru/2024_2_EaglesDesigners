@@ -88,7 +88,7 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 			// запись новых сообщений
 			log.Println("Message delivery websocket: получены новые сообщения")
 
-			conn.WriteJSON(message)
+			conn.WriteJSON(message.Event)
 
 		default:
 			time.Sleep(duration)
