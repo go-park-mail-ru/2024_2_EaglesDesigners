@@ -22,6 +22,12 @@ type ChatInfo struct {
 	users  map[uuid.UUID]struct{}
 }
 
+type ChatRepository interface {
+	GetUserChats(ctx context.Context, userId string) (chatIds []string, err error)
+
+	GetUsersFromChat(ctx context.Context, chatId string) (userIds []string, err error)
+}
+
 type WebsocketUsecase struct {
 	ch *amqp.Channel
 	// мапа с чатами и каналами для ивентов по чатам
