@@ -11,17 +11,18 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/delivery"
-	authRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/repository"
-	authUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/usecase"
+	userRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/repository"
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
 	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/usecase"
 	contactsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/delivery"
 	contactsRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/repository"
 	contactsUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/usecase"
-	tokenUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
+	jwtUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/delivery"
 	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
 	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
@@ -29,6 +30,7 @@ import (
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/repository"
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/usecase"
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/uploads/delivery"
+	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
 
 	websocketDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/delivery"
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/usecase"
@@ -97,10 +99,23 @@ func main() {
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
 	// auth
-	authRepo := authRepo.NewRepository(pool)
-	tokenUC := tokenUC.NewUsecase(authRepo)
-	authUC := authUC.NewUsecase(authRepo, tokenUC)
-	auth := authDelivery.NewDelivery(authUC, tokenUC)
+
+	grpcConnAuth, err := grpc.Dial(
+		"auth:8081",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer grpcConnAuth.Close()
+	authClient := authv1.NewAuthClient(grpcConnAuth)
+
+	auth := authDelivery.New(authClient)
+
+	// token рудемент
+
+	userRepo := userRepo.NewRepository(pool)
+	tokenUC := jwtUC.NewUsecase(userRepo)
 
 	// uploads
 

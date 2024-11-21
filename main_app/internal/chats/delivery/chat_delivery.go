@@ -11,7 +11,6 @@ import (
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/usecase"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/gorilla/mux"
@@ -228,7 +227,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
 	}
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
 		return
@@ -296,7 +295,7 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
 		return
@@ -342,7 +341,7 @@ func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
 		return
@@ -383,7 +382,7 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
@@ -452,7 +451,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
@@ -542,7 +541,7 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
@@ -599,7 +598,7 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
 	}
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
@@ -640,7 +639,7 @@ func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return

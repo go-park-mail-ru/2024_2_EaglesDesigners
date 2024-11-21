@@ -63,7 +63,7 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("пришел запрос на получение контактов")
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
@@ -119,7 +119,7 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("пришел запрос на добавление контакта")
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
@@ -188,7 +188,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 
 	log.Println("пришел запрос на удаление контакта")
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
@@ -244,7 +244,7 @@ func (d *Delivery) SearchContactsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return

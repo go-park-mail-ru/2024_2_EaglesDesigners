@@ -65,15 +65,13 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	log.Println("пришел запрос на получение данных о своем профиле")
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
 	}
 
-	id := user.ID
-
-	profileData, err := d.usecase.GetProfile(ctx, id)
+	profileData, err := d.usecase.GetProfile(ctx, user.ID)
 	if err != nil {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
@@ -160,7 +158,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 
 	log.Println("пришел запрос на обновление профиля")
 
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return

@@ -9,12 +9,26 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
+      auth:
+        condition: service_started
     restart: always
     ports:
       - "8080:8080"
     volumes:
       - ./uploads:/uploads
-  
+
+  auth:
+    container_name: auth
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_started
+    restart: always
+    ports:
+      - "8081:8081"
+
   postgres:
     container_name: postgres
     image: postgres:15.0

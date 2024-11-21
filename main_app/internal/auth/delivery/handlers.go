@@ -12,10 +12,10 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
-	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/proto"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
+	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"go.octolab.org/pointer"
@@ -23,21 +23,12 @@ import (
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
-type Client interface {
-	Authenticate(ctx context.Context, in *authv1.AuthRequest) (*authv1.AuthResponse, error)
-	Registration(ctx context.Context, in *authv1.RegistrationRequest) (*authv1.Nothing, error)
-	GetUserDataByUsername(ctx context.Context, in *authv1.GetUserDataByUsernameRequest) (*authv1.GetUserDataByUsernameResponse, error)
-	CreateJWT(ctx context.Context, in *authv1.CreateJWTRequest) (*authv1.Token, error)
-	GetUserByJWT(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error)
-	IsAuthorized(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error)
-}
-
 type Delivery struct {
-	client Client
+	client authv1.AuthClient
 	mu     sync.Mutex
 }
 
-func NewDelivery(client Client) *Delivery {
+func New(client authv1.AuthClient) *Delivery {
 	return &Delivery{
 		client: client,
 	}
@@ -231,25 +222,23 @@ func (d *Delivery) Authorize(next http.HandlerFunc) http.HandlerFunc {
 		token, err := d.parseCookies(r.Cookies())
 		if err != nil {
 			log.Println("не получилось получить токен")
+			responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		user, err := d.client.IsAuthorized(ctx, &authv1.Token{Token: token})
 		if err == errTokenExpired {
 			log.Println("токен истек, создается новый токен")
-
-			if err != nil {
-				responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
 			d.setTokens(w, r, user.Username)
 		}
-		if err != nil {
+
+		if err != nil && err != errTokenExpired {
+			log.Println("токен невалиден")
 			responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		ctx = context.WithValue(ctx, models.UserKey, user)
+		ctx = context.WithValue(ctx, models.UserKey, convertFromGRPCUser(user))
 		ctx = context.WithValue(ctx, models.MuxParamsKey, mux.Vars(r))
 
 		r = r.WithContext(ctx)
@@ -366,5 +355,16 @@ func convertUserDataToDTO(userData *authv1.GetUserDataByUsernameResponse) models
 		Username:  html.EscapeString(userData.GetUsername()),
 		Name:      html.EscapeString(userData.GetName()),
 		AvatarURL: pointer.ToStringOrNil(userData.GetAvatarURL()),
+	}
+}
+
+func convertFromGRPCUser(user *authv1.UserJWT) models.User {
+
+	return models.User{
+		ID:       uuid.MustParse(user.GetID()),
+		Username: user.GetUsername(),
+		Name:     user.GetName(),
+		Password: user.GetPassword(),
+		Version:  user.GetVersion(),
 	}
 }

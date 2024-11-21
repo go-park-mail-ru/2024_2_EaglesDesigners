@@ -20,7 +20,7 @@ func TestLoginHandler(t *testing.T) {
 
 	mockUsecase := mock_delivery.NewMockusecase(ctrl)
 	mockToken := mock_delivery.NewMocktoken(ctrl)
-	delivery := delivery.NewDelivery(mockUsecase, mockToken)
+	delivery := delivery.New(mockUsecase, mockToken)
 
 	handler := http.HandlerFunc(delivery.LoginHandler)
 
@@ -103,7 +103,7 @@ func TestRegisterHandler(t *testing.T) {
 
 			mockUsecase := mock_delivery.NewMockusecase(ctrl)
 			mockToken := mock_delivery.NewMocktoken(ctrl)
-			delivery := delivery.NewDelivery(mockUsecase, mockToken)
+			delivery := delivery.New(mockUsecase, mockToken)
 
 			handler := http.HandlerFunc(delivery.RegisterHandler)
 

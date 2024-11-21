@@ -163,7 +163,7 @@ func (s *ChatUsecaseImpl) addUsersIntoChat(ctx context.Context, user_ids []uuid.
 }
 
 func (s *ChatUsecaseImpl) AddUsersIntoChatWithCheckPermission(ctx context.Context, userIds []uuid.UUID, chatId uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error) {
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		return chatModel.AddedUsersIntoChatDTO{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
 	}

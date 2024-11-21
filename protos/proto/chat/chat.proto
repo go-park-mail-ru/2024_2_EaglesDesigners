@@ -1,0 +1,30 @@
+// Версия ProtoBuf
+syntax = "proto3";
+
+// Текущий пакет - указывает пространство имен для сервиса и сообщений. Помогает избегать конфликтов имен.
+package chat;
+
+// Настройки для генерации Go кода.
+option go_package = ".";
+
+service ChatService {
+  rpc GetUserChats(UserChatsRequest) returns (UserChatsResponse);
+
+  rpc GetUsersFromChat(UsersFromChatRequest) returns (UsersFromChatResponse);
+}
+
+message UserChatsRequest {
+  string userId = 1;
+}
+
+message UserChatsResponse {
+  repeated string chatIds = 1;
+}
+
+message UsersFromChatRequest {
+  string chatId = 1;
+}
+
+message UsersFromChatResponse {
+  repeated string userIds = 1;
+}

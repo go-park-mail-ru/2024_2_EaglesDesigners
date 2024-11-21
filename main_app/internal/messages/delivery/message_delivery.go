@@ -9,7 +9,6 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
@@ -62,7 +61,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	log.Println(mapVars["chatId"])
 	log.Printf("Message Delivery: starting adding new message for chat: %v", chatUUID)
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	log.Println(user)
 	if !ok {
 		log.Println("Message delivery -> AddNewMessage: нет юзера в контексте")
@@ -117,7 +116,7 @@ func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request
 		responser.SendError(ctx, w, fmt.Sprintf("Получен кривой Id сообщения %v", err), http.StatusBadRequest)
 		return
 	}
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		log.Println("нет юзера в контексте")
 		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
@@ -164,7 +163,7 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 		responser.SendError(ctx, w, fmt.Sprintf("Получен кривой Id сообщения %v", err), http.StatusBadRequest)
 		return
 	}
-	user, ok := ctx.Value(auth.UserKey).(jwt.User)
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
 	if !ok {
 		log.Println("нет юзера в контексте")
 		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
@@ -289,7 +288,7 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	log.Println(user)
 	if !ok {
 		log.Println("нет юзера в контексте")
@@ -338,7 +337,7 @@ func (h *MessageController) SearchMessages(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
 	log.Println(user)
 	if !ok {
 		log.Println("нет юзера в контексте")
