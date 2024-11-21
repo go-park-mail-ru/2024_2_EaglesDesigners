@@ -3,7 +3,7 @@ services:
     container_name: patefon
     build:
       context: .
-      dockerfile: main_app/cmd/app/Dockerfile
+      dockerfile: main_app/Dockerfile
     depends_on:
       postgres:
         condition: service_started
