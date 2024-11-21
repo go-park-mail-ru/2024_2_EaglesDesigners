@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/models"
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/usecase"
 	"github.com/google/uuid"
 )
 
-var jwtSecret = jwt.GenerateJWTSecret()
+var jwtSecret = auth.GenerateJWTSecret()
 
 var errInvalidToken = errors.New("невалидный csrf токен")
 
@@ -35,7 +36,7 @@ func CreateCSRF(accessToken string) (string, error) {
 
 	accessPayloadBase64 := parts[1]
 
-	var accessPayload jwt.Payload
+	var accessPayload models.Payload
 
 	accessPayloadBytes, err := base64.RawURLEncoding.DecodeString(accessPayloadBase64)
 	if err != nil {
@@ -72,7 +73,7 @@ func CreateCSRF(accessToken string) (string, error) {
 
 	payloadEncoded := base64.RawURLEncoding.EncodeToString(payloadJSON)
 
-	jwt, err := jwt.GeneratorJWT(headerEncoded, payloadEncoded, jwtSecret)
+	jwt, err := auth.GeneratorJWT(headerEncoded, payloadEncoded, jwtSecret)
 	if err != nil {
 		return "", err
 	}
@@ -110,7 +111,7 @@ func CheckCSRF(token string, userID uuid.UUID, username string) error {
 		return errors.New("токен истек")
 	}
 
-	newToken, err := jwt.GeneratorJWT(headerBase64, payloadBase64, jwtSecret)
+	newToken, err := auth.GeneratorJWT(headerBase64, payloadBase64, jwtSecret)
 	if err != nil {
 		return err
 	}

@@ -9,40 +9,37 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
+	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/proto"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/csrf"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"go.octolab.org/pointer"
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
 
-type usecase interface {
-	Authenticate(ctx context.Context, username, password string) bool
-	Registration(ctx context.Context, username, name, password string) error
-	GetUserDataByUsername(ctx context.Context, username string) (models.UserData, error)
-}
-
-type token interface {
-	CreateJWT(ctx context.Context, username string) (string, error)
-	GetUserDataByJWT(cookies []*http.Cookie) (jwt.UserData, error)
-	GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
-	IsAuthorized(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
+type Client interface {
+	Authenticate(ctx context.Context, in *authv1.AuthRequest) (*authv1.AuthResponse, error)
+	Registration(ctx context.Context, in *authv1.RegistrationRequest) (*authv1.Nothing, error)
+	GetUserDataByUsername(ctx context.Context, in *authv1.GetUserDataByUsernameRequest) (*authv1.GetUserDataByUsernameResponse, error)
+	CreateJWT(ctx context.Context, in *authv1.CreateJWTRequest) (*authv1.Token, error)
+	GetUserByJWT(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error)
+	IsAuthorized(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error)
 }
 
 type Delivery struct {
-	usecase usecase
-	token   token
-	mu      sync.Mutex
+	client Client
+	mu     sync.Mutex
 }
 
-func NewDelivery(usecase usecase, token token) *Delivery {
+func NewDelivery(client Client) *Delivery {
 	return &Delivery{
-		usecase: usecase,
-		token:   token,
+		client: client,
 	}
 }
 
@@ -76,7 +73,19 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if d.usecase.Authenticate(ctx, creds.Username, creds.Password) {
+	grpcResp, err := d.client.Authenticate(
+		ctx,
+		&authv1.AuthRequest{
+			Username: creds.Username,
+			Password: creds.Password,
+		})
+
+	if err != nil {
+		log.Errorf("не удалось аутентифицировать пользователя")
+		responser.SendError(ctx, w, "Invalid format JSON", http.StatusUnauthorized)
+	}
+
+	if grpcResp.GetIsAuthenticated() {
 		err := d.setTokens(w, r, creds.Username)
 		if err != nil {
 			log.Errorf("не удалось аутентифицировать пользователя")
@@ -125,7 +134,15 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := d.usecase.Registration(ctx, creds.Username, creds.Name, creds.Password); err != nil {
+	_, err := d.client.Registration(
+		ctx,
+		&authv1.RegistrationRequest{
+			Username: creds.Username,
+			Name:     creds.Username,
+			Password: creds.Password,
+		})
+
+	if err != nil {
 		responser.SendError(ctx, w, "A user with that username already exists", http.StatusConflict)
 		return
 	}
@@ -133,7 +150,8 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("получение данных пользователя")
 
 	d.setTokens(w, r, creds.Username)
-	userData, err := d.usecase.GetUserDataByUsername(ctx, creds.Username)
+	userData, err := d.client.GetUserDataByUsername(ctx, &authv1.GetUserDataByUsernameRequest{Username: creds.Username})
+
 	if err != nil {
 		responser.SendError(ctx, w, "User failed to create", http.StatusBadRequest)
 		return
@@ -180,7 +198,7 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userData, err := d.usecase.GetUserDataByUsername(ctx, user.Username)
+	userData, err := d.client.GetUserDataByUsername(ctx, &authv1.GetUserDataByUsernameRequest{Username: user.Username})
 	if err != nil {
 		log.Println("не получилось получить данные пользователя")
 		responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
@@ -210,10 +228,15 @@ func (d *Delivery) Authorize(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		user, err := d.token.IsAuthorized(ctx, r.Cookies())
+		token, err := d.parseCookies(r.Cookies())
+		if err != nil {
+			log.Println("не получилось получить токен")
+			return
+		}
+
+		user, err := d.client.IsAuthorized(ctx, &authv1.Token{Token: token})
 		if err == errTokenExpired {
-			log.Println("Auth middlware: токен истек, создается новый токен")
-			user, err = d.token.GetUserByJWT(r.Context(), r.Cookies())
+			log.Println("токен истек, создается новый токен")
 
 			if err != nil {
 				responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
@@ -300,14 +323,14 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username string) error {
 	ctx := r.Context()
-	token, err := d.token.CreateJWT(ctx, username)
+	grcpResp, err := d.client.CreateJWT(ctx, &authv1.CreateJWTRequest{Username: username})
 	if err != nil {
 		return err
 	}
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "access_token",
-		Value:    token,
+		Value:    grcpResp.GetToken(),
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false,
@@ -315,7 +338,7 @@ func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username st
 		MaxAge:   7 * 24 * 60 * 60,
 	})
 
-	csrf, err := csrf.CreateCSRF(token)
+	csrf, err := csrf.CreateCSRF(grcpResp.GetToken())
 	if err != nil {
 		log.Printf("Auth setTokens: не удалось создать csrf токен: %v", err)
 		return err
@@ -327,17 +350,21 @@ func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username st
 	return nil
 }
 
-func convertUserDataToDTO(userData models.UserData) models.UserDataRespDTO {
-	var avatarURL *string
-	if userData.AvatarURL != nil {
-		avatarURL = new(string)
-		*avatarURL = html.EscapeString(*userData.AvatarURL)
+func (d *Delivery) parseCookies(cookies []*http.Cookie) (string, error) {
+	for _, cookie := range cookies {
+		if cookie.Name == "access_token" {
+			return cookie.Value, nil
+		}
 	}
+	return "", errors.New("cookie does not exist")
+}
+
+func convertUserDataToDTO(userData *authv1.GetUserDataByUsernameResponse) models.UserDataRespDTO {
 
 	return models.UserDataRespDTO{
-		ID:        userData.ID,
-		Username:  html.EscapeString(userData.Username),
-		Name:      html.EscapeString(userData.Name),
-		AvatarURL: avatarURL,
+		ID:        uuid.MustParse(userData.GetID()),
+		Username:  html.EscapeString(userData.GetUsername()),
+		Name:      html.EscapeString(userData.GetName()),
+		AvatarURL: pointer.ToStringOrNil(userData.GetAvatarURL()),
 	}
 }

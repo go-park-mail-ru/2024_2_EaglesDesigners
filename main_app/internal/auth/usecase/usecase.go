@@ -7,9 +7,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 )
 
 //go:generate mockgen -source=usecase.go -destination=mocks/mocks.go

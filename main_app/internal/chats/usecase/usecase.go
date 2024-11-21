@@ -8,6 +8,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
@@ -15,7 +16,6 @@ import (
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 

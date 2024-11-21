@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 	multiparthelper "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"

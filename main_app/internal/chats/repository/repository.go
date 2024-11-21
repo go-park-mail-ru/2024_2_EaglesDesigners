@@ -11,8 +11,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	errGroup "golang.org/x/sync/errgroup"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 )
 
 type ChatRepositoryImpl struct {

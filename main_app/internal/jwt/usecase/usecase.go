@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 )
 
 //go:generate mockgen -source=usecase.go -destination=mocks/mocks.go

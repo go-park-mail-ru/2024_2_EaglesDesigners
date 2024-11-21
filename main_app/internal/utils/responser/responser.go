@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 )
 
 // @Schema

@@ -3,9 +3,9 @@ package usecase
 import (
 	"context"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	chatModels "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"

@@ -34,7 +34,7 @@ import (
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/usecase"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	amqp "github.com/rabbitmq/amqp091-go"
 )

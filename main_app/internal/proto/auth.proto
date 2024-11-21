@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option go_package = "nonrep.auth.v1;authv1";
+
+package auth;
+
+message Nothing {
+  bool dummy = 1;
+}
+
+message AuthRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message AuthResponse {
+    bool isAuthenticated = 1;
+}
+
+message RegistrationRequest {
+    string username = 1;
+    string name = 2;
+    string password = 3;
+}
+
+message GetUserDataByUsernameRequest {
+    string username = 1;
+}
+
+message GetUserDataByUsernameResponse {
+    string ID = 1;
+    string username = 2;
+    string name = 3;
+    string avatarURL = 4;
+}
+
+message Token {
+    string token = 1;
+}
+
+message UserJWT {
+    string ID = 1;
+    string username = 2;
+    string name = 3;
+    string password = 4;
+    int64 version = 5;
+}
+
+message CreateJWTRequest {
+    string username = 1;
+}
+
+
+// protoc --go_out=. --go_opt=paths=source_relative \
+//     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//     auth_service/internal/proto/auth.proto
+
+service Auth {
+    rpc Authenticate(AuthRequest) returns (AuthResponse) {}
+    rpc Registration(RegistrationRequest) returns (Nothing) {}
+    rpc GetUserDataByUsername(GetUserDataByUsernameRequest) returns (GetUserDataByUsernameResponse) {}
+    rpc GetUserByJWT(Token) returns (UserJWT) {}
+    rpc IsAuthorized(Token) returns (UserJWT) {}
+    rpc CreateJWT(CreateJWTRequest) returns (Token) {}
+}

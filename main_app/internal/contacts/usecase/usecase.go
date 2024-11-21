@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 	"github.com/google/uuid"
 
 	errGroup "golang.org/x/sync/errgroup"

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/logger"
 	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/usecase"
 
 	"github.com/google/uuid"

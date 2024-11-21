@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	ErrUserAlreadyExists = errors.New("A user with that username already exists")
+	ErrUserAlreadyExists = errors.New("a user with that username already exists")
 	ErrTokenExpired      = errors.New("token expired")
 )
 
@@ -78,7 +78,7 @@ type UserData struct {
 	ID        uuid.UUID
 	Username  string
 	Name      string
-	AvatarURL *string
+	AvatarURL string
 }
 
 type UserDAO struct {
@@ -92,4 +92,17 @@ type UserDAO struct {
 
 type CsrfDTO struct {
 	Token string `json:"csrf"`
+}
+
+type Header struct {
+	Alg string `json:"alg"`
+	Typ string `json:"typ"`
+}
+
+type Payload struct {
+	Sub     string    `json:"sub"`
+	Name    string    `json:"name"`
+	ID      uuid.UUID `json:"id"`
+	Version int64     `json:"vrs"`
+	Exp     int64     `json:"exp"`
 }
