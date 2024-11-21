@@ -190,7 +190,7 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 		responser.SendError(ctx, w, fmt.Sprintf("внутренняя ошибка: %v", err), http.StatusInternalServerError)
 		return
 	}
-	responser.SendOK(w, "Сообщение удалено", http.StatusOK)
+	responser.SendOK(w, "Сообщение обновлено", http.StatusOK)
 }
 
 // GetAllMessages godoc
