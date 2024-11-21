@@ -182,8 +182,12 @@ func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uu
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("запрошены сообщения из чата: %v, запрос получен от пользовтеля: %v", chatId, userId)
 
-	_, err := u.chatRepository.GetUserRoleInChat(ctx, userId, chatId)
+	role, err := u.chatRepository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
+		return models.MessagesArrayDTO{}, err
+	}
+
+	if role == NotInChat {
 		log.Printf("пользователь %v не состоит в чате %v", userId, chatId)
 		return models.MessagesArrayDTO{},
 			&customerror.NoPermissionError{
