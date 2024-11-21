@@ -154,8 +154,8 @@ func (r *MessageRepositoryImpl) UpdateMessage(ctx context.Context, messageId uui
 		is_redacted = true
 		WHERE m.id = $2
 		RETURNING m.id;`,
-		messageId,
 		newText,
+		messageId,
 	)
 
 	var msgId uuid.UUID
