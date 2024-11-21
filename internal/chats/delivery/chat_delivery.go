@@ -321,6 +321,47 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 	responser.SendStruct(ctx, w, delUsers, 200)
 }
 
+// LeaveChat godoc
+// @Summary Выйти из чата
+// @Tags chat
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Success 200 "Пользователь вышел из чата"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Запрещено"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
+// @Router /chat/{chatId}/leave [delete]
+func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+	ctx := r.Context()
+	chatUUID, err := getChatIdFromContext(r.Context())
+
+	if err != nil {
+		//conn.400
+		log.Println("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid:", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
+		return
+	}
+
+	err = c.service.UserLeaveChat(ctx, user.ID, chatUUID)
+	if err != nil {
+		if errors.As(err, &noPerm) {
+			w.WriteHeader(http.StatusForbidden)
+			responser.SendError(ctx, w, fmt.Sprintf("Запрещено: %v", err), http.StatusForbidden)
+			return
+		}
+		responser.SendError(ctx, w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendOK(w, "Пользователь вышел из чата", http.StatusOK)
+}
+
 // DeleteChatOrGroup godoc
 // @Summary Удаличть чат или группу
 // @Tags chat

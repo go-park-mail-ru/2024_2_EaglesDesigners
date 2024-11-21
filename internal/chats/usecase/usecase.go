@@ -440,6 +440,38 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 	}
 }
 
+// UserLeaveChat удаляет владельца обращения из чата
+func (s *ChatUsecaseImpl) UserLeaveChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
+	if err != nil {
+		return err
+	}
+	if role == NotInChat {
+		log.Printf("Пользователь %v не состоит в чате %v", userId, chatId)
+		return &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: fmt.Sprintf("Пользователь %v не состоит в чате %v", userId, chatId),
+		}
+	}
+
+	if role == Owner {
+		return &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: fmt.Sprintf("Пользователь %v является владельцем чата %v", userId, chatId),
+		}
+	}
+
+	err = s.repository.DeleteUserFromChat(ctx, userId, chatId)
+	if err != nil {
+		log.Printf("Не удалось удалить пользователя %v из чата %v", userId, chatId)
+		return err
+	}
+
+	s.sendIvent(ctx, DeleteUsersFromChat, chatId, []uuid.UUID{userId})
+	return nil
+}
+
 func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (chatModel.ChatInfoDTO, error) {
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
