@@ -5,6 +5,8 @@ import (
 
 	grpcChat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/chat"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type serverAPI struct {
@@ -26,7 +28,7 @@ func (s *serverAPI) GetUserChats(ctx context.Context, in *grpcChat.UserChatsRequ
 	// TODO
 	chatIds, err := s.chatRepository.GetUserChats(ctx, in.UserId)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, "failed to get chats")
 	}
 
 	return &grpcChat.UserChatsResponse{ChatIds: chatIds}, nil
@@ -36,7 +38,7 @@ func (s *serverAPI) GetUsersFromChat(ctx context.Context, in *grpcChat.UsersFrom
 	// TODO
 	userIds, err := s.chatRepository.GetUsersFromChat(ctx, in.ChatId)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, "failed to get users")
 	}
 
 	return &grpcChat.UsersFromChatResponse{UserIds: userIds}, nil
