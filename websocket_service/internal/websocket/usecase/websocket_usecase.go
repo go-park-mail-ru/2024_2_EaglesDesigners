@@ -65,8 +65,7 @@ func NewWebsocketUsecase(ch *amqp.Channel, host string, port int) *WebsocketUsec
 
 	grpcAddress := net.JoinHostPort(host, strconv.Itoa(port))
 	// Создаем клиент
-	cc, err := grpc.DialContext(context.Background(),
-		grpcAddress,
+	cc, err := grpc.NewClient(grpcAddress,
 		// Используем insecure-коннект для тестов
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

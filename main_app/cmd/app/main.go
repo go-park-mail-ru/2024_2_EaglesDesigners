@@ -195,7 +195,7 @@ func main() {
 
 	go startMainServer(router)
 	go startChatServerGRPC(chatService)
-	select{}
+	select {}
 }
 
 func startMainServer(router *mux.Router) {
