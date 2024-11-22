@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
@@ -31,9 +32,6 @@ import (
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/usecase"
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/uploads/delivery"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
-
-	websocketDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/delivery"
-	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/usecase"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
@@ -126,15 +124,30 @@ func main() {
 	profileUC := profileUC.New(profileRepo)
 	profile := profileDelivery.New(profileUC, tokenUC)
 
-	// chats
+	// chats + chat grpc
 	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
 
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
 
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, tokenUC, ch)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, ch)
 
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, ch)
 	chat := chatController.NewChatDelivery(chatService)
+
+	// grpc
+	chatServer := grpc.NewServer()
+	chatController.Register(chatServer, chatService)
+
+	lis, err := net.Listen("tcp", ":8082")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("starting chat server at :8082")
+	if err := chatServer.Serve(lis); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("server started at :8082")
 
 	// contacts
 	contactsRepo := contactsRepo.New(pool)
@@ -144,10 +157,6 @@ func main() {
 	// messages
 
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
-
-	// websocket
-	websocketUsecase := websocketUsecase.NewWebsocketUsecase(ch, chatRepo)
-	websocketDelivery := websocketDelivery.NewWebsocket(*websocketUsecase)
 
 	// добавление request_id в ctx всем запросам
 	router.Use(func(next http.Handler) http.Handler {
@@ -204,8 +213,6 @@ func main() {
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
-
-	router.HandleFunc("/startwebsocket", auth.Authorize(websocketDelivery.HandleConnection))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{

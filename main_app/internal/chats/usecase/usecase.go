@@ -689,3 +689,39 @@ func (s *ChatUsecaseImpl) sendIvent(ctx context.Context, action string, chatId u
 		log.Fatalf("failed to publish a message. Error: %s", err)
 	}
 }
+
+func (s *ChatUsecaseImpl) GetUserChats(ctx context.Context, userId string) (chatIds []string, err error) {
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	chatIds = make([]string, 0)
+	chats, err := s.repository.GetUserChats(ctx, userUUID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, chat := range chats {
+		chatIds = append(chatIds, chat.ChatId.String())
+	}
+
+	return chatIds, nil
+}
+
+func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId string) (userIds []string, err error) {
+	chatUUID, err := uuid.Parse(chatId)
+	if err != nil {
+		return nil, err
+	}
+
+	userIds = make([]string, 0)
+	users, err := s.repository.GetUsersFromChat(ctx, chatUUID)
+	if err != nil {
+		return nil, err
+	}
+	for _, user := range users {
+		userIds = append(userIds, user.ID.String())
+	}
+	return userIds, nil
+}

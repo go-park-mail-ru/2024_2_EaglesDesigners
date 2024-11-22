@@ -1,14 +1,14 @@
 package delivery
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
+	"github.com/google/uuid"
 
 	"github.com/gorilla/websocket"
 )
@@ -53,13 +53,7 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	// начало
 
-	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
-	log.Println(user)
-	if !ok {
-		log.Println("Message delivery -> AddNewMessage: нет юзера в контексте")
-		responser.SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
-		return
-	}
+	userId := uuid.New()
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -72,10 +66,11 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 
 	eventChannel := make(chan websocketUsecase.AnyEvent, 10)
 
-	err = h.usecase.InitBrokersForUser(user.ID, eventChannel)
+	err = h.usecase.InitBrokersForUser(userId, eventChannel)
 	if err != nil {
 		log.Errorf("Не удалось иницировать брокеры для пользователя")
-		responser.SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
+		SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -95,4 +90,19 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+}
+
+type ErrorResponse struct {
+	Error  string `json:"error" example:"error message"`
+	Status string `json:"status" example:"error"`
+}
+
+func SendError(ctx context.Context, w http.ResponseWriter, errorMessage string, statusCode int) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	log.Errorf("Отправлен код %d. ОШИБКА: %s", statusCode, errorMessage)
+
+	response := ErrorResponse{Error: errorMessage, Status: "error"}
+	w.WriteHeader(statusCode)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

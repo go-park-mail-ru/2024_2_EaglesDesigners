@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
+
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
-	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/usecase"
 
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -28,12 +29,11 @@ const (
 type MessageUsecaseImplm struct {
 	messageRepository repository.MessageRepository
 	chatRepository    chatRepository.ChatRepository
-	tokenUsecase      *jwt.Usecase
 	queryName         string
 	ch                *amqp.Channel
 }
 
-func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, tokenUsecase *jwt.Usecase, ch *amqp.Channel) MessageUsecase {
+func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, ch *amqp.Channel) MessageUsecase {
 	// объявляем очередь
 	q, err := ch.QueueDeclare(
 		"message", // name
@@ -50,7 +50,6 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatR
 
 	usecase := MessageUsecaseImplm{
 		messageRepository: messageRepository,
-		tokenUsecase:      tokenUsecase,
 		chatRepository:    chatRepository,
 		queryName:         q.Name,
 		ch:                ch,
@@ -208,10 +207,20 @@ func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uu
 }
 
 func (s *MessageUsecaseImplm) sendIvent(ctx context.Context, action string, message models.Message) {
+	newMessage := socketUsecase.Message{
+		MessageId:  message.MessageId,
+		AuthorID:   message.AuthorID,
+		BranchID:   message.BranchID,
+		Message:    message.Message,
+		SentAt:     message.SentAt,
+		ChatId:     message.ChatId,
+		IsRedacted: message.IsRedacted,
+	}
+
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	newEvent := socketUsecase.MessageEvent{
 		Action:  action,
-		Message: message,
+		Message: newMessage,
 	}
 
 	body, err := socketUsecase.SerializeMessageEvent(newEvent)

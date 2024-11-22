@@ -43,4 +43,5 @@ func main() {
 	if err := server.Serve(lis); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("server started at:8081")
 }

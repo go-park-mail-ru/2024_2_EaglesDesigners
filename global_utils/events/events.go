@@ -7,8 +7,25 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	UpdateChat          = "updateChat"
+	DeleteChat          = "deleteChat"
+	NewChat             = "newChat"
+	DeleteUsersFromChat = "delUsers"
+	AddNewUsersInChat   = "addUsers"
+
+	// пользователь стал онлайн
+	AddWebcosketUser = "addWebSocketUser"
+)
+
+const (
+	DeleteMessage = "deleteMessage"
+	NewMessage    = "newMessage"
+	UpdateMessage = "updateMessage"
+)
+
 type MessageEvent struct {
-	Action  string               `json:"action"`
+	Action  string  `json:"action"`
 	Message Message `json:"payload"`
 }
 type Message struct {
@@ -19,6 +36,19 @@ type Message struct {
 	SentAt     time.Time  `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
 	ChatId     uuid.UUID  `json:"chatId" valid:"-"`
 	IsRedacted bool       `json:"isRedacted" valid:"-"`
+}
+
+func SerializeMessageEvent(event MessageEvent) ([]byte, error) {
+	return json.Marshal(event)
+}
+
+func DeserializeMessageEvent(data []byte) (MessageEvent, error) {
+	var event MessageEvent
+	err := json.Unmarshal(data, &event)
+	if err != nil {
+		return MessageEvent{}, err
+	}
+	return event, nil
 }
 
 type Event struct {
