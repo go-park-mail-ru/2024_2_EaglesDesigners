@@ -3,6 +3,7 @@ package delivery
 import (
 	"context"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	grpcChat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/chat"
 
 	"google.golang.org/grpc"
@@ -26,7 +27,9 @@ func Register(gRPCServer *grpc.Server, chatRepository ChatRepository) {
 }
 
 func (s *serverAPI) GetUserChats(ctx context.Context, in *grpcChat.UserChatsRequest) (*grpcChat.UserChatsResponse, error) {
-	// TODO
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	log.Infof("Пришел запрос на получение чатов пользователя: %v", in.UserId)
+
 	chatIds, err := s.chatRepository.GetUserChats(ctx, in.UserId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to get chats")

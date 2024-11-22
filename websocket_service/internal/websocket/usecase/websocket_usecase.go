@@ -37,6 +37,32 @@ type WebsocketUsecase struct {
 }
 
 func NewWebsocketUsecase(ch *amqp.Channel, host string, port int) *WebsocketUsecase {
+	_, err := ch.QueueDeclare(
+		"message", // name
+		false,     // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	if err != nil {
+		log := logger.LoggerWithCtx(context.Background(), logger.Log)
+		log.Fatalf("failed to declare a queue. Error: %s", err)
+	}
+
+	_, err = ch.QueueDeclare(
+		"chat", // name
+		false,  // durable
+		false,  // delete when unused
+		false,  // exclusive
+		false,  // no-wait
+		nil,    // arguments
+	)
+	if err != nil {
+		log := logger.LoggerWithCtx(context.Background(), logger.Log)
+		log.Fatalf("failed to declare a queue. Error: %s", err)
+	}
+
 	grpcAddress := net.JoinHostPort(host, strconv.Itoa(port))
 	// Создаем клиент
 	cc, err := grpc.DialContext(context.Background(),
@@ -68,6 +94,7 @@ func (w *WebsocketUsecase) InitBrokersForUser(userId uuid.UUID, eventChannel cha
 
 	chats, err := w.chatRepository.GetUserChats(context.Background(), &grpcChat.UserChatsRequest{UserId: userId.String()})
 	if err != nil {
+		log.Errorf("Не удалось запросить чаты: %v", err)
 		return err
 	}
 

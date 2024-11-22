@@ -175,11 +175,6 @@ func main() {
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-	// tmpl := template.Must(template.ParseFiles("index.html"))
-
-	// router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
-	// 	tmpl.Execute(w, nil)
-	// })
 
 	router.HandleFunc("/chats", auth.Authorize(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Authorize(auth.Csrf(chat.AddNewChat))).Methods("POST", "OPTIONS")

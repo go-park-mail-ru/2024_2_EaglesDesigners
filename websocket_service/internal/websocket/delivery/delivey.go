@@ -17,26 +17,26 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  5024,
 	WriteBufferSize: 5024,
 
-	CheckOrigin: func(r *http.Request) bool {
-		allowedOrigins := []string{
-			"http://127.0.0.1:8001",
-			"https://127.0.0.1:8001",
-			"http://localhost:8001",
-			"https://localhost:8001",
-			"http://213.87.152.18:8001",
-			"http://212.233.98.59:8001",
-			"https://213.87.152.18:8001",
-			"http://212.233.98.59:8080",
-			"https://212.233.98.59:8080",
-		}
+	// CheckOrigin: func(r *http.Request) bool {
+	// 	allowedOrigins := []string{
+	// 		"http://127.0.0.1:8001",
+	// 		"https://127.0.0.1:8001",
+	// 		"http://localhost:8001",
+	// 		"https://localhost:8001",
+	// 		"http://213.87.152.18:8001",
+	// 		"http://212.233.98.59:8001",
+	// 		"https://213.87.152.18:8001",
+	// 		"http://212.233.98.59:8080",
+	// 		"https://212.233.98.59:8080",
+	// 	}
 
-		for _, origin := range allowedOrigins {
-			if r.Header.Get("Origin") == origin {
-				return true
-			}
-		}
-		return false
-	},
+	// 	for _, origin := range allowedOrigins {
+	// 		if r.Header.Get("Origin") == origin {
+	// 			return true
+	// 		}
+	// 	}
+	// 	return false
+	// },
 }
 
 type Webcosket struct {
@@ -53,7 +53,7 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	// начало
 
-	userId := uuid.New()
+	userId, _ := uuid.Parse("39a9aea0-d461-437d-b4eb-bf030a0efc80")
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
