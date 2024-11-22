@@ -134,8 +134,6 @@ func main() {
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, ch)
 	chat := chatController.NewChatDelivery(chatService)
 
-	go startChatServerGRPC(chatService)
-
 	// contacts
 	contactsRepo := contactsRepo.New(pool)
 	contactsUC := contactsUC.New(contactsRepo)
@@ -175,7 +173,6 @@ func main() {
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
 	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-
 	router.HandleFunc("/chats", auth.Authorize(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Authorize(auth.Csrf(chat.AddNewChat))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/search", auth.Authorize(auth.Csrf(chat.SearchChats))).Methods("GET", "OPTIONS")
@@ -196,6 +193,12 @@ func main() {
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
 
+	go startMainServer(router)
+	go startChatServerGRPC(chatService)
+	select{}
+}
+
+func startMainServer(router *mux.Router) {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
 			"http://127.0.0.1:8001",
@@ -215,11 +218,12 @@ func main() {
 
 	handler := c.Handler(router)
 
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
-		log.Fatal(err)
-	}
-
+	go func() {
+		log.Println("Starting server on :8080")
+		if err := http.ListenAndServe(":8080", handler); err != nil {
+			log.Fatal(err)
+		}
+	}()
 }
 
 func startChatServerGRPC(chatService chatService.ChatUsecase) {

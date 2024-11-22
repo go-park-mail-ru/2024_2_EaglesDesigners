@@ -12,7 +12,7 @@ import (
 	"github.com/rs/cors"
 )
 
-const host = "localhost"
+const host = "172.19.0.4"
 const port = 8082
 
 func main() {
