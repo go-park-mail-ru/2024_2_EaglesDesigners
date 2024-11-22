@@ -6,8 +6,9 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
-	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/websocket/usecase"
+	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
 
 	"github.com/gorilla/websocket"
 )
@@ -52,7 +53,7 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	// начало
 
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	log.Println(user)
 	if !ok {
 		log.Println("Message delivery -> AddNewMessage: нет юзера в контексте")

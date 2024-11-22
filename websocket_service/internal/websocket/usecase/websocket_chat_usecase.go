@@ -3,8 +3,9 @@ package usecase
 import (
 	"context"
 
+	chatEvent "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	chatEvent "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
+	grpcChat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/chat"
 
 	"github.com/google/uuid"
 )
@@ -94,7 +95,7 @@ func (w *WebsocketUsecase) initNewChatBroker(chatId uuid.UUID) error {
 
 func (w *WebsocketUsecase) getOnlineUsersInChat(chatId uuid.UUID) (map[uuid.UUID]struct{}, error) {
 	// ебашим в usecase Берем всех пользоватеолей
-	users, err := w.chatRepository.GetUsersFromChat(context.Background(), chatId)
+	users, err := w.chatRepository.GetUsersFromChat(context.Background(), &grpcChat.UsersFromChatRequest{ChatId: chatId.String()})
 	if err != nil {
 		log := logger.LoggerWithCtx(context.Background(), logger.Log)
 		log.Errorf("Не удалось получить пользователей чата: %v", err)
@@ -103,10 +104,15 @@ func (w *WebsocketUsecase) getOnlineUsersInChat(chatId uuid.UUID) (map[uuid.UUID
 
 	onlineUsersInChat := map[uuid.UUID]struct{}{}
 
-	for _, user := range users {
+	for _, userId := range users.UserIds {
+		userUUID, err := uuid.Parse(userId)
+		if err != nil {
+			continue
+		}
+
 		// если пользователь онлайн, то добавляем его в чат
-		if _, ok := w.onlineUsers[user.ID]; ok {
-			onlineUsersInChat[user.ID] = struct{}{}
+		if _, ok := w.onlineUsers[userUUID]; ok {
+			onlineUsersInChat[userUUID] = struct{}{}
 		}
 	}
 

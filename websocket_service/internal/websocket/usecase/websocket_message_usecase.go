@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 )
 
 type MessageEvent struct {
