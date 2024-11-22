@@ -124,7 +124,7 @@ func main() {
 	profileUC := profileUC.New(profileRepo)
 	profile := profileDelivery.New(profileUC, tokenUC)
 
-	// chats + chat grpc
+	// chats
 	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
 
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
@@ -134,20 +134,7 @@ func main() {
 	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, ch)
 	chat := chatController.NewChatDelivery(chatService)
 
-	// grpc
-	chatServer := grpc.NewServer()
-	chatController.Register(chatServer, chatService)
-
-	lis, err := net.Listen("tcp", ":8082")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("starting chat server at :8082")
-	if err := chatServer.Serve(lis); err != nil {
-		log.Fatal(err)
-	}
-	log.Println("server started at :8082")
+	go startChatServerGRPC(chatService)
 
 	// contacts
 	contactsRepo := contactsRepo.New(pool)
@@ -237,4 +224,22 @@ func main() {
 	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatal(err)
 	}
+
+}
+
+func startChatServerGRPC(chatService chatService.ChatUsecase) {
+	// grpc for chat
+	chatServer := grpc.NewServer()
+	chatController.Register(chatServer, chatService)
+
+	lis, err := net.Listen("tcp", ":8082")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("starting chat server at :8082")
+	if err := chatServer.Serve(lis); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("server started at :8082")
 }
