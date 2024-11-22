@@ -12,7 +12,7 @@ COPY ./ ./
 
 # Run the outyet command by default when the container starts.
 
-ENTRYPOINT go run ./main_app/cmd/app/main.go --debug
+ENTRYPOINT go run ./main_app/cmd/app/main.go
 
 # Document that the service listens on port 8080.
 EXPOSE 8080 8082
