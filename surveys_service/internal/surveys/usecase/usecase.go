@@ -29,29 +29,26 @@ func (u *ServeyUsecase) GetSurvey(ctx context.Context, in *surveysv1.GetSurveyRe
 	}
 
 	questions, err := u.repository.GetQuestionsByServeyName(ctx, serveyName)
+	if err != nil {
+		return nil, err
+	}
 
-	questionsDTO := []surveysv1.Question{}
+	questionsDTO := []*surveysv1.Question{}
 
 	for _, question := range questions {
 		questionDTO := surveysv1.Question{
-			Id: int64(question.QuestionId[])
-			SurveyId:
-			Question:
-			Type:
+			Id:       question.QuestionId.String(),
+			Question: question.QuestionText,
+			Type:     question.QuestionType,
 		}
 
-		questionsDTO = append(questionsDTO, )
+		questionsDTO = append(questionsDTO, &questionDTO)
 	}
 	resp := surveysv1.GetSurveyResp{
-		Topic: servey.Topic,
+		Topic:    servey.Topic,
 		SurveyId: servey.Id,
 		Servey: &surveysv1.Survey{
-			Question: []*surveysv1.Question{
-				Id:
-				SurveyId:
-				Question:
-				Type:
-			},
+			Question: questionsDTO,
 		},
 	}
 
@@ -59,5 +56,32 @@ func (u *ServeyUsecase) GetSurvey(ctx context.Context, in *surveysv1.GetSurveyRe
 }
 
 func (u *ServeyUsecase) AddAnswers(ctx context.Context, in *surveysv1.AddAnswersReq) (*surveysv1.Nothing, error) {
+	answers := in.Answer
 
+	for _, answer := range answers {
+		questionUUID, err := uuid.Parse(answer.QuestionId)
+		if err != nil {
+			return nil, err
+		}
+		userUUID, err := uuid.Parse(in.UserId)
+		if err != nil {
+			return nil, err
+		}
+		answerDTO := models.Answer{
+			AnswerId:      uuid.New(),
+			QuestionId:    questionUUID,
+			UserId:        userUUID,
+			TextAnswer:    *answer.TextAnswer,
+			NumericAnswer: int(*answer.NumericAnswer),
+		}
+
+		err = u.repository.AddAnswer(ctx, answerDTO)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &surveysv1.Nothing{
+		Dummy: true,
+	}, nil
 }

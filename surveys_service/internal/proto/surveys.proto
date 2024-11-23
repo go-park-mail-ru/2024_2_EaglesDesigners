@@ -39,8 +39,17 @@ message AddAnswersReq {
   repeated Answer answer = 2;
 }
 
+message GetStaticticsReq {
+  string question_Id = 1;
+}
+
+message GetStaticticsResp {
+  repeated string questions_answer_text = 1;
+  int64 questions_answer_numeric = 2;
+}
+
 service Surveys {
-  //   rpc GetStatictics(Nothing) returns {GetStaticticsResp}
+  rpc GetStatictics(GetStaticticsReq) returns (GetStaticticsResp) {}
   rpc GetSurvey(GetSurveyReq) returns (GetSurveyResp) {}
   rpc AddAnswers(AddAnswersReq) returns (Nothing) {}
 }
