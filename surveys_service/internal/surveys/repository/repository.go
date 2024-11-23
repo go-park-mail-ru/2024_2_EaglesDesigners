@@ -20,7 +20,7 @@ func NewServeyRepository(pool *pgxpool.Pool) ServeyRepositoryImpl {
 	}
 }
 
-func (r *ServeyRepositoryImpl) GetQuestionsByServeyName(ctx context.Context, serveyName string) ([]models.Question, error) {
+func (r ServeyRepositoryImpl) GetQuestionsByServeyName(ctx context.Context, serveyName string) ([]models.Question, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	conn, err := r.pool.Acquire(context.Background())
@@ -73,7 +73,7 @@ func (r *ServeyRepositoryImpl) GetQuestionsByServeyName(ctx context.Context, ser
 }
 
 // AddAnswer добавляет новый ответ.
-func (r *ServeyRepositoryImpl) AddAnswer(ctx context.Context, answer models.Answer) error {
+func (r ServeyRepositoryImpl) AddAnswer(ctx context.Context, answer models.Answer) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	conn, err := r.pool.Acquire(context.Background())
@@ -106,7 +106,7 @@ func (r *ServeyRepositoryImpl) AddAnswer(ctx context.Context, answer models.Answ
 }
 
 // GetAllTextAnswers забирает из бд статистику для текстовых вопросов
-func (r *ServeyRepositoryImpl) GetAllTextAnswers(ctx context.Context, questionId uuid.UUID) ([]string, error) {
+func (r ServeyRepositoryImpl) GetAllTextAnswers(ctx context.Context, questionId uuid.UUID) ([]string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	conn, err := r.pool.Acquire(context.Background())
@@ -146,7 +146,7 @@ func (r *ServeyRepositoryImpl) GetAllTextAnswers(ctx context.Context, questionId
 	return answers, nil
 }
 
-func (r *ServeyRepositoryImpl) GetAverageNumericAnswer(ctx context.Context, questionId uuid.UUID) (int, error) {
+func (r ServeyRepositoryImpl) GetAverageNumericAnswer(ctx context.Context, questionId uuid.UUID) (int, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	conn, err := r.pool.Acquire(context.Background())
@@ -170,7 +170,7 @@ func (r *ServeyRepositoryImpl) GetAverageNumericAnswer(ctx context.Context, ques
 	return avg, nil
 }
 
-func (r *ServeyRepositoryImpl) GetServey(ctx context.Context, serveyName string) (models.Servey, error) {
+func (r ServeyRepositoryImpl) GetServey(ctx context.Context, serveyName string) (models.Servey, error) {
 
 	return models.Servey{}, nil
 }

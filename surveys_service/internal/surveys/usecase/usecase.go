@@ -27,7 +27,7 @@ func NewUsecase(repository ServeyRepository) ServeyUsecase {
 	}
 }
 
-func (u *ServeyUsecase) GetSurvey(ctx context.Context, in *surveysv1.GetSurveyReq) (*surveysv1.GetSurveyResp, error) {
+func (u ServeyUsecase) GetSurvey(ctx context.Context, in *surveysv1.GetSurveyReq) (*surveysv1.GetSurveyResp, error) {
 	serveyName := in.Name
 	servey, err := u.repository.GetServey(ctx, serveyName)
 	if err != nil {
@@ -61,7 +61,7 @@ func (u *ServeyUsecase) GetSurvey(ctx context.Context, in *surveysv1.GetSurveyRe
 	return &resp, nil
 }
 
-func (u *ServeyUsecase) AddAnswers(ctx context.Context, in *surveysv1.AddAnswersReq) (*surveysv1.Nothing, error) {
+func (u ServeyUsecase) AddAnswers(ctx context.Context, in *surveysv1.AddAnswersReq) (*surveysv1.Nothing, error) {
 	answers := in.Answer
 
 	for _, answer := range answers {
@@ -92,7 +92,6 @@ func (u *ServeyUsecase) AddAnswers(ctx context.Context, in *surveysv1.AddAnswers
 	}, nil
 }
 
-
-func (u *ServeyUsecase)  GetStatictics(ctx context.Context, in *surveysv1.GetStaticticsReq) (*surveysv1.GetStaticticsResp, error) {
+func (u ServeyUsecase) GetStatictics(ctx context.Context, in *surveysv1.GetStaticticsReq) (*surveysv1.GetStaticticsResp, error) {
 	return nil, nil
 }
