@@ -18,7 +18,6 @@ message Answer {
 
 message Question {
   string id = 1;
-  string survey_id = 2;
   string question = 3;
   string type = 4;
 }
