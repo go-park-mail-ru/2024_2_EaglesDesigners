@@ -171,6 +171,35 @@ func (r ServeyRepositoryImpl) GetAverageNumericAnswer(ctx context.Context, quest
 }
 
 func (r ServeyRepositoryImpl) GetServey(ctx context.Context, serveyName string) (models.Servey, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	return models.Servey{}, nil
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return err
+	}
+	defer conn.Release()
+
+	log.Printf("Repository: соединение успешно установлено")
+
+	// нужно чё-то придумать со стикерами
+	row := conn.QueryRow(context.Background(),
+		`SELECT
+		topic,
+		id
+		FROM servey
+		WHERE name = $1;`,
+		serveyName,
+	)
+
+	var topic string
+	var id uuid.UUID
+	if err := row.Scan(&id, &topic); err != nil {
+		log.Printf("Repository: не удалось добавить ответ: %v", err)
+		return models.Servey{}, err
+	}
+
+	return models.Servey{
+		Topic: topic,
+		Id:    id.String()}, nil
 }
