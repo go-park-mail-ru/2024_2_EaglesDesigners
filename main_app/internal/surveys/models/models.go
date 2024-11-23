@@ -47,3 +47,8 @@ type GetSurveyDTO struct {
 	Topic     string        `json:"topic" valid:"-"`
 	Survey_id string        `json:"survey_id" valid:"-"`
 }
+
+type GetStatictics struct {
+	TextAnswers    []string `json:"text_answers" valid:"-"`
+	NumericAnswers *int     `json:"numeric_answers" valid:"-"`
+}

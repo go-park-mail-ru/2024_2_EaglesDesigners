@@ -209,7 +209,7 @@ func main() {
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
-
+	router.HandleFunc("/statistic/{questionId}", surveys.GetStatictics).Methods("GET", "OPTIONS")
 	router.HandleFunc("/survey/{name}", surveys.GetSurvey).Methods("GET", "OPTIONS")
 
 	go startMainServer(router)

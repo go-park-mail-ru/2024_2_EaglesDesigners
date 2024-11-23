@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	surveyv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/surveyv1"
 	"github.com/google/uuid"
+	"go.octolab.org/pointer"
 
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 
@@ -26,7 +27,24 @@ func New(client surveyv1.SurveysClient) *Delivery {
 }
 
 func (d *Delivery) GetStatictics(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
 
+	vars := mux.Vars(r)
+	questionId := vars["questionId"]
+
+	grpcResp, err := d.client.GetStatictics(ctx, &surveyv1.GetStaticticsReq{
+		Question_Id: questionId,
+	})
+
+	if err != nil {
+		log.Errorf("не удалось получить статистику")
+		responser.SendError(ctx, w, responser.InvalidJSONError, http.StatusBadRequest)
+	}
+
+	resp := convertFromGRPCStatictics(grpcResp)
+
+	responser.SendStruct(ctx, w, resp, http.StatusOK)
 }
 
 // @Router /survey/{name} [get]
@@ -146,4 +164,11 @@ func convertFromGRPCQuestions(questions []*surveyv1.Question) []models.QuestionD
 	}
 
 	return questionsDTO
+}
+
+func convertFromGRPCStatictics(statistics *surveyv1.GetStaticticsResp) models.GetStatictics {
+	return models.GetStatictics{
+		TextAnswers:    statistics.GetQuestionsAnswerText(),
+		NumericAnswers: pointer.ToInt(int(statistics.GetQuestionsAnswerNumeric())),
+	}
 }
