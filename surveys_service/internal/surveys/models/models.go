@@ -15,3 +15,10 @@ type Answer struct {
 	TextAnswer string
 	NumericAnswer int
 }
+
+type Stat struct {
+	QuestionId uuid.UUID
+	QuestionType string
+	Avarage_numeric string
+	AllTextAnswers []string
+}

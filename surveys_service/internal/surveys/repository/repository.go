@@ -71,7 +71,7 @@ func (r *ServeyRepository) GetQuestionsByServeyName(ctx context.Context, serveyN
 	return questions, nil
 }
 
-// AddAnswer добавляет новый ответ. 
+// AddAnswer добавляет новый ответ.
 func (r *ServeyRepository) AddAnswer(ctx context.Context, answer models.Answer) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -102,4 +102,69 @@ func (r *ServeyRepository) AddAnswer(ctx context.Context, answer models.Answer) 
 	}
 
 	return nil
+}
+
+// GetAllTextAnswers забирает из бд статистику для текстовых вопросов
+func (r *ServeyRepository) GetAllTextAnswers(ctx context.Context, questionId uuid.UUID) ([]string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(context.Background(),
+		`SELECT 
+		a.text_answer
+		FROM answer AS a
+		WHERE a.question_id = $1;`,
+		questionId,
+	)
+
+	if err != nil {
+		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
+		return nil, err
+	}
+	log.Println("Repository: сообщения получены")
+
+	answers := []string{}
+	for rows.Next() {
+		var answer string
+
+		err = rows.Scan(&answer)
+		if err != nil {
+			log.Printf("Repository: unable to scan: %v", err)
+			return nil, err
+		}
+
+		answers = append(answers, answer)
+	}
+
+	return answers, nil
+}
+
+func (r *ServeyRepository) GetAverageNumericAnswer(ctx context.Context, questionId uuid.UUID) (int, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return 0, err
+	}
+	defer conn.Release()
+
+	row := conn.QueryRow(context.Background(),
+		`SELECT AVG(numeric_answer) FROM answer WHERE question_id = $1;`,
+		questionId,
+	)
+
+	var avg int
+	if err := row.Scan(&avg); err != nil {
+		log.Printf("Repository: не удалось добавить сообщение: %v", err)
+		return 0, err
+	}
+
+	return avg, nil
 }
