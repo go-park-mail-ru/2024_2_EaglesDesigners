@@ -34,7 +34,6 @@ func main() {
 	log.Println("rebbit mq подключен")
 
 	socketUsecase := usecase.NewWebsocketUsecase(ch, host, port)
-
 	socketDelivery := delivery.NewWebsocket(*socketUsecase)
 
 	router := mux.NewRouter()
