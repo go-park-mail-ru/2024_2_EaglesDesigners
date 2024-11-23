@@ -23,6 +23,10 @@ func New(surveys Surveys) surveysv1.SurveysServer {
 	}
 }
 
+func (s Server) GetStatictics(ctx context.Context, in *surveysv1.GetStaticticsReq) (*surveysv1.GetStaticticsResp, error) {
+	return s.surveys.GetStatictics(ctx, in)
+}
+
 func (s Server) GetSurvey(ctx context.Context, in *surveysv1.GetSurveyReq) (*surveysv1.GetSurveyResp, error) {
 	return s.surveys.GetSurvey(ctx, in)
 }
