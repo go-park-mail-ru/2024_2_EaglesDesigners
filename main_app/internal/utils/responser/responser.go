@@ -8,6 +8,12 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 )
 
+const (
+	InvalidJSONError  = "Invalid format JSON"
+	ResponseError     = "Failed to create response"
+	UserNotFoundError = "User not found"
+)
+
 // @Schema
 type SuccessResponse struct {
 	Message string `json:"message" example:"success message"`
