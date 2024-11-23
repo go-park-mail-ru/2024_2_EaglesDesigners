@@ -211,7 +211,7 @@ func main() {
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/statistic/{questionId}", surveys.GetStatictics).Methods("GET", "OPTIONS")
 	router.HandleFunc("/survey/{name}", surveys.GetSurvey).Methods("GET", "OPTIONS")
-
+	router.HandleFunc("/question/{questionId}", auth.Authorize(surveys.AddAnswers)).Methods("POST", "OPTIONS")
 	go startMainServer(router)
 	go startChatServerGRPC(chatService)
 	select {}
