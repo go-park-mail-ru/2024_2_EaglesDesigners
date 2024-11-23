@@ -11,14 +11,14 @@ message Nothing { bool dummy = 1; }
 //     surveys_service/internal/proto/surveys.proto
 
 message Answer {
-  int64 question_id = 2;
+  string question_id = 2;
   optional string text_answer = 3;
   optional int64 numeric_answer = 4;
 }
 
 message Question {
-  int64 id = 1;
-  int64 survey_id = 2;
+  string id = 1;
+  string survey_id = 2;
   string question = 3;
   string type = 4;
 }
@@ -33,10 +33,10 @@ message GetSurveyReq { string name = 1; }
 message GetSurveyResp {
   Survey servey = 1;
   string topic = 2;
-  int64 survey_id = 3;
+  string survey_id = 3;
 }
 message AddAnswersReq {
-  int64 user_id = 1;
+  string user_id = 1;
   repeated Answer answer = 2;
 }
 
