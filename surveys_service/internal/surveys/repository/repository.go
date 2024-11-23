@@ -55,7 +55,7 @@ func (r ServeyRepositoryImpl) GetQuestionsByServeyName(ctx context.Context, serv
 		var questionText string
 		var questionType string
 
-		err = rows.Scan(&questionId, &questionText, &questionType)
+		err = rows.Scan(&questionId, &questionType, &questionText)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
@@ -194,7 +194,7 @@ func (r ServeyRepositoryImpl) GetServey(ctx context.Context, serveyName string) 
 
 	var topic string
 	var id uuid.UUID
-	if err := row.Scan(&id, &topic); err != nil {
+	if err := row.Scan(&topic, &id); err != nil {
 		log.Printf("Repository: не удалось добавить ответ: %v", err)
 		return models.Servey{}, err
 	}
