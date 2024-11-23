@@ -176,7 +176,7 @@ func (r ServeyRepositoryImpl) GetServey(ctx context.Context, serveyName string) 
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
-		return err
+		return models.Servey{},err
 	}
 	defer conn.Release()
 
