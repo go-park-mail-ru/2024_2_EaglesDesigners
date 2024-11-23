@@ -4,68 +4,44 @@ option go_package = "nonrep.surveys.v1;surveysv1";
 
 package surveys;
 
-message Nothing {
-  bool dummy = 1;
+message Nothing { bool dummy = 1; }
+
+// protoc --go_out=. --go_opt=paths=source_relative \
+//     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//     surveys_service/internal/proto/surveys.proto
+
+message Answer {
+  int64 question_id = 2;
+  optional string text_answer = 3;
+  optional int64 numeric_answer = 4;
 }
 
-message AuthRequest {
-    string username = 1;
-    string password = 2;
+message Question {
+  int64 id = 1;
+  int64 survey_id = 2;
+  string question = 3;
+  int64 type_id = 4;
 }
 
-message AuthResponse {
-    bool isAuthenticated = 1;
+message Survey { repeated Question question = 1; }
+
+// message GetStaticticsResp{
+//     repeated
+// }
+message GetSurveyReq { string name = 1; }
+
+message GetSurveyResp {
+  Survey servey = 1;
+  string topic = 2;
+  int64 survey_id = 3;
 }
-
-message RegistrationRequest {
-    string username = 1;
-    string name = 2;
-    string password = 3;
+message AddAnswersReq {
+  int64 user_id = 1;
+  repeated Answer answer = 2;
 }
-
-message GetUserDataByUsernameRequest {
-    string username = 1;
-}
-
-message GetUserDataByUsernameResponse {
-    string ID = 1;
-    string username = 2;
-    string name = 3;
-    string avatarURL = 4;
-}
-
-message Token {
-    string token = 1;
-}
-
-message UserJWT {
-    string ID = 1;
-    string username = 2;
-    string name = 3;
-    string password = 4;
-    int64 version = 5;
-}
-
-message CreateJWTRequest {
-    string username = 1;
-}
-
-
-// protoc --go_out=./gen/go --go_opt=paths=source_relative \
-//     --go-grpc_out=./gen/go --go-grpc_opt=paths=source_relative \
-//     auth_service/internal/proto/auth.proto
 
 service Surveys {
-    rpc GetStatictics() returns {}
-    rpc GetSurvey() returns {}
-    rpc AddAnswers() returns {}
-}
-
-service Auth {
-    rpc Authenticate(AuthRequest) returns (AuthResponse) {}
-    rpc Registration(RegistrationRequest) returns (Nothing) {}
-    rpc GetUserDataByUsername(GetUserDataByUsernameRequest) returns (GetUserDataByUsernameResponse) {}
-    rpc GetUserByJWT(Token) returns (UserJWT) {}
-    rpc IsAuthorized(Token) returns (UserJWT) {}
-    rpc CreateJWT(CreateJWTRequest) returns (Token) {}
+  //   rpc GetStatictics(Nothing) returns {GetStaticticsResp}
+  rpc GetSurvey(GetSurveyReq) returns (GetSurveyResp) {}
+  rpc AddAnswers(AddAnswersReq) returns (Nothing) {}
 }
