@@ -52,7 +52,9 @@ services:
       context: .
       dockerfile: surveys_service/Dockerfile
     depends_on:
-      survey_db:
+      # surveys_db:
+      #   condition: service_started
+      postgres:
         condition: service_started
     restart: always
     ports:
@@ -70,17 +72,17 @@ services:
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
 
-  surveys_db:
-    container_name: surveys_db
-    image: postgres:15.0
-    environment:
-      POSTGRES_DB: surveys
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "127.0.0.1:5451:5433"
-    volumes:
-      - ./db/survey_migrations:/docker-entrypoint-initdb.d
+  # surveys_db:
+  #   container_name: surveys_db
+  #   image: postgres:15.0
+  #   environment:
+  #     POSTGRES_DB: surveys
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   ports:
+  #     - "127.0.0.1:5451:5451"
+  #   volumes:
+  #     - ./db/survey_migrations:/docker-entrypoint-initdb.d
 
   rabbitmq:
     image: rabbitmq:3.10.7-management
