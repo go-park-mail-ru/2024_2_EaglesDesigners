@@ -22,3 +22,8 @@ type Stat struct {
 	Avarage_numeric string
 	AllTextAnswers []string
 }
+
+type Servey struct {
+	Topic string
+	Id string
+}
