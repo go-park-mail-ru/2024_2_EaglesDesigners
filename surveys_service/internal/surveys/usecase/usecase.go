@@ -91,3 +91,8 @@ func (u *ServeyUsecase) AddAnswers(ctx context.Context, in *surveysv1.AddAnswers
 		Dummy: true,
 	}, nil
 }
+
+
+func (u *ServeyUsecase)  GetStatictics(ctx context.Context, in *surveysv1.GetStaticticsReq) (*surveysv1.GetStaticticsResp, error) {
+	return nil, nil
+}
