@@ -1,12 +1,17 @@
 package delivery
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/surveys/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	surveyv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/surveyv1"
+	"github.com/google/uuid"
+
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
+
 	"github.com/gorilla/mux"
 )
 
@@ -49,8 +54,75 @@ func (d *Delivery) GetSurvey(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, resp, http.StatusOK)
 }
 
-func (d *Delivery) AddAnswers(w http.ResponseWriter, r *http.Request) {
+type AnswersInput struct {
+	Answers []Answer `json:"answers"`
+}
 
+type Answer struct {
+	TextAnswer    string `json:"textAnswer"`
+	NumericAnswer int64  `json:"numeric"`
+}
+
+// question/{questionId} post
+func (d *Delivery) AddAnswers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+
+	questionId, err := uuid.Parse(mapVars["questionId"])
+
+	var messageDTO AnswersInput
+	err = json.NewDecoder(r.Body).Decode(&messageDTO)
+	if err != nil {
+		responser.SendError(ctx, w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	log.Println(user)
+	if !ok {
+		log.Println("Message delivery -> AddNewMessage: нет юзера в контексте")
+		responser.SendError(ctx, w, "Нет нужных параметров", http.StatusInternalServerError)
+		return
+	}
+
+	answerArray := []*surveyv1.Answer{}
+
+	for _, answer := range messageDTO.Answers {
+		answerArray = append(answerArray,
+			&surveyv1.Answer{
+				QuestionId:    questionId.String(),
+				TextAnswer:    &answer.TextAnswer,
+				NumericAnswer: &answer.NumericAnswer,
+			})
+	}
+
+	request := surveyv1.AddAnswersReq{
+		UserId: user.ID.String(),
+		Answer: answerArray,
+	}
+
+	grpcResp, err := d.client.AddAnswers(
+		ctx,
+		&request,
+	)
+	if err != nil {
+		responser.SendError(ctx, w, "Не удалось добавить ответы", 500)
+		return
+	}
+
+	res := grpcResp.Dummy
+
+	if res {
+		responser.SendOK(w, "все ок", 201)
+		return
+	}
+	responser.SendError(ctx, w, "Не удалось добавить ответы", 500)
 }
 
 func convertFromGRPCSurvey(survey *surveyv1.GetSurveyResp) models.GetSurveyDTO {

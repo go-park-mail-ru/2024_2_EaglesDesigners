@@ -176,7 +176,7 @@ func (r ServeyRepositoryImpl) GetServey(ctx context.Context, serveyName string) 
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
-		return models.Servey{},err
+		return models.Servey{}, err
 	}
 	defer conn.Release()
 
@@ -202,4 +202,34 @@ func (r ServeyRepositoryImpl) GetServey(ctx context.Context, serveyName string) 
 	return models.Servey{
 		Topic: topic,
 		Id:    id.String()}, nil
+}
+
+func (r ServeyRepositoryImpl) GetQuestionType(ctx context.Context, questionId uuid.UUID) (string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return "", err
+	}
+	defer conn.Release()
+
+	log.Printf("Repository: соединение успешно установлено")
+
+	row := conn.QueryRow(context.Background(),
+		`SELECT
+	qt.value
+	FROM question_type AS qt
+	JOIN question AS q ON q.type_id = qt.id
+	WHERE q.id = $1;`,
+		questionId,
+	)
+
+	var questionType string
+	if err := row.Scan(&questionType); err != nil {
+		log.Printf("Repository: не удалось добавить ответ: %v", err)
+		return "", err
+	}
+
+	return questionType, nil
 }
