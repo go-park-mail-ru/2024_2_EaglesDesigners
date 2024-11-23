@@ -20,7 +20,7 @@ message Question {
   int64 id = 1;
   int64 survey_id = 2;
   string question = 3;
-  int64 type_id = 4;
+  string type = 4;
 }
 
 message Survey { repeated Question question = 1; }
