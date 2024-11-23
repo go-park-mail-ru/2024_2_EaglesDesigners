@@ -99,10 +99,10 @@ INSERT INTO  public.question_type (value) VALUES
 -- Data for Name: servey; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO  public.servey (id, topic) VALUES
-('c6c92ef5-65ff-4835-9e24-705abf8e00a8',	'В аквапарке реально охрененно?'),
-('02277257-bc5e-4264-b602-3891169a4ccb',	'Довольны ли вы учебным процессом'),
-('0bee6d65-15c2-473a-860e-acc370eeec40',	'Парковка у дгту виноделие');
+INSERT INTO  public.servey (id, topic , name) VALUES
+('c6c92ef5-65ff-4835-9e24-705abf8e00a8',	'В аквапарке реально охрененно?', 'main'),
+('02277257-bc5e-4264-b602-3891169a4ccb',	'Довольны ли вы учебным процессом', 'second'),
+('0bee6d65-15c2-473a-860e-acc370eeec40',	'Парковка у дгту виноделие', 'third');
 
 
 
