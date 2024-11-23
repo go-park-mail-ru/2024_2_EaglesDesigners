@@ -21,6 +21,12 @@ type ServeyUsecase struct {
 	repository ServeyRepository
 }
 
+func NewUsecase(repository ServeyRepository) ServeyUsecase {
+	return ServeyUsecase{
+		repository: repository,
+	}
+}
+
 func (u *ServeyUsecase) GetSurvey(ctx context.Context, in *surveysv1.GetSurveyReq) (*surveysv1.GetSurveyResp, error) {
 	serveyName := in.Name
 	servey, err := u.repository.GetServey(ctx, serveyName)

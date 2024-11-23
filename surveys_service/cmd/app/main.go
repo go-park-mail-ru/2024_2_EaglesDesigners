@@ -7,11 +7,11 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/surveys_service/internal/surveys/api"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/repository"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/usecase"
-	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	surveysv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/surveys_service/internal/proto"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/surveys_service/internal/surveys/api"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/surveys_service/internal/surveys/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/surveys_service/internal/surveys/usecase"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -34,10 +34,10 @@ func main() {
 
 	server := grpc.NewServer()
 
-	repo := repository.NewRepository(pool)
+	repo := repository.NewServeyRepository(pool)
 	usecase := usecase.NewUsecase(repo)
-	authServer := api.New(usecase)
-	authv1.RegisterAuthServer(server, authServer)
+	surveyServer := api.New(usecase)
+	surveysv1.RegisterSurveysServer(server, surveyServer)
 
 	log.Println("starting server at :8084")
 	if err := server.Serve(lis); err != nil {

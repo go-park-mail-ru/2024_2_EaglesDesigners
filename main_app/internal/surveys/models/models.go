@@ -43,7 +43,7 @@ type QuestionDTO struct {
 }
 
 type GetSurveyDTO struct {
-	Questions QuestionDTO `json:"questions" valid:"-"`
-	Topic     string      `json:"topic" valid:"-"`
-	Survey_id string      `json:"survey_id" valid:"-"`
+	Questions []QuestionDTO `json:"questions" valid:"-"`
+	Topic     string        `json:"topic" valid:"-"`
+	Survey_id string        `json:"survey_id" valid:"-"`
 }
