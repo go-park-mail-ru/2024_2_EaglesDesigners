@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/api"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/surveys_service/internal/surveys/api"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/repository"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/usecase"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"

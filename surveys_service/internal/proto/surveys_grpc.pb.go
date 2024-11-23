@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Surveys_GetSurvey_FullMethodName  = "/surveys.Surveys/GetSurvey"
-	Surveys_AddAnswers_FullMethodName = "/surveys.Surveys/AddAnswers"
+	Surveys_GetStatictics_FullMethodName = "/surveys.Surveys/GetStatictics"
+	Surveys_GetSurvey_FullMethodName     = "/surveys.Surveys/GetSurvey"
+	Surveys_AddAnswers_FullMethodName    = "/surveys.Surveys/AddAnswers"
 )
 
 // SurveysClient is the client API for Surveys service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SurveysClient interface {
-	// rpc GetStatictics(Nothing) returns {GetStaticticsResp}
+	GetStatictics(ctx context.Context, in *GetStaticticsReq, opts ...grpc.CallOption) (*GetStaticticsResp, error)
 	GetSurvey(ctx context.Context, in *GetSurveyReq, opts ...grpc.CallOption) (*GetSurveyResp, error)
 	AddAnswers(ctx context.Context, in *AddAnswersReq, opts ...grpc.CallOption) (*Nothing, error)
 }
@@ -38,6 +39,16 @@ type surveysClient struct {
 
 func NewSurveysClient(cc grpc.ClientConnInterface) SurveysClient {
 	return &surveysClient{cc}
+}
+
+func (c *surveysClient) GetStatictics(ctx context.Context, in *GetStaticticsReq, opts ...grpc.CallOption) (*GetStaticticsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStaticticsResp)
+	err := c.cc.Invoke(ctx, Surveys_GetStatictics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *surveysClient) GetSurvey(ctx context.Context, in *GetSurveyReq, opts ...grpc.CallOption) (*GetSurveyResp, error) {
@@ -64,7 +75,7 @@ func (c *surveysClient) AddAnswers(ctx context.Context, in *AddAnswersReq, opts 
 // All implementations must embed UnimplementedSurveysServer
 // for forward compatibility.
 type SurveysServer interface {
-	// rpc GetStatictics(Nothing) returns {GetStaticticsResp}
+	GetStatictics(context.Context, *GetStaticticsReq) (*GetStaticticsResp, error)
 	GetSurvey(context.Context, *GetSurveyReq) (*GetSurveyResp, error)
 	AddAnswers(context.Context, *AddAnswersReq) (*Nothing, error)
 	mustEmbedUnimplementedSurveysServer()
@@ -77,6 +88,9 @@ type SurveysServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSurveysServer struct{}
 
+func (UnimplementedSurveysServer) GetStatictics(context.Context, *GetStaticticsReq) (*GetStaticticsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStatictics not implemented")
+}
 func (UnimplementedSurveysServer) GetSurvey(context.Context, *GetSurveyReq) (*GetSurveyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSurvey not implemented")
 }
@@ -102,6 +116,24 @@ func RegisterSurveysServer(s grpc.ServiceRegistrar, srv SurveysServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Surveys_ServiceDesc, srv)
+}
+
+func _Surveys_GetStatictics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStaticticsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SurveysServer).GetStatictics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Surveys_GetStatictics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SurveysServer).GetStatictics(ctx, req.(*GetStaticticsReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Surveys_GetSurvey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -147,6 +179,10 @@ var Surveys_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "surveys.Surveys",
 	HandlerType: (*SurveysServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetStatictics",
+			Handler:    _Surveys_GetStatictics_Handler,
+		},
 		{
 			MethodName: "GetSurvey",
 			Handler:    _Surveys_GetSurvey_Handler,
