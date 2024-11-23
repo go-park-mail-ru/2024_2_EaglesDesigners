@@ -15,4 +15,3 @@ COPY ./ ./
 ENTRYPOINT go run ./websocket_service/cmd/app/main.go
 
 # Document that the service listens on port 8080.
-EXPOSE 8083
