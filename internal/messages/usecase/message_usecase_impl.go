@@ -207,7 +207,7 @@ func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uu
 
 }
 
-func (s *MessageUsecaseImplm) sendIvent(ctx context.Context, action string, message models.Message) {
+func (s *MessageUsecaseImplm) 	sendIvent(ctx context.Context, action string, message models.Message) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	newEvent := socketUsecase.MessageEvent{
 		Action:  action,
