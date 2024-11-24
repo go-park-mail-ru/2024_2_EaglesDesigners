@@ -271,7 +271,7 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(ctx context.Context, userId uuid.UU
 	).Scan(&id)
 
 	if err != nil {
-		log.Printf("польтзователь %v не добавлен в чат %v. Ошибка: ", userId, chatId, err)
+		log.Errorf("польтзователь %v не добавлен в чат %v. Ошибка: ", userId, chatId, err)
 		return err
 	}
 	log.Printf("польтзователь %v добавлен в чат %v", userId, chatId)

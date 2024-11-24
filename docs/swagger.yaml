@@ -372,6 +372,35 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /channel/{channelId}/join:
+    post:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: channelId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ПОльзователь вступил в чат
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Запрещено
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось двступить в канал
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Войти в канал
+      tags:
+      - channel
   /chat/{chatId}:
     get:
       parameters:

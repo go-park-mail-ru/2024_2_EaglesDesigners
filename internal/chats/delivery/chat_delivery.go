@@ -153,6 +153,49 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, returnChat, 201)
 }
 
+// JoinChannel godoc
+// @Summary Войти в канал
+// @Tags channel
+// @Param channelId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
+// @Success 200 "ПОльзователь вступил в чат"
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Запрещено"
+// @Failure 500	{object} responser.ErrorResponse "Не удалось двступить в канал"
+// @Router /channel/{channelId}/join [post]
+func (c *ChatDelivery) JoinChannel(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	mapVars, ok := ctx.Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		responser.SendError(ctx, w, "Не удалось достать переменные из контекста", 500)
+		return
+	}
+	channelId, err := uuid.Parse(mapVars["channelId"])
+
+	if err != nil {
+		responser.SendError(ctx, w, "Неправильный формат channelId", http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
+	if !ok {
+		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
+		return
+	}
+
+	err = c.service.JoinChannel(ctx, user.ID, channelId)
+
+	if err != nil {
+		if errors.As(err, &noPerm) {
+			responser.SendError(ctx, w, err.Error(), http.StatusForbidden)
+			return
+		}
+		responser.SendError(ctx, w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	sendSuccess(ctx, w)
+}
+
 // AddUsersIntoChat godoc
 // @Summary Добавить пользователей в чат
 // @Tags chat

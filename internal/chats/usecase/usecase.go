@@ -144,9 +144,9 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie) (
 	return chatsDTO, nil
 }
 
-func (s *ChatUsecaseImpl) addUsersIntoChat(ctx context.Context, user_ids []uuid.UUID, chatId uuid.UUID) ([]uuid.UUID, []uuid.UUID) {
-	var addedUsers []uuid.UUID
-	var notAddedUsers []uuid.UUID
+func (s *ChatUsecaseImpl) addUsersIntoChat(ctx context.Context, user_ids []uuid.UUID, chatId uuid.UUID) (addedUsers []uuid.UUID, notAddedUsers []uuid.UUID) {
+	addedUsers = []uuid.UUID{}
+	notAddedUsers = []uuid.UUID{}
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("начато добавление пользователей в чат %v", chatId)
 
@@ -620,6 +620,25 @@ func (s *ChatUsecaseImpl) SearchChats(ctx context.Context, userID uuid.UUID, key
 	}
 
 	return outputDTO, nil
+}
+
+func (s *ChatUsecaseImpl) JoinChannel(ctx context.Context, userId uuid.UUID, channelId uuid.UUID) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	chatType, err := s.repository.GetChatType(ctx, channelId)
+	if err != nil {
+		return err
+	}
+	if chatType != channel {
+		return &customerror.NoPermissionError{
+			Area: fmt.Sprintf("%v не явяляется каналом", channelId),
+		}
+	}
+	_, notAdded := s.addUsersIntoChat(ctx, []uuid.UUID{userId}, channelId)
+	if len(notAdded) != 0 {
+		log.Errorf("Пользователю %v не удалось вступить в канал %v", userId, channelId)
+		return errors.New("Не удалось добавить пользователя в чат")
+	}
+	return nil
 }
 
 func convertUsersInChatToDTO(users []chatModel.UserInChatDAO) []chatModel.UserInChatDTO {
