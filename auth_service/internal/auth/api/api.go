@@ -48,6 +48,6 @@ func (s Server) GetUserByJWT(ctx context.Context, in *authv1.Token) (*authv1.Use
 }
 
 func (s Server) IsAuthorized(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error) {
-	log.Println("Пришел запрос на авторизацию")
+	log.Printf("Пришел запрос на авторизацию %v", in.Token)
 	return s.auth.IsAuthorized(ctx, in)
 }
