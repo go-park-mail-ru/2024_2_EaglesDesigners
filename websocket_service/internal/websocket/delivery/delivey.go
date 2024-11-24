@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
-	"github.com/google/uuid"
 
 	"github.com/gorilla/websocket"
 )
@@ -53,7 +54,15 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	// начало
 
-	userId, _ := uuid.Parse("39a9aea0-d461-437d-b4eb-bf030a0efc80")
+	user, ok := r.Context().Value(middleware.UserKey).(middleware.User)
+	if !ok {
+		responser.SendError(r.Context(), w, "Не переданы параметры", http.StatusInternalServerError)
+		return
+	}
+
+	userId := user.ID
+
+	log.Printf("Пользователь %v Открыл сокет", userId)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

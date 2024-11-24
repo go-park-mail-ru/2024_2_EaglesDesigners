@@ -52,6 +52,7 @@ func (d *Delivery) Authorize(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if err != nil && err != errTokenExpired {
+			log.Println(err)
 			log.Println("токен невалиден")
 			responser.SendError(ctx, w, "Unauthorized", http.StatusUnauthorized)
 			return
