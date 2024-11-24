@@ -5,10 +5,15 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
+	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/delivery"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
+
 	"github.com/gorilla/mux"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const host = "patefon"
@@ -44,7 +49,23 @@ func main() {
 		tmpl.Execute(w, nil)
 	})
 
-	router.HandleFunc("/startwebsocket", socketDelivery.HandleConnection)
+	// auth
+
+	grpcConnAuth, err := grpc.Dial(
+		"auth:8081",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer grpcConnAuth.Close()
+	authClient := authv1.NewAuthClient(grpcConnAuth)
+
+	auth := authDelivery.New(authClient)
+
+
+	// ручки
+	router.HandleFunc("/startwebsocket", auth.Authorize(socketDelivery.HandleConnection))
 
 	log.Println("Starting server on :8083")
 	if err := http.ListenAndServe(":8083", router); err != nil {

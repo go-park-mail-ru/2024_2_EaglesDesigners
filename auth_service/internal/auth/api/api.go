@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"log"
 
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
 )
@@ -47,5 +48,6 @@ func (s Server) GetUserByJWT(ctx context.Context, in *authv1.Token) (*authv1.Use
 }
 
 func (s Server) IsAuthorized(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error) {
+	log.Println("Пришел запрос на авторизацию")
 	return s.auth.IsAuthorized(ctx, in)
 }

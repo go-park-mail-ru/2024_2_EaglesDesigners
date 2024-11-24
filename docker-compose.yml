@@ -38,6 +38,8 @@ services:
       context: .
       dockerfile: websocket_service/Dockerfile
     depends_on:
+      auth:
+        condition: service_started
       rabbitmq:
         condition: service_started
       patefon:
