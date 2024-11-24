@@ -380,7 +380,7 @@ INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
     ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
     ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
-    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33')),
+    ('z0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user22')),
     ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user11')),
     ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user22')),
     ('f1a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user33')),
