@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=usecase_interface.go -destination=mocks/mocks.go
+
 type ChatUsecase interface {
 	GetChats(ctx context.Context, cookie []*http.Cookie) ([]chatModel.ChatDTOOutput, error)
 	AddUsersIntoChatWithCheckPermission(ctx context.Context, user_ids []uuid.UUID, chat_id uuid.UUID) (chatModel.AddedUsersIntoChatDTO, error)

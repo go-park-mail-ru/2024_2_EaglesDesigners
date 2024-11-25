@@ -24,6 +24,8 @@ const (
 	userNotFoundError = "User not found"
 )
 
+//go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
+
 type usecase interface {
 	UpdateProfile(ctx context.Context, profile models.UpdateProfileRequestDTO) error
 	GetProfile(ctx context.Context, id uuid.UUID) (models.ProfileData, error)

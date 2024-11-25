@@ -9,6 +9,8 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=messages_usecase_interface.go -destination=mocks/mocks.go
+
 type MessageUsecase interface {
 	SendMessage(ctx context.Context, user auth.User, chatId uuid.UUID, message models.Message) error
 	DeleteMessage(ctx context.Context, user auth.User, messageId uuid.UUID) error

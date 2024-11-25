@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=messages_repository_interface.go -destination=mocks/mocks.go
+
 type MessageRepository interface {
 	AddMessage(message models.Message, chatId uuid.UUID) error
 

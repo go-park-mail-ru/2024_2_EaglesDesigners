@@ -9,6 +9,8 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=usecase.go -destination=mocks/mocks.go
+
 type Repository interface {
 	GetProfileByUsername(ctx context.Context, id uuid.UUID) (models.ProfileDataDAO, error)
 	UpdateProfile(ctx context.Context, profile models.Profile) (avatarNewURL *string, avatarOldURL *string, err error)

@@ -21,6 +21,8 @@ const (
 	userNotFoundError = "User not found"
 )
 
+//go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
+
 type usecase interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.Contact, err error)
 	AddContact(ctx context.Context, contactData models.ContactData) (models.Contact, error)

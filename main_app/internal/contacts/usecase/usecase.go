@@ -10,6 +10,8 @@ import (
 	errGroup "golang.org/x/sync/errgroup"
 )
 
+//go:generate mockgen -source=usecase.go -destination=mocks/mocks.go
+
 type Repository interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.ContactDAO, err error)
 	AddContact(ctx context.Context, contactData models.ContactDataDAO) (models.ContactDAO, error)

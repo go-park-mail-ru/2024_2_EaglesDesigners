@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=repository_interface.go -destination=mocks/mocks.go
+
 type ChatRepository interface {
 	GetUserChats(ctx context.Context, userId uuid.UUID) (chats []chatModel.Chat, err error)
 
