@@ -17,6 +17,8 @@ backend_app
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+uploads/avatar/
+uploads/chat/
 
 # Go workspace file
 go.work

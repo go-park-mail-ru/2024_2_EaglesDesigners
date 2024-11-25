@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
 	multiparthelper "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
@@ -30,20 +29,14 @@ type usecase interface {
 	GetProfile(ctx context.Context, id uuid.UUID) (models.ProfileData, error)
 }
 
-type token interface {
-	GetUserByJWT(ctx context.Context, cookies []*http.Cookie) (jwt.User, error)
-}
-
 type Delivery struct {
 	usecase usecase
-	token   token
 	mu      sync.Mutex
 }
 
-func New(usecase usecase, token token) *Delivery {
+func New(usecase usecase) *Delivery {
 	return &Delivery{
 		usecase: usecase,
-		token:   token,
 	}
 }
 

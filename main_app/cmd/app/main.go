@@ -16,7 +16,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/delivery"
-	userRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/repository"
 
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
@@ -24,7 +23,6 @@ import (
 	contactsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/delivery"
 	contactsRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/repository"
 	contactsUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/usecase"
-	jwtUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/delivery"
 	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
 	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
@@ -111,11 +109,6 @@ func main() {
 
 	auth := authDelivery.New(authClient)
 
-	// token рудемент
-
-	userRepo := userRepo.NewRepository(pool)
-	tokenUC := jwtUC.NewUsecase(userRepo)
-
 	// uploads
 
 	uploads := uploadsDelivery.New()
@@ -123,7 +116,7 @@ func main() {
 	// profile
 	profileRepo := profileRepo.New(pool)
 	profileUC := profileUC.New(profileRepo)
-	profile := profileDelivery.New(profileUC, tokenUC)
+	profile := profileDelivery.New(profileUC)
 
 	// chats
 	messageRepo := messageRepository.NewMessageRepositoryImpl(pool)
@@ -132,13 +125,13 @@ func main() {
 
 	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, ch)
 
-	chatService := chatService.NewChatUsecase(tokenUC, chatRepo, messageRepo, ch)
+	chatService := chatService.NewChatUsecase(chatRepo, messageRepo, ch)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
 	contactsRepo := contactsRepo.New(pool)
 	contactsUC := contactsUC.New(contactsRepo)
-	contacts := contactsDelivery.New(contactsUC, tokenUC)
+	contacts := contactsDelivery.New(contactsUC)
 
 	// messages
 

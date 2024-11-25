@@ -9,10 +9,9 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
@@ -183,7 +182,7 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("пришел запрос на авторизацию")
 
-	user, ok := ctx.Value(models.UserKey).(jwt.User)
+	user, ok := ctx.Value(models.UserKey).(models.User)
 	if !ok {
 		responser.SendError(ctx, w, "User not found", http.StatusNotFound)
 		return

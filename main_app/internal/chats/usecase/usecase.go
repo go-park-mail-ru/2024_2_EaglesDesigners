@@ -9,11 +9,11 @@ import (
 	"sync"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
@@ -48,14 +48,13 @@ const (
 )
 
 type ChatUsecaseImpl struct {
-	tokenUsecase      *jwt.Usecase
 	messageRepository message.MessageRepository
 	repository        chatlist.ChatRepository
 	chatQuery         string
 	ch                *amqp.Channel
 }
 
-func NewChatUsecase(tokenService *jwt.Usecase, repository chatlist.ChatRepository, messageRepository message.MessageRepository, ch *amqp.Channel) ChatUsecase {
+func NewChatUsecase(repository chatlist.ChatRepository, messageRepository message.MessageRepository, ch *amqp.Channel) ChatUsecase {
 	// объявляем очередь для яатов
 	q, err := ch.QueueDeclare(
 		"chat", // name
@@ -71,7 +70,6 @@ func NewChatUsecase(tokenService *jwt.Usecase, repository chatlist.ChatRepositor
 	}
 
 	return &ChatUsecaseImpl{
-		tokenUsecase:      tokenService,
 		repository:        repository,
 		messageRepository: messageRepository,
 		chatQuery:         q.Name,
@@ -104,9 +102,10 @@ func (s *ChatUsecaseImpl) createChatDTO(ctx context.Context, chat chatModel.Chat
 
 func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie) ([]chatModel.ChatDTOOutput, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
-	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
-	if err != nil {
-		return []chatModel.ChatDTOOutput{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
+	if !ok {
+		return nil, errors.New(responser.UserNotFoundError)
 	}
 	log.Printf("Chat usecase: пришел запрос на получение всех чатов от пользователя: %v", user.ID)
 
@@ -191,9 +190,9 @@ func (s *ChatUsecaseImpl) AddUsersIntoChatWithCheckPermission(ctx context.Contex
 
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
-	user, err := s.tokenUsecase.GetUserByJWT(ctx, cookie)
-	if err != nil {
-		return chatModel.ChatDTOOutput{}, errors.New("НЕ УДАЛОСЬ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ")
+	user, ok := ctx.Value(auth.UserKey).(auth.User)
+	if !ok {
+		return chatModel.ChatDTOOutput{}, errors.New(responser.UserNotFoundError)
 	}
 
 	chatId := uuid.New()
@@ -218,7 +217,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 
 	// создание чата
-	err = s.repository.CreateNewChat(ctx, newChat)
+	err := s.repository.CreateNewChat(ctx, newChat)
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось сохнанить чат: %v", err)
 		return chatModel.ChatDTOOutput{}, err

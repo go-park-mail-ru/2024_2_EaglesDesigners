@@ -11,7 +11,6 @@ import (
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
 	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/repository"
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/jwt/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/google/uuid"
@@ -29,20 +28,14 @@ type usecase interface {
 	SearchContacts(ctx context.Context, userID uuid.UUID, keyWord string) (models.SearchContactsDTO, error)
 }
 
-type token interface {
-	GetUserDataByJWT(cookies []*http.Cookie) (jwt.UserData, error)
-}
-
 type Delivery struct {
 	usecase usecase
-	token   token
 	mu      sync.Mutex
 }
 
-func New(usecase usecase, token token) *Delivery {
+func New(usecase usecase) *Delivery {
 	return &Delivery{
 		usecase: usecase,
-		token:   token,
 	}
 }
 

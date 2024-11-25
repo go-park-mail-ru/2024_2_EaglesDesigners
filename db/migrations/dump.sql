@@ -73,6 +73,7 @@ CREATE TABLE public.message (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     chat_id uuid NOT NULL,
     author_id uuid NOT NULL,
+    branch_id uuid,
     message text,
     sent_at timestamp with time zone NOT NULL,
     is_redacted boolean DEFAULT false NOT NULL,
@@ -169,6 +170,22 @@ ALTER TABLE ONLY public.chat_type
 
 ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT chat_user_pkey PRIMARY KEY (id);
+
+--
+-- Name: message branch_id_fk_messages_chat_id_pk_chat; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT branch_id_fk_messages_chat_id_pk_chat FOREIGN KEY (branch_id) REFERENCES public.chat(id)
+    ON DELETE CASCADE;  
+
+   
+--
+-- Name: user uniq_branch_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT uniq_branch_id UNIQUE (branch_id); 
 
 
 --
@@ -317,7 +334,8 @@ ALTER TABLE ONLY public.chat_user
 INSERT INTO public.chat_type (value) VALUES
 ('personal'),
 ('group'),
-('channel');
+('channel'),
+('branch');
 
 INSERT INTO  public.user_role ( value) VALUES
 ('none'),
@@ -361,7 +379,7 @@ INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
     ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
     ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
-    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user22')),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user44')),
     ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user11')),
     ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user22')),
     ('f1a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user33')),
