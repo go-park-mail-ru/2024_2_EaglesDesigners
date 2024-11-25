@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,28 +33,20 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 	}
 }
 
-var (
-	requestsTotal = prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Name: "sended_messages",
-			Help: "Количество отправленных сообщений.",
-		},
-	)
-	requestDuration = prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Name: "redacted_messages",
-			Help: "Количество отредактированнных сообщений.",
-		},
-	)
-)
-
 func init() {
-	prometheus.MustRegister(requestsTotal, requestDuration)
-	requestsTotal.Inc()
-	requestDuration.Inc()
+	prometheus.MustRegister(requestAddNewMessageDuration, requestDeleteMessageDuration, requestUpdateMessageDuration,
+		requestGetAllMessagesDuration, requestGetMessagesWithPageDuration, requestSearchMessagesDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для сообщений зарегистрированы")
 }
+
+var requestAddNewMessageDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "AddNewMessage_request_duration_seconds",
+		Help: "/chat/{chatId}/messages",
+	},
+	[]string{"method"},
+)
 
 // AddNewMessageHandler godoc
 // @Summary Add new message
@@ -65,6 +59,11 @@ func init() {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
 // @Router /chat/{chatId}/messages [post]
 func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestAddNewMessageDuration, r.Method)
+	}()
+
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
@@ -114,6 +113,14 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusCreated)
 }
 
+var requestDeleteMessageDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "DeleteMessage_request_duration_seconds",
+		Help: "/messages/{messageId}",
+	},
+	[]string{"method"},
+)
+
 // DeleteMessage godoc
 // @Summary Delete message
 // @Tags message
@@ -124,6 +131,11 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить сообщение"
 // @Router /messages/{messageId} [delete]
 func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestDeleteMessageDuration, r.Method)
+	}()
+
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
@@ -160,6 +172,14 @@ func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request
 	responser.SendOK(w, "Сообщение удалено", http.StatusOK)
 }
 
+var requestUpdateMessageDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "UpdateMessage_request_duration_seconds",
+		Help: "/messages/{messageId}",
+	},
+	[]string{"method"},
+)
+
 // UpdateMessage godoc
 // @Summary Update message
 // @Tags message
@@ -171,6 +191,11 @@ func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновить сообщение"
 // @Router /messages/{messageId} [put]
 func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestUpdateMessageDuration, r.Method)
+	}()
+
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
@@ -217,6 +242,14 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 	responser.SendOK(w, "Сообщение обновлено", http.StatusOK)
 }
 
+var requestGetAllMessagesDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "GetAllMessages_request_duration_seconds",
+		Help: "/chat/{chatId}/messages",
+	},
+	[]string{"method"},
+)
+
 // GetAllMessages godoc
 // @Summary Get All messages
 // @Tags message
@@ -227,6 +260,11 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages [get]
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestGetAllMessagesDuration, r.Method)
+	}()
+
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	mapVars, ok := r.Context().Value(auth.MuxParamsKey).(map[string]string)
@@ -274,6 +312,14 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	w.Write(jsonResp)
 }
 
+var requestGetMessagesWithPageDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "GetMessagesWithPage_request_duration_seconds",
+		Help: "/chat/{chatId}/messages/pages/{lastMessageId}",
+	},
+	[]string{"method"},
+)
+
 // GetMessagesWithPage godoc
 // @Summary получить 25 сообщений до определенного
 // @Tags message
@@ -285,6 +331,11 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages/pages/{lastMessageId} [get]
 func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestGetMessagesWithPageDuration, r.Method)
+	}()
+
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 
 	ctx := r.Context()
@@ -334,6 +385,14 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 	responser.SendStruct(ctx, w, messages, http.StatusOK)
 }
 
+var requestSearchMessagesDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "SearchMessages_request_duration_seconds",
+		Help: "/chat/{chatId}/messages/search",
+	},
+	[]string{"method"},
+)
+
 // SearchMessages godoc
 // @Summary поиск сообщений
 // @Tags message
@@ -345,6 +404,11 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages/search [get]
 func (h *MessageController) SearchMessages(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestSearchMessagesDuration, r.Method)
+	}()
+
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 
 	ctx := r.Context()

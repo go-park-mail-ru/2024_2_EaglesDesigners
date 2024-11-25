@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   patefon:
     container_name: patefon
@@ -68,3 +70,15 @@ services:
     ports:
       - 15672:15672
       - 5672:5672
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus_data/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: always
+    

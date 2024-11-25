@@ -6,15 +6,18 @@ import (
 	"html"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
 	multiparthelper "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,6 +45,20 @@ func New(usecase usecase) *Delivery {
 	}
 }
 
+func init() {
+	prometheus.MustRegister()
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Info("Метрики для сообщений зарегистрированы")
+}
+
+var requestGetSelfProfileHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "GetSelfProfileHandler_request_duration_seconds",
+		Help: "/chat/{chatId}/messages",
+	},
+	[]string{"method"},
+)
+
 // GetSelfProfileHandler godoc
 // @Summary Get self profile data
 // @Description Get bio, avatar and birthdate of user.
@@ -55,6 +72,11 @@ func New(usecase usecase) *Delivery {
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile [get]
 func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestGetSelfProfileHandlerDuration, r.Method)
+	}()
+
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -85,6 +107,14 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
+var requestGetProfileHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "GetSelfProfileHandler_request_duration_seconds",
+		Help: "/profile/{userid}",
+	},
+	[]string{"method"},
+)
+
 // GetProfileHandler godoc
 // @Summary Get profile data
 // @Description Get bio, avatar and birthdate of user.
@@ -97,6 +127,11 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile/{userid} [get]
 func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestGetProfileHandlerDuration, r.Method)
+	}()
+
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -131,6 +166,14 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
+var requestUpdateProfileHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "UpdateProfileHandler_request_duration_seconds",
+		Help: "/profile",
+	},
+	[]string{"method"},
+)
+
 // UpdateProfileHandler godoc
 // @Summary Update profile data
 // @Description Update bio, avatar, name or birthdate of user.
@@ -146,6 +189,11 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile [put]
 func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestUpdateProfileHandlerDuration, r.Method)
+	}()
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()

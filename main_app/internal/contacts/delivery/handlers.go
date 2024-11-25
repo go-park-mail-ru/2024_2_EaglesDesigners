@@ -6,14 +6,17 @@ import (
 	"html"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
 	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/repository"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -41,6 +44,21 @@ func New(usecase usecase) *Delivery {
 	}
 }
 
+func init() {
+	prometheus.MustRegister(requestGetContactsHandlerDuration, requestAddContactHandlerDuration, requestDeleteContactHandlerDuration,
+		requestSearchContactsHandlerDuration)
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Info("Метрики для контактов зарегистрированы")
+}
+
+var requestGetContactsHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "GetContactsHandler_request_duration_seconds",
+		Help: "/contacts",
+	},
+	[]string{"method"},
+)
+
 // GetContactsHandler godoc
 // @Summary Get all contacts
 // @Description Get all contacts of user.
@@ -53,6 +71,11 @@ func New(usecase usecase) *Delivery {
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /contacts [get]
 func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestGetContactsHandlerDuration, r.Method)
+	}()
+
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -93,6 +116,14 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
+var requestAddContactHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "AddContactHandler_request_duration_seconds",
+		Help: "/contacts",
+	},
+	[]string{"method"},
+)
+
 // AddContactHandler godoc
 // @Summary Add new contact
 // @Description Create a new contact for the user.
@@ -107,6 +138,11 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /contacts [post]
 func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestAddContactHandlerDuration, r.Method)
+	}()
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
@@ -163,6 +199,14 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
+var requestDeleteContactHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "DeleteContactHandler_request_duration_seconds",
+		Help: "/contacts",
+	},
+	[]string{"method"},
+)
+
 // DeleteContactHandler godoc
 // @Summary Delete contact
 // @Description Deletes user contact.
@@ -176,6 +220,11 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Router /contacts [delete]
 func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestDeleteContactHandlerDuration, r.Method)
+	}()
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
@@ -213,6 +262,14 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 	responser.SendOK(w, "contact deleted", http.StatusOK)
 }
 
+var requestSearchContactsHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "DeleteContactHandler_request_duration_seconds",
+		Help: "/contacts",
+	},
+	[]string{"method"},
+)
+
 // SearchChats ищет контакты по имени или нику, в query указать ключевое слово ?key_word=
 //
 // SearchChats godoc
@@ -227,6 +284,11 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 // @Failure 500	"Не удалось получить контакты"
 // @Router /contacts/search [get]
 func (d *Delivery) SearchContactsHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestSearchContactsHandlerDuration, r.Method)
+	}()
+
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 

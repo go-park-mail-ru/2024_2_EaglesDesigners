@@ -8,15 +8,18 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.octolab.org/pointer"
 )
 
@@ -33,6 +36,20 @@ func New(client authv1.AuthClient) *Delivery {
 	}
 }
 
+func init() {
+	prometheus.MustRegister(requestLoginHandlerDuration, requestRegisterHandlerDuration, requestAuthHandlerDuration, requestLogoutHandlerDuration)
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Info("Метрики для авторизации зарегистрированы")
+}
+
+var requestLoginHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "LoginHandler_request_duration_seconds",
+		Help: "/login",
+	},
+	[]string{"method"},
+)
+
 // LoginHandler godoc
 // @Summary User login
 // @Description Authenticate a user with username and password.
@@ -45,6 +62,11 @@ func New(client authv1.AuthClient) *Delivery {
 // @Failure 401 {object} responser.ErrorResponse "Incorrect login or password"
 // @Router /login [post]
 func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestLoginHandlerDuration, r.Method)
+	}()
+
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -93,6 +115,14 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var requestRegisterHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "RegisterHandler_request_duration_seconds",
+		Help: "/signup",
+	},
+	[]string{"method"},
+)
+
 // @Summary Register a new user
 // @Description Creates a new user with the provided credentials.
 // @Tags auth
@@ -105,6 +135,11 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} responser.ErrorResponse "User failed to create"
 // @Router /signup [post]
 func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestRegisterHandlerDuration, r.Method)
+	}()
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	ctx := r.Context()
@@ -167,6 +202,14 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
+var requestAuthHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "AuthHandler_request_duration_seconds",
+		Help: "/auth",
+	},
+	[]string{"method"},
+)
+
 // AuthHandler godoc
 // @Summary Authenticate a user
 // @Description Retrieve user data based on the JWT token present in the cookies.
@@ -177,6 +220,11 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized: token is invalid"
 // @Router /auth [get]
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestAuthHandlerDuration, r.Method)
+	}()
+
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -266,6 +314,14 @@ func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+var requestLogoutHandlerDuration = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Name: "LogoutHandler_request_duration_seconds",
+		Help: "/logout",
+	},
+	[]string{"method"},
+)
+
 // LogoutHandler godoc
 // @Summary Log out a user
 // @Description Invalidate the user's session by clearing the access token cookie.
@@ -276,6 +332,11 @@ func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
 // @Failure 401 {object} responser.ErrorResponse "No access token found"
 // @Router /logout [post]
 func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer func() {
+		metric.WriteRequestDuration(start, requestLogoutHandlerDuration, r.Method)
+	}()
+
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
