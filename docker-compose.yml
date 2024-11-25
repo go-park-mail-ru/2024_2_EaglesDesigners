@@ -11,8 +11,6 @@ services:
         condition: service_started
       auth:
         condition: service_started
-      surveys:
-        condition: service_started
     restart: always
     ports:
       - "8082:8082"
@@ -48,20 +46,6 @@ services:
     ports:
       - "8083:8083"
 
-  surveys:
-    container_name: surveys
-    build:
-      context: .
-      dockerfile: surveys_service/Dockerfile
-    depends_on:
-      # surveys_db:
-      #   condition: service_started
-      postgres:
-        condition: service_started
-    restart: always
-    ports:
-      - "8084:8084"
-
   postgres:
     container_name: postgres
     image: postgres:15.0
@@ -73,18 +57,6 @@ services:
       - "127.0.0.1:5450:5432"
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
-
-  # surveys_db:
-  #   container_name: surveys_db
-  #   image: postgres:15.0
-  #   environment:
-  #     POSTGRES_DB: surveys
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: postgres
-  #   ports:
-  #     - "127.0.0.1:5451:5451"
-  #   volumes:
-  #     - ./db/survey_migrations:/docker-entrypoint-initdb.d
 
   rabbitmq:
     image: rabbitmq:3.10.7-management

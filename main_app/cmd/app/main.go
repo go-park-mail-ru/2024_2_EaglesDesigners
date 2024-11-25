@@ -17,7 +17,6 @@ import (
 
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/delivery"
 	userRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/repository"
-	surveyv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/surveyv1"
 
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
@@ -32,7 +31,6 @@ import (
 	profileDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/delivery"
 	profileRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/repository"
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/usecase"
-	surveysDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/surveys/delivery"
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/uploads/delivery"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
 
@@ -146,20 +144,6 @@ func main() {
 
 	messageDelivery := messageDelivery.NewMessageController(messageUsecase)
 
-	// surveys
-
-	grpcConnSurveys, err := grpc.Dial(
-		"surveys:8084",
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer grpcConnAuth.Close()
-	surveysClient := surveyv1.NewSurveysClient(grpcConnSurveys)
-
-	surveys := surveysDelivery.New(surveysClient)
-
 	// добавление request_id в ctx всем запросам
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -209,9 +193,7 @@ func main() {
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
-	router.HandleFunc("/statistic/{questionId}", surveys.GetStatictics).Methods("GET", "OPTIONS")
-	router.HandleFunc("/survey/{name}", surveys.GetSurvey).Methods("GET", "OPTIONS")
-	router.HandleFunc("/question/{questionId}", auth.Authorize(surveys.AddAnswers)).Methods("POST", "OPTIONS")
+
 	go startMainServer(router)
 	go startChatServerGRPC(chatService)
 	select {}

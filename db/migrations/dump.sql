@@ -330,8 +330,8 @@ INSERT INTO  public.user_role ( value) VALUES
 --
 
 INSERT INTO public."user" (id, username, version, password, name, bio, birthdate, avatar_path) VALUES
-    (gen_random_uuid(), 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
-    (gen_random_uuid(), 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', '/uploads/avatar/d60053d3-e3a9-4a30-b9a3-cdfdc3431fde.png'),
+    ('39a9aea0-d461-437d-b4eb-bf030a0efc80', 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
+    ('fa4e08e4-1024-49cb-a799-4aa2a4f3a9df', 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', '/uploads/avatar/d60053d3-e3a9-4a30-b9a3-cdfdc3431fde.png'),
     (gen_random_uuid(), 'user33', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Dr Peper', 'Люблю газированные напитки 🥤', '1988-12-01T00:00:00Z', NULL),
     (gen_random_uuid(), 'user44', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Vincent Vega', 'Фанат кино 🎬', '1985-07-14T00:00:00Z', '/uploads/avatar/8027453b-fb36-452d-92dc-c356075fabef.png');
 
@@ -341,347 +341,35 @@ INSERT INTO public."user" (id, username, version, password, name, bio, birthdate
 --
 
 INSERT INTO contact (id, user_id, contact_id) VALUES 
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user22')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user33')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user44')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user11')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user33')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user33'), (SELECT id FROM public."user" WHERE username = 'user22'));
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user22')),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user44')),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user11')),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user33'), (SELECT id FROM public."user" WHERE username = 'user22'));
 
 
 INSERT INTO chat (chat_name, chat_type_id, id) VALUES
-    ('oleg', 1, gen_random_uuid()),
-      ('kizaru', 1, gen_random_uuid());
+    ('oleg', 1, 'a9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('kizaru', 1, 'b9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('marsel', 2, 'c9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('funny channel', 3, 'd9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('not funny channel', 3, 'e9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('my little channel', 3, 'f9a9aea0-d461-437d-b4eb-bf030a0efc80');
 
 INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
-    (gen_random_uuid(), 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
-     (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33'));
-
-CREATE TABLE public.answer (
-    id uuid NOT NULL,
-    question_id uuid NOT NULL,
-    text_answer text,
-    numeric_answer integer,
-    user_id uuid NOT NULL
-);
-
-
-ALTER TABLE public.answer OWNER TO postgres;
-
---
--- Name: question; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.question (
-    id uuid NOT NULL,
-    servey_id uuid NOT NULL,
-    type_id integer NOT NULL,
-    question_text text NOT NULL
-);
-
-
-ALTER TABLE public.question OWNER TO postgres;
-
---
--- Name: question_type; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.question_type (
-    id integer NOT NULL,
-    value text NOT NULL
-);
-
-
-ALTER TABLE public.question_type OWNER TO postgres;
-
---
--- Name: question_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-ALTER TABLE public.question_type ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME public.question_type_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- Name: servey; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.servey (
-    id uuid NOT NULL,
-    topic text NOT NULL,
-	name text NOT NULL
-);
-
-
-ALTER TABLE public.servey OWNER TO postgres;
-
-ALTER TABLE public.servey
-	ADD CONSTRAINT name_uniq UNIQUE (name);
-
---
--- Data for Name: answer; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
---
--- Data for Name: question; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO public.question (id, servey_id, type_id, question_text) VALUES
-('1ca47e50-1640-4a44-9ac5-e34f2e12f6ab',	'c6c92ef5-65ff-4835-9e24-705abf8e00a8',	2,	'Нравятся ли вам горки в аквапарке?'),
-('e37421bd-6621-429e-ab61-ec0656e426e3',	'c6c92ef5-65ff-4835-9e24-705abf8e00a8',	2,	'Нравятся ли вам бар в аквапарке?'),
-('0c94656f-f4b7-4466-97fd-f2b981da5e52',	'02277257-bc5e-4264-b602-3891169a4ccb',	2,	'Понятен ли вам изучаемый материал?'),
-('4cb4f0b2-e602-4272-ba41-bcdaec99bce2',	'02277257-bc5e-4264-b602-3891169a4ccb',	2,	'Нравится ли вам обучение?'),
-('db04f9a5-ae80-43b7-8c75-5a4db98344c5',	'0bee6d65-15c2-473a-860e-acc370eeec40',	2,	'Есть ли у вас машина?'),
-('d7c06b4c-13bd-4575-ac2c-83514bce13b1',	'0bee6d65-15c2-473a-860e-acc370eeec40',	2,	'В какое время нет места на парковке?'),
-('dfdf1ff1-48d0-45a2-a72a-84f3c73350ec',	'c6c92ef5-65ff-4835-9e24-705abf8e00a8',	1,	'Насколько крут аквапарк?'),
-('e5eb1921-fc4f-44c2-87ad-c7ef5e79ad30',	'02277257-bc5e-4264-b602-3891169a4ccb',	1,	'Насколько понятен материал?');
-
-
-
---
--- Data for Name: question_type; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO  public.question_type (value) VALUES
-('numeric'),
-('text');
-
-
-
---
--- Data for Name: servey; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO  public.servey (id, topic, name) VALUES
-('c6c92ef5-65ff-4835-9e24-705abf8e00a8',	'В аквапарке реально охрененно?', 'аквапарк'),
-('02277257-bc5e-4264-b602-3891169a4ccb',	'Довольны ли вы учебным процессом', 'учеба'),
-('0bee6d65-15c2-473a-860e-acc370eeec40',	'Парковка у дгту виноделие', 'парковка');
-
-
-
---
--- Name: question_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
---
--- Name: question Question_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question
-    ADD CONSTRAINT "Question_pkey" PRIMARY KEY (id);
-
-
---
--- Name: servey Servey_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.servey
-    ADD CONSTRAINT "Servey_pkey" PRIMARY KEY (id);
-
-
---
--- Name: question_type question_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question_type
-    ADD CONSTRAINT question_type_pkey PRIMARY KEY (id);
-
-
---
--- Name: answer question_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.answer
-    ADD CONSTRAINT question_id_fk FOREIGN KEY (question_id) REFERENCES public.question(id);
-
-
---
--- Name: question question_servey_key_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question
-    ADD CONSTRAINT question_servey_key_fk FOREIGN KEY (servey_id) REFERENCES public.servey(id);
-
-
---
--- Name: question question_type_key_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question
-    ADD CONSTRAINT question_type_key_fk FOREIGN KEY (type_id) REFERENCES public.question_type(id);
-
-
---
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
---
-
-CREATE TABLE public.answer (
-    id uuid NOT NULL,
-    question_id uuid NOT NULL,
-    text_answer text,
-    numeric_answer integer,
-    user_id uuid NOT NULL
-);
-
-
-ALTER TABLE public.answer OWNER TO postgres;
-
---
--- Name: question; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.question (
-    id uuid NOT NULL,
-    servey_id uuid NOT NULL,
-    type_id integer NOT NULL,
-    question_text text NOT NULL
-);
-
-
-ALTER TABLE public.question OWNER TO postgres;
-
---
--- Name: question_type; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.question_type (
-    id integer NOT NULL,
-    value text NOT NULL
-);
-
-
-ALTER TABLE public.question_type OWNER TO postgres;
-
---
--- Name: question_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-ALTER TABLE public.question_type ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME public.question_type_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- Name: servey; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.servey (
-    id uuid NOT NULL,
-    topic text NOT NULL
-);
-
-
-ALTER TABLE public.servey OWNER TO postgres;
-
---
--- Data for Name: answer; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
---
--- Data for Name: question; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO public.question (id, servey_id, type_id, question_text) VALUES
-('1ca47e50-1640-4a44-9ac5-e34f2e12f6ab',	'c6c92ef5-65ff-4835-9e24-705abf8e00a8',	2,	'Нравятся ли вам горки в аквапарке?'),
-('e37421bd-6621-429e-ab61-ec0656e426e3',	'c6c92ef5-65ff-4835-9e24-705abf8e00a8',	2,	'Нравятся ли вам бар в аквапарке?'),
-('0c94656f-f4b7-4466-97fd-f2b981da5e52',	'02277257-bc5e-4264-b602-3891169a4ccb',	2,	'Понятен ли вам изучаемый материал?'),
-('4cb4f0b2-e602-4272-ba41-bcdaec99bce2',	'02277257-bc5e-4264-b602-3891169a4ccb',	2,	'Нравится ли вам обучение?'),
-('db04f9a5-ae80-43b7-8c75-5a4db98344c5',	'0bee6d65-15c2-473a-860e-acc370eeec40',	2,	'Есть ли у вас машина?'),
-('d7c06b4c-13bd-4575-ac2c-83514bce13b1',	'0bee6d65-15c2-473a-860e-acc370eeec40',	2,	'В какое время нет места на парковке?'),
-('dfdf1ff1-48d0-45a2-a72a-84f3c73350ec',	'c6c92ef5-65ff-4835-9e24-705abf8e00a8',	1,	'Насколько крут аквапарк?'),
-('e5eb1921-fc4f-44c2-87ad-c7ef5e79ad30',	'02277257-bc5e-4264-b602-3891169a4ccb',	1,	'Насколько понятен материал?');
-
-
-
---
--- Data for Name: question_type; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO  public.question_type (value) VALUES
-('numeric'),
-('text');
-
-
-
---
--- Data for Name: servey; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO  public.servey (id, topic , name) VALUES
-('c6c92ef5-65ff-4835-9e24-705abf8e00a8',	'В аквапарке реально охрененно?', 'main'),
-('02277257-bc5e-4264-b602-3891169a4ccb',	'Довольны ли вы учебным процессом', 'second'),
-('0bee6d65-15c2-473a-860e-acc370eeec40',	'Парковка у дгту виноделие', 'third');
-
-
-
---
--- Name: question_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
---
--- Name: question Question_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question
-    ADD CONSTRAINT "Question_pkey" PRIMARY KEY (id);
-
-
---
--- Name: servey Servey_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.servey
-    ADD CONSTRAINT "Servey_pkey" PRIMARY KEY (id);
-
-
---
--- Name: question_type question_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question_type
-    ADD CONSTRAINT question_type_pkey PRIMARY KEY (id);
-
-
---
--- Name: answer question_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.answer
-    ADD CONSTRAINT question_id_fk FOREIGN KEY (question_id) REFERENCES public.question(id);
-
-
---
--- Name: question question_servey_key_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question
-    ADD CONSTRAINT question_servey_key_fk FOREIGN KEY (servey_id) REFERENCES public.servey(id);
-
-
---
--- Name: question question_type_key_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.question
-    ADD CONSTRAINT question_type_key_fk FOREIGN KEY (type_id) REFERENCES public.question_type(id);
-
-
---
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
---
-
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user22')),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user11')),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user22')),
+    ('f1a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user33')),
+    ('f2a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user44')),
+    ('f4a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user11')),
+    ('f5a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user22')),
+    ('f6a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user33')),
+    ('f7a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user22')),
+    ('f8a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user44')),
+    ('f9a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user33')),
+    ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'my little channel'), (SELECT id FROM public.user where username ='user44'));
