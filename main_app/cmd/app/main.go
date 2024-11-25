@@ -191,11 +191,14 @@ func main() {
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
 
 	// мктрики
-	http.Handle("/metrics", promhttp.Handler())
+	router.Handle("/metrics", promhttp.Handler())
+
+	// хз чо это
 	http.HandleFunc("/", httpSwagger.Handler())
 
 	go startMainServer(router)
 	go startChatServerGRPC(chatService)
+
 	select {}
 }
 
@@ -213,6 +216,10 @@ func startMainServer(router *mux.Router) {
 			"https://212.233.98.59:8080",
 			"https://localhost:8083",
 			"http://localhost:8083",
+			"http://localhost:9090",
+			"https://localhost:9090",
+			"http://127.0.0.1:9090",
+			"https://127.0.0.1:9090",
 		},
 		AllowCredentials:   true,
 		AllowedMethods:     []string{"GET", "POST", "PUT", "OPTIONS", "DELETE"},
@@ -222,12 +229,11 @@ func startMainServer(router *mux.Router) {
 
 	handler := c.Handler(router)
 
-	go func() {
-		log.Println("Starting server on :8080")
-		if err := http.ListenAndServe(":8080", handler); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	log.Println("Starting server on :8080")
+	if err := http.ListenAndServe(":8080", handler); err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func startChatServerGRPC(chatService chatService.ChatUsecase) {
