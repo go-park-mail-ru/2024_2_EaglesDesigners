@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/google/uuid"
 )
@@ -27,6 +29,29 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 	return MessageController{
 		usecase: usecase,
 	}
+}
+
+var (
+	requestsTotal = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "sended_messages",
+			Help: "Количество отправленных сообщений.",
+		},
+	)
+	requestDuration = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "redacted_messages",
+			Help: "Количество отредактированнных сообщений.",
+		},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(requestsTotal, requestDuration)
+	requestsTotal.Inc()
+	requestDuration.Inc()
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Info("Метрики для сообщений зарегистрированы")
 }
 
 // AddNewMessageHandler godoc

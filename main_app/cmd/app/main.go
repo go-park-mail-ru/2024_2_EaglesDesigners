@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
@@ -186,6 +187,15 @@ func main() {
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
+<<<<<<< HEAD
+=======
+	router.HandleFunc("/statistic/{questionId}", surveys.GetStatictics).Methods("GET", "OPTIONS")
+	router.HandleFunc("/survey/{name}", surveys.GetSurvey).Methods("GET", "OPTIONS")
+	router.HandleFunc("/question/{questionId}", auth.Authorize(surveys.AddAnswers)).Methods("POST", "OPTIONS")
+
+	// мктрики
+	router.Handle("/metrics", promhttp.Handler())
+>>>>>>> 9bdab85 (feat prometheus)
 
 	go startMainServer(router)
 	go startChatServerGRPC(chatService)
