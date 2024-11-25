@@ -110,6 +110,8 @@ func main() {
 
 	auth := authDelivery.New(authClient)
 
+	// token рудемент
+
 	// uploads
 
 	uploads := uploadsDelivery.New()
@@ -187,15 +189,10 @@ func main() {
 
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.DeleteMessage))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/messages/{messageId}", auth.Authorize(auth.Csrf(messageDelivery.UpdateMessage))).Methods("PUT", "OPTIONS")
-<<<<<<< HEAD
-=======
-	router.HandleFunc("/statistic/{questionId}", surveys.GetStatictics).Methods("GET", "OPTIONS")
-	router.HandleFunc("/survey/{name}", surveys.GetSurvey).Methods("GET", "OPTIONS")
-	router.HandleFunc("/question/{questionId}", auth.Authorize(surveys.AddAnswers)).Methods("POST", "OPTIONS")
 
 	// мктрики
-	router.Handle("/metrics", promhttp.Handler())
->>>>>>> 9bdab85 (feat prometheus)
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/", httpSwagger.Handler())
 
 	go startMainServer(router)
 	go startChatServerGRPC(chatService)
