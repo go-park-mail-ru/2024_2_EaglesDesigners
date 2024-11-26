@@ -35,6 +35,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -192,6 +193,7 @@ func main() {
 
 	// мктрики
 	router.Handle("/metrics", promhttp.Handler())
+	metric.RecordMetrics()
 
 	// хз чо это
 	http.HandleFunc("/", httpSwagger.Handler())
