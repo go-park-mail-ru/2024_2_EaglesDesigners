@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 )
 
 const (
@@ -40,6 +42,11 @@ func SendError(ctx context.Context, w http.ResponseWriter, errorMessage string, 
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+
+	pc, _, _, _ := runtime.Caller(1)
+	funcPath := runtime.FuncForPC(pc).Name()
+
+	metric.PushError(funcPath, statusCode)
 }
 
 func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {

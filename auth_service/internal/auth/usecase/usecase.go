@@ -17,12 +17,18 @@ import (
 	"go.octolab.org/pointer"
 
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 )
 
 //go:generate mockgen -source=usecase.go -destination=mocks/mocks.go
+
+func init() {
+	prometheus.MustRegister(newUserMetric)
+}
 
 type repository interface {
 	GetUserByUsername(ctx context.Context, username string) (models.UserDAO, error)
@@ -50,6 +56,14 @@ func (u *Usecase) Authenticate(ctx context.Context, in *authv1.AuthRequest) (*au
 	}, nil
 }
 
+var newUserMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_registered_users",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
+
 func (u *Usecase) Registration(ctx context.Context, in *authv1.RegistrationRequest) (*authv1.Nothing, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -66,7 +80,7 @@ func (u *Usecase) Registration(ctx context.Context, in *authv1.RegistrationReque
 	}
 
 	log.Println("пользователь создан")
-
+	metric.IncMetric(newUserMetric)
 	return &authv1.Nothing{Dummy: true}, nil
 }
 

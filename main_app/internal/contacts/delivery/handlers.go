@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
 	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/repository"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
@@ -71,6 +71,7 @@ var requestGetContactsHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /contacts [get]
 func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestGetContactsHandlerDuration, r.Method)
@@ -138,6 +139,7 @@ var requestAddContactHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /contacts [post]
 func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestAddContactHandlerDuration, r.Method)
@@ -220,6 +222,7 @@ var requestDeleteContactHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Router /contacts [delete]
 func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestDeleteContactHandlerDuration, r.Method)
@@ -284,6 +287,7 @@ var requestSearchContactsHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 500	"Не удалось получить контакты"
 // @Router /contacts/search [get]
 func (d *Delivery) SearchContactsHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestSearchContactsHandlerDuration, r.Method)

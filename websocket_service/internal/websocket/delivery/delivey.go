@@ -1,12 +1,11 @@
 package delivery
 
 import (
-	"context"
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
@@ -51,23 +50,19 @@ func NewWebsocket(usecase websocketUsecase.WebsocketUsecase) Webcosket {
 }
 
 func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
-	// начало
-
 	user, ok := r.Context().Value(middleware.UserKey).(middleware.User)
 	if !ok {
 		responser.SendError(r.Context(), w, "Не переданы параметры", http.StatusInternalServerError)
 		return
 	}
-
-	userId := user.ID
-
-	log.Printf("Пользователь %v Открыл сокет", userId)
+	log.Printf("Пользователь %v Открыл сокет", user.ID)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Delivery: error during connection upgrade:", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		responser.SendError(r.Context(), w, "Delivery: error during connection upgrade:", http.StatusInternalServerError)
 		return
 	}
 	defer log.Println("Message delivery: websocket is closing")
@@ -75,10 +70,10 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 
 	eventChannel := make(chan websocketUsecase.AnyEvent, 10)
 
-	err = h.usecase.InitBrokersForUser(userId, eventChannel)
+	err = h.usecase.InitBrokersForUser(user.ID, eventChannel)
 	if err != nil {
 		log.Errorf("Не удалось иницировать брокеры для пользователя")
-		SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
+		responser.SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
 
 		return
 	}
@@ -97,21 +92,10 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		default:
 			time.Sleep(duration)
 		}
-
 	}
 }
 
 type ErrorResponse struct {
 	Error  string `json:"error" example:"error message"`
 	Status string `json:"status" example:"error"`
-}
-
-func SendError(ctx context.Context, w http.ResponseWriter, errorMessage string, statusCode int) {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-	log.Errorf("Отправлен код %d. ОШИБКА: %s", statusCode, errorMessage)
-
-	response := ErrorResponse{Error: errorMessage, Status: "error"}
-	w.WriteHeader(statusCode)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
 }

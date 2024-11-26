@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -59,6 +59,7 @@ var requestAddNewMessageDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
 // @Router /chat/{chatId}/messages [post]
 func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestAddNewMessageDuration, r.Method)
@@ -131,6 +132,7 @@ var requestDeleteMessageDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить сообщение"
 // @Router /messages/{messageId} [delete]
 func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestDeleteMessageDuration, r.Method)
@@ -191,6 +193,7 @@ var requestUpdateMessageDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновить сообщение"
 // @Router /messages/{messageId} [put]
 func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestUpdateMessageDuration, r.Method)
@@ -260,6 +263,7 @@ var requestGetAllMessagesDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages [get]
 func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestGetAllMessagesDuration, r.Method)
@@ -331,6 +335,7 @@ var requestGetMessagesWithPageDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages/pages/{lastMessageId} [get]
 func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestGetMessagesWithPageDuration, r.Method)
@@ -404,6 +409,7 @@ var requestSearchMessagesDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить сообщениея"
 // @Router /chat/{chatId}/messages/search [get]
 func (h *MessageController) SearchMessages(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestSearchMessagesDuration, r.Method)

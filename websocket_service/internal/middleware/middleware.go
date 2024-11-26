@@ -114,7 +114,6 @@ type User struct {
 }
 
 func convertFromGRPCUser(user *authv1.UserJWT) User {
-
 	return User{
 		ID:       uuid.MustParse(user.GetID()),
 		Username: user.GetUsername(),

@@ -17,7 +17,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/delivery"
-
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
 	chatService "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/usecase"
@@ -33,10 +32,11 @@ import (
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/uploads/delivery"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
 
-	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
+
+	"github.com/asaskevich/govalidator"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

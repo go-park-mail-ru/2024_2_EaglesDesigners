@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
@@ -9,6 +8,7 @@ import (
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/delivery"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/gorilla/mux"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -43,12 +43,6 @@ func main() {
 
 	router := mux.NewRouter()
 
-	tmpl := template.Must(template.ParseFiles("index.html"))
-
-	router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, nil)
-	})
-
 	// auth
 
 	grpcConnAuth, err := grpc.Dial(
@@ -63,9 +57,10 @@ func main() {
 
 	auth := authDelivery.New(authClient)
 
-
 	// ручки
 	router.HandleFunc("/startwebsocket", auth.Authorize(socketDelivery.HandleConnection))
+	// мктрики
+	router.Handle("/metrics", promhttp.Handler())
 
 	log.Println("Starting server on :8083")
 	if err := http.ListenAndServe(":8083", router); err != nil {

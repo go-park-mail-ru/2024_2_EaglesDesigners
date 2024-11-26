@@ -7,7 +7,9 @@ import (
 
 	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
+	"github.com/prometheus/client_golang/prometheus"
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
@@ -19,6 +21,10 @@ import (
 )
 
 type Method = string
+
+func init() {
+	prometheus.MustRegister(sendedMessagesMetric, deleteMessageMetric, updateMessageMetric)
+}
 
 const (
 	FeatNewUser Method = "featNewUser"
@@ -57,6 +63,14 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatR
 	return &usecase
 }
 
+var sendedMessagesMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_sended_messages",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
+
 func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, chatId uuid.UUID, message models.Message) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
@@ -76,8 +90,17 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
 	u.sendIvent(ctx, socketUsecase.NewMessage, message)
+	metric.IncMetric(sendedMessagesMetric)
 	return nil
 }
+
+var deleteMessageMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_deleted_messages",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
 
 func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, messageId uuid.UUID) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -100,8 +123,17 @@ func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, 
 	}
 
 	u.sendIvent(ctx, socketUsecase.DeleteMessage, message)
+	metric.IncMetric(deleteMessageMetric)
 	return nil
 }
+
+var updateMessageMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_updated_messages",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
 
 func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, messageId uuid.UUID, message models.Message) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -127,7 +159,7 @@ func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, 
 	message.Message = newText
 	message.IsRedacted = true
 	u.sendIvent(ctx, socketUsecase.UpdateMessage, message)
-
+	metric.IncMetric(updateMessageMetric)
 	return nil
 }
 

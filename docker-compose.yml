@@ -31,6 +31,7 @@ services:
     restart: always
     ports:
       - "8081:8081"
+      - "8087:8087"
 
   websocket:
     container_name: websocket

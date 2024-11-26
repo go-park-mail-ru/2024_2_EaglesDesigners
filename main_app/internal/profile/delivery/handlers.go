@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
 	multiparthelper "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -72,6 +72,7 @@ var requestGetSelfProfileHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile [get]
 func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestGetSelfProfileHandlerDuration, r.Method)
@@ -127,6 +128,7 @@ var requestGetProfileHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile/{userid} [get]
 func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestGetProfileHandlerDuration, r.Method)
@@ -189,6 +191,7 @@ var requestUpdateProfileHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 404 {object} responser.ErrorResponse "User not found"
 // @Router /profile [put]
 func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestUpdateProfileHandlerDuration, r.Method)
