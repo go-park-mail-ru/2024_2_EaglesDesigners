@@ -3,4 +3,4 @@ global:
 scrape_configs:
   - job_name: 'patefon-app'
     static_configs:
-      - targets: ['patefon:8080']
+      - targets: ['patefon:8080', 'auth:8087', 'websocket:8083']

@@ -19,6 +19,7 @@ func WriteRequestDuration(start time.Time, met *prometheus.HistogramVec, method 
 	met.WithLabelValues(method).Observe(elapsed)
 }
 
+// hardware metrics
 var (
 	cpuUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -100,13 +101,22 @@ func RecordMetrics() {
 
 	go func() {
 		for {
+			// ошибки
 			errors.mu.Lock()
 			for key, value := range errors.errorsMap {
 				errorsCount.WithLabelValues(key.callMethod, key.statusCode).Set(float64(value))
+				errors.errorsMap[key] = 0
 			}
-			errors.errorsMap = map[ErrorLabels]int{}
-
 			errors.mu.Unlock()
+
+			// все метрики
+			metricStorage.mu.Lock()
+			for key, value := range metricStorage.metrics {
+				key.WithLabelValues().Set(float64(value))
+				metricStorage.metrics[key] = 0
+			}
+			metricStorage.mu.Unlock()
+
 			time.Sleep(1 * time.Minute)
 		}
 	}()
@@ -147,5 +157,25 @@ func IncHit() {
 	pc, _, _, _ := runtime.Caller(1)
 	funcPath := runtime.FuncForPC(pc).Name()
 
-	errorsCount.WithLabelValues(funcPath).Inc()
+	hitCount.WithLabelValues(funcPath).Inc()
+}
+
+type MetricStorage struct {
+	metrics map[prometheus.GaugeVec]int
+	mu      sync.Mutex
+}
+
+var metricStorage MetricStorage = MetricStorage{
+	metrics: map[prometheus.GaugeVec]int{},
+	mu:      sync.Mutex{},
+}
+
+func IncMetric(met *prometheus.GaugeVec) {
+	metricStorage.mu.Lock()
+	defer metricStorage.mu.Unlock()
+	if value, ok := metricStorage.metrics[*met]; ok {
+		metricStorage.metrics[*met] = value + 1
+	} else {
+		metricStorage.metrics[*met] = 1
+	}
 }

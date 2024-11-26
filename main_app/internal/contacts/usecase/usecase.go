@@ -4,13 +4,19 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 
 	errGroup "golang.org/x/sync/errgroup"
 )
 
 //go:generate mockgen -source=usecase.go -destination=mocks/mocks.go
+
+func init() {
+	prometheus.MustRegister(newContactMetric, deleteContactMetric)
+}
 
 type Repository interface {
 	GetContacts(ctx context.Context, username string) (contacts []models.ContactDAO, err error)
@@ -49,6 +55,14 @@ func (u *Usecase) GetContacts(ctx context.Context, username string) (contacts []
 	return contacts, nil
 }
 
+var newContactMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_new_contacts",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
+
 func (u *Usecase) AddContact(ctx context.Context, contactData models.ContactData) (models.Contact, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -62,8 +76,17 @@ func (u *Usecase) AddContact(ctx context.Context, contactData models.ContactData
 
 	contact := convertContactFromDAO(contactDAO)
 
+	metric.IncMetric(newContactMetric)
 	return contact, nil
 }
+
+var deleteContactMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_deleted_contacts",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
 
 func (u *Usecase) DeleteContact(ctx context.Context, contactData models.ContactData) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -76,6 +99,7 @@ func (u *Usecase) DeleteContact(ctx context.Context, contactData models.ContactD
 		return err
 	}
 
+	metric.IncMetric(deleteContactMetric)
 	return nil
 }
 

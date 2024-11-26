@@ -51,24 +51,18 @@ func NewWebsocket(usecase websocketUsecase.WebsocketUsecase) Webcosket {
 
 func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
-	// начало
-
 	user, ok := r.Context().Value(middleware.UserKey).(middleware.User)
 	if !ok {
 		responser.SendError(r.Context(), w, "Не переданы параметры", http.StatusInternalServerError)
 		return
 	}
-
-	userId := user.ID
-
-	log.Printf("Пользователь %v Открыл сокет", userId)
+	log.Printf("Пользователь %v Открыл сокет", user.ID)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Delivery: error during connection upgrade:", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		responser.SendError(r.Context(), w, "Delivery: error during connection upgrade:", http.StatusInternalServerError)
 		return
 	}
 	defer log.Println("Message delivery: websocket is closing")
@@ -76,7 +70,7 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 
 	eventChannel := make(chan websocketUsecase.AnyEvent, 10)
 
-	err = h.usecase.InitBrokersForUser(userId, eventChannel)
+	err = h.usecase.InitBrokersForUser(user.ID, eventChannel)
 	if err != nil {
 		log.Errorf("Не удалось иницировать брокеры для пользователя")
 		responser.SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)

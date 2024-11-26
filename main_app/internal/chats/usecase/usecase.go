@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
@@ -18,12 +19,17 @@ import (
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"golang.org/x/net/html"
 	errGroup "golang.org/x/sync/errgroup"
 )
+
+func init() {
+	prometheus.MustRegister(addNewChatMetric, addUsersIntoChatMetric)
+}
 
 const (
 	Admin     = "admin"
@@ -143,6 +149,14 @@ func (s *ChatUsecaseImpl) GetChats(ctx context.Context, cookie []*http.Cookie) (
 	return chatsDTO, nil
 }
 
+var addUsersIntoChatMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_added_users_into_chat",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
+
 func (s *ChatUsecaseImpl) addUsersIntoChat(ctx context.Context, user_ids []uuid.UUID, chatId uuid.UUID) ([]uuid.UUID, []uuid.UUID) {
 	var addedUsers []uuid.UUID
 	var notAddedUsers []uuid.UUID
@@ -158,6 +172,7 @@ func (s *ChatUsecaseImpl) addUsersIntoChat(ctx context.Context, user_ids []uuid.
 		addedUsers = append(addedUsers, id)
 	}
 	log.Printf("Участники добавлены в чат %v", chatId)
+	metric.IncMetric(addUsersIntoChatMetric)
 	return addedUsers, notAddedUsers
 }
 
@@ -187,6 +202,14 @@ func (s *ChatUsecaseImpl) AddUsersIntoChatWithCheckPermission(ctx context.Contex
 		}
 	}
 }
+
+var addNewChatMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_added_chats",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
 
 func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie, chat chatModel.ChatDTOInput) (chatModel.ChatDTOOutput, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -250,7 +273,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 	// отправляем уведомление
 	s.sendIvent(ctx, NewChat, chatId, nil)
-
+	metric.IncMetric(addNewChatMetric)
 	return newChatDTO, nil
 }
 

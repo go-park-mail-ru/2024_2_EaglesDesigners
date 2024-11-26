@@ -7,7 +7,9 @@ import (
 
 	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
+	"github.com/prometheus/client_golang/prometheus"
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
@@ -19,6 +21,10 @@ import (
 )
 
 type Method = string
+
+func init() {
+	prometheus.MustRegister(sendedMessagesMetric)
+}
 
 const (
 	FeatNewUser Method = "featNewUser"
@@ -57,6 +63,14 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatR
 	return &usecase
 }
 
+var sendedMessagesMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_sended_messages",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
+
 func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, chatId uuid.UUID, message models.Message) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
@@ -76,6 +90,7 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
 	u.sendIvent(ctx, socketUsecase.NewMessage, message)
+	metric.IncMetric(sendedMessagesMetric)
 	return nil
 }
 
