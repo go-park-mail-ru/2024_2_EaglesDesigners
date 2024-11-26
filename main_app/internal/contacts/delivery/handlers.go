@@ -264,7 +264,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 
 var requestSearchContactsHandlerDuration = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
-		Name: "DeleteContactHandler_request_duration_seconds",
+		Name: "SearchContactsHandler_request_duration_seconds",
 		Help: "/contacts",
 	},
 	[]string{"method"},

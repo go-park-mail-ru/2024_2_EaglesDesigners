@@ -42,7 +42,7 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 
 func init() {
 	prometheus.MustRegister(requestGetUserChatsHandlerDuration, requestAddNewChatDuration, requestAddUsersIntoChatDuration,
-		requestDeleteUserFromChatDuration, requestDeleteUserFromChatDuration, requestLeaveChatDuration, requestDeleteChatOrGroupDuration,
+		requestDeleteUserFromChatDuration, requestDeleteUsersFromChatDuration, requestLeaveChatDuration, requestDeleteChatOrGroupDuration,
 		requestUpdateGroupDuration, requestGetChatInfoDuration, requestAddBranchDuration, requestSearchChatsDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для чатов зарегистрированы")
