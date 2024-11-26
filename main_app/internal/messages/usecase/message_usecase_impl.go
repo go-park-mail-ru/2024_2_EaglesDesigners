@@ -23,7 +23,7 @@ import (
 type Method = string
 
 func init() {
-	prometheus.MustRegister(sendedMessagesMetric)
+	prometheus.MustRegister(sendedMessagesMetric, deleteMessageMetric, updateMessageMetric)
 }
 
 const (
@@ -94,6 +94,14 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	return nil
 }
 
+var deleteMessageMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_deleted_messages",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
+
 func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, messageId uuid.UUID) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Infof("начато удаление сообщения %v пользователем %v", messageId, user.ID)
@@ -115,8 +123,17 @@ func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, 
 	}
 
 	u.sendIvent(ctx, socketUsecase.DeleteMessage, message)
+	metric.IncMetric(deleteMessageMetric)
 	return nil
 }
+
+var updateMessageMetric = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "count_of_updated_messages",
+		Help: "countOfHits",
+	},
+	nil, // no labels for this metric
+)
 
 func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, messageId uuid.UUID, message models.Message) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -142,7 +159,7 @@ func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, 
 	message.Message = newText
 	message.IsRedacted = true
 	u.sendIvent(ctx, socketUsecase.UpdateMessage, message)
-
+	metric.IncMetric(updateMessageMetric)
 	return nil
 }
 
