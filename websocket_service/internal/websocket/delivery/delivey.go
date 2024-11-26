@@ -1,12 +1,11 @@
 package delivery
 
 import (
-	"context"
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
@@ -51,6 +50,8 @@ func NewWebsocket(usecase websocketUsecase.WebsocketUsecase) Webcosket {
 }
 
 func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
+
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	// начало
 
@@ -78,7 +79,7 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	err = h.usecase.InitBrokersForUser(userId, eventChannel)
 	if err != nil {
 		log.Errorf("Не удалось иницировать брокеры для пользователя")
-		SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
+		responser.SendError(r.Context(), w, "Нет нужных параметров", http.StatusInternalServerError)
 
 		return
 	}
@@ -97,21 +98,10 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		default:
 			time.Sleep(duration)
 		}
-
 	}
 }
 
 type ErrorResponse struct {
 	Error  string `json:"error" example:"error message"`
 	Status string `json:"status" example:"error"`
-}
-
-func SendError(ctx context.Context, w http.ResponseWriter, errorMessage string, statusCode int) {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-	log.Errorf("Отправлен код %d. ОШИБКА: %s", statusCode, errorMessage)
-
-	response := ErrorResponse{Error: errorMessage, Status: "error"}
-	w.WriteHeader(statusCode)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
 }

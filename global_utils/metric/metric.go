@@ -2,6 +2,7 @@ package metric
 
 import (
 	"context"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -50,9 +51,17 @@ var errorsCount = prometheus.NewGaugeVec(
 	[]string{"callMethod", "statusCode"}, // no labels for this metric
 )
 
+var hitCount = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "hitCount",
+		Help: "countOfHits",
+	},
+	[]string{"callMethod"}, // no labels for this metric
+)
+
 func init() {
 	// Регистрируем метрику в Prometheus
-	prometheus.MustRegister(cpuUsage, memoryUsage, diskUsage, errorsCount)
+	prometheus.MustRegister(cpuUsage, memoryUsage, diskUsage, errorsCount, hitCount)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики ошибок зарегистрированы")
 	log.Info("Метрики железа зарегистрировагы")
@@ -132,4 +141,11 @@ func PushError(callMethod string, statusCode int) {
 	} else {
 		errors.errorsMap[errorLabel] = 1
 	}
+}
+
+func IncHit() {
+	pc, _, _, _ := runtime.Caller(1)
+	funcPath := runtime.FuncForPC(pc).Name()
+
+	errorsCount.WithLabelValues(funcPath).Inc()
 }

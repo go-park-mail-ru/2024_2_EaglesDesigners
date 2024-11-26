@@ -12,9 +12,9 @@ import (
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
 	"github.com/google/uuid"
@@ -62,6 +62,7 @@ var requestLoginHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 401 {object} responser.ErrorResponse "Incorrect login or password"
 // @Router /login [post]
 func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestLoginHandlerDuration, r.Method)
@@ -135,6 +136,7 @@ var requestRegisterHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 400 {object} responser.ErrorResponse "User failed to create"
 // @Router /signup [post]
 func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestRegisterHandlerDuration, r.Method)
@@ -220,6 +222,7 @@ var requestAuthHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized: token is invalid"
 // @Router /auth [get]
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestAuthHandlerDuration, r.Method)
@@ -332,6 +335,7 @@ var requestLogoutHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 401 {object} responser.ErrorResponse "No access token found"
 // @Router /logout [post]
 func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestLogoutHandlerDuration, r.Method)

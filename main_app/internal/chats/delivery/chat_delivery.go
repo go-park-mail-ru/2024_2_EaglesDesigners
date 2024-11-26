@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/usecase"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/metric"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -66,6 +66,7 @@ var requestGetUserChatsHandlerDuration = prometheus.NewHistogramVec(
 // @Failure 500	"Не удалось получить сообщения"
 // @Router /chats [get]
 func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestGetUserChatsHandlerDuration, r.Method)
@@ -128,6 +129,7 @@ var requestAddNewChatDuration = prometheus.NewHistogramVec(
 // @Failure 500 {object} responser.ErrorResponse "Не удалось добавить чат / группу"
 // @Router /addchat [post]
 func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestAddNewChatDuration, r.Method)
@@ -208,6 +210,7 @@ var requestAddUsersIntoChatDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/addusers [post]
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestAddUsersIntoChatDuration, r.Method)
@@ -274,6 +277,7 @@ var requestDeleteUsersFromChatDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/delusers [delete]
 func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestDeleteUsersFromChatDuration, r.Method)
@@ -345,6 +349,7 @@ var requestDeleteUserFromChatDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/deluser/{userId} [delete]
 func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestDeleteUserFromChatDuration, r.Method)
@@ -414,6 +419,7 @@ var requestLeaveChatDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/leave [delete]
 func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestLeaveChatDuration, r.Method)
@@ -468,6 +474,7 @@ var requestDeleteChatOrGroupDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить чат"
 // @Router /chat/{chatId}/delete [delete]
 func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestDeleteChatOrGroupDuration, r.Method)
@@ -550,6 +557,7 @@ var requestUpdateGroupDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновчить чат"
 // @Router /chat/{chatId} [put]
 func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestUpdateGroupDuration, r.Method)
@@ -653,6 +661,7 @@ var requestGetChatInfoDuration = prometheus.NewHistogramVec(
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
 // @Router /chat/{chatId} [get]
 func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestGetChatInfoDuration, r.Method)
@@ -713,6 +722,7 @@ var requestAddBranchDuration = prometheus.NewHistogramVec(
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Router /chat/{chatId}/{messageId}/branch [post]
 func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestAddBranchDuration, r.Method)
@@ -776,6 +786,7 @@ var requestSearchChatsDuration = prometheus.NewHistogramVec(
 // @Failure 500	"Не удалось получить сообщения"
 // @Router /chat/search [get]
 func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
+	metric.IncHit()
 	start := time.Now()
 	defer func() {
 		metric.WriteRequestDuration(start, requestSearchChatsDuration, r.Method)
