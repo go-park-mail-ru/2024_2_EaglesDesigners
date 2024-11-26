@@ -1,8 +1,12 @@
 package metric
 
 import (
+	"context"
+	"strconv"
+	"sync"
 	"time"
 
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -38,9 +42,20 @@ var (
 	)
 )
 
+var errorsCount = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "errorsCount",
+		Help: "count of errors",
+	},
+	[]string{"callMethod", "statusCode"}, // no labels for this metric
+)
+
 func init() {
 	// Регистрируем метрику в Prometheus
-	prometheus.MustRegister(cpuUsage, memoryUsage, diskUsage)
+	prometheus.MustRegister(cpuUsage, memoryUsage, diskUsage, errorsCount)
+	log := logger.LoggerWithCtx(context.Background(), logger.Log)
+	log.Info("Метрики ошибок зарегистрированы")
+	log.Info("Метрики железа зарегистрировагы")
 }
 
 func RecordMetrics() {
@@ -71,7 +86,50 @@ func RecordMetrics() {
 			}
 
 			time.Sleep(2 * time.Second) // Записываем метрики каждые 2 секунды
-
 		}
 	}()
+
+	go func() {
+		for {
+			errors.mu.Lock()
+			for key, value := range errors.errorsMap {
+				errorsCount.WithLabelValues(key.callMethod, key.statusCode).Set(float64(value))
+			}
+			errors.errorsMap = map[ErrorLabels]int{}
+
+			errors.mu.Unlock()
+			time.Sleep(1 * time.Minute)
+		}
+	}()
+}
+
+type ErrorLabels struct {
+	callMethod string
+	statusCode string
+}
+type ErrorsStorage struct {
+	errorsMap map[ErrorLabels]int
+	mu        sync.Mutex
+}
+
+var errors ErrorsStorage = ErrorsStorage{
+	errorsMap: map[ErrorLabels]int{},
+	mu:        sync.Mutex{},
+}
+
+func PushError(callMethod string, statusCode int) {
+
+	errorLabel := ErrorLabels{
+		callMethod: callMethod,
+		statusCode: strconv.Itoa(statusCode),
+	}
+
+	errors.mu.Lock()
+	defer errors.mu.Unlock()
+
+	if value, ok := errors.errorsMap[errorLabel]; ok {
+		errors.errorsMap[errorLabel] = value + 1
+	} else {
+		errors.errorsMap[errorLabel] = 1
+	}
 }
