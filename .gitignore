@@ -14,6 +14,8 @@ backend_app
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+*.out.tmp
+*.tmp
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

@@ -113,7 +113,7 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("контакты успешно отправлены")
 
-	responser.SendStruct(ctx, w, response, http.StatusCreated)
+	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
 var requestAddContactHandlerDuration = prometheus.NewHistogramVec(
