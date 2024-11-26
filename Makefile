@@ -48,7 +48,7 @@ test:
 
 cover:
 	go test -json ./... -coverprofile coverprofile_.tmp -coverpkg=./... ; \
-	cat coverprofile_.tmp | grep -v mocks.go | grep -v .pb.go | grep -v _grpc.go | grep -v main.go | grep -v docs.go > coverprofile.tmp ; \
+	cat coverprofile_.tmp | grep -v mocks.go | grep -v .pb.go | grep -v _grpc.go | grep -v _mock.go | grep -v main.go | grep -v docs.go > coverprofile.tmp ; \
 	rm coverprofile_.tmp ; \
 	go tool cover -html coverprofile.tmp ; \
 	go tool cover -func coverprofile.tmp

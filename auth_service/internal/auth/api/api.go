@@ -7,6 +7,8 @@ import (
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
 )
 
+//go:generate mockgen -source=api.go -destination=mocks/mocks.go
+
 type Auth interface {
 	Authenticate(ctx context.Context, in *authv1.AuthRequest) (*authv1.AuthResponse, error)
 	Registration(ctx context.Context, in *authv1.RegistrationRequest) (*authv1.Nothing, error)

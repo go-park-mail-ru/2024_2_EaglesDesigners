@@ -7,15 +7,20 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v4"
 )
 
+type DB interface {
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Close()
+}
+
 type Repository struct {
-	db    *pgxpool.Pool
+	db    DB
 	close func()
 }
 
-func NewRepository(db *pgxpool.Pool) *Repository {
+func NewRepository(db DB) *Repository {
 	return &Repository{
 		db: db,
 		close: func() {
