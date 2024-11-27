@@ -5,18 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
-	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
-	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
-	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/usecase"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/auth/models"
+	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/custom_error"
+	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/models"
+	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/chats/usecase"
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/jwt/usecase"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/responser"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/internal/utils/validator"
 	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -40,19 +38,6 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 	}
 }
 
-func init() {
-	prometheus.MustRegister(requestChatDuration)
-	log := logger.LoggerWithCtx(context.Background(), logger.Log)
-	log.Info("Метрики для чатов зарегистрированы")
-}
-
-var requestChatDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "request_chat_duration_seconds",
-	},
-	[]string{"method"},
-)
-
 // GetUserChatsHandler выдает чаты пользователя в query указать страницу ?page=
 //
 // GetUserChatsHandler godoc
@@ -63,12 +48,6 @@ var requestChatDuration = prometheus.NewHistogramVec(
 // @Failure 500	"Не удалось получить сообщения"
 // @Router /chats [get]
 func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "GetUserChatsHandler")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	w.Header().Set("Content-Type", "application/json")
 
@@ -118,12 +97,6 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 // @Failure 500 {object} responser.ErrorResponse "Не удалось добавить чат / группу"
 // @Router /addchat [post]
 func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "AddNewChat")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 
@@ -204,7 +177,7 @@ func (c *ChatDelivery) JoinChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
 		return
@@ -234,12 +207,6 @@ func (c *ChatDelivery) JoinChannel(w http.ResponseWriter, r *http.Request) {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/addusers [post]
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "AddUsersIntoChat")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -293,12 +260,6 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/delusers [delete]
 func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "DeleteUsersFromChat")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -310,7 +271,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
 	}
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
 		return
@@ -357,12 +318,6 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/deluser/{userId} [delete]
 func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "DeleteUserFromChat")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -384,7 +339,7 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
 		return
@@ -419,12 +374,6 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
 // @Router /chat/{chatId}/leave [delete]
 func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "LeaveChat")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -436,7 +385,7 @@ func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не переданы параметры", http.StatusInternalServerError)
 		return
@@ -466,12 +415,6 @@ func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить чат"
 // @Router /chat/{chatId}/delete [delete]
 func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "DeleteChatOrGroup")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -483,7 +426,7 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
@@ -541,12 +484,6 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновчить чат"
 // @Router /chat/{chatId} [put]
 func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "UpdateGroup")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -558,7 +495,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
@@ -637,12 +574,6 @@ type SuccessfullSuccess struct {
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
 // @Router /chat/{chatId} [get]
 func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "GetChatInfo")
-	}()
-
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
@@ -654,7 +585,7 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	user, ok := r.Context().Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, "Не получены нужные параметры", http.StatusInternalServerError)
 		return
@@ -690,12 +621,6 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Router /chat/{chatId}/{messageId}/branch [post]
 func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "AddBranch")
-	}()
-
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -717,7 +642,7 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
 	}
 
-	user, ok := ctx.Value(auth.UserKey).(auth.User)
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
@@ -746,12 +671,6 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 // @Failure 500	"Не удалось получить сообщения"
 // @Router /chat/search [get]
 func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
-	metric.IncHit()
-	start := time.Now()
-	defer func() {
-		metric.WriteRequestDuration(start, requestChatDuration, "SearchChats")
-	}()
-
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -764,7 +683,7 @@ func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := ctx.Value(auth.UserKey).(auth.User)
+	user, ok := ctx.Value(auth.UserKey).(jwt.User)
 	if !ok {
 		responser.SendError(ctx, w, userNotFoundError, http.StatusNotFound)
 		return
