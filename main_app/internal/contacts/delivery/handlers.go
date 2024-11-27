@@ -45,16 +45,14 @@ func New(usecase usecase) *Delivery {
 }
 
 func init() {
-	prometheus.MustRegister(requestGetContactsHandlerDuration, requestAddContactHandlerDuration, requestDeleteContactHandlerDuration,
-		requestSearchContactsHandlerDuration)
+	prometheus.MustRegister(requestContactDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для контактов зарегистрированы")
 }
 
-var requestGetContactsHandlerDuration = prometheus.NewHistogramVec(
+var requestContactDuration = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
-		Name: "GetContactsHandler_request_duration_seconds",
-		Help: "/contacts",
+		Name: "request_contact_duration_seconds",
 	},
 	[]string{"method"},
 )
@@ -74,7 +72,7 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetContactsHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestContactDuration, "GetContactsHandler")
 	}()
 
 	ctx := r.Context()
@@ -117,14 +115,6 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
-var requestAddContactHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "AddContactHandler_request_duration_seconds",
-		Help: "/contacts",
-	},
-	[]string{"method"},
-)
-
 // AddContactHandler godoc
 // @Summary Add new contact
 // @Description Create a new contact for the user.
@@ -142,7 +132,7 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestAddContactHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestContactDuration, "AddContactHandler")
 	}()
 
 	d.mu.Lock()
@@ -201,14 +191,6 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
-var requestDeleteContactHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "DeleteContactHandler_request_duration_seconds",
-		Help: "/contacts",
-	},
-	[]string{"method"},
-)
-
 // DeleteContactHandler godoc
 // @Summary Delete contact
 // @Description Deletes user contact.
@@ -225,7 +207,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestDeleteContactHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestContactDuration, "DeleteContactHandler")
 	}()
 
 	d.mu.Lock()
@@ -265,14 +247,6 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 	responser.SendOK(w, "contact deleted", http.StatusOK)
 }
 
-var requestSearchContactsHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "SearchContactsHandler_request_duration_seconds",
-		Help: "/contacts",
-	},
-	[]string{"method"},
-)
-
 // SearchChats ищет контакты по имени или нику, в query указать ключевое слово ?key_word=
 //
 // SearchChats godoc
@@ -290,7 +264,7 @@ func (d *Delivery) SearchContactsHandler(w http.ResponseWriter, r *http.Request)
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestSearchContactsHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestContactDuration, "SearchContactsHandler")
 	}()
 
 	ctx := r.Context()
