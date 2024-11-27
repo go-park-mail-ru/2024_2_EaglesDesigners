@@ -378,6 +378,7 @@ INSERT INTO chat (chat_name, chat_type_id, id) VALUES
 INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
 <<<<<<< HEAD
+<<<<<<< HEAD
     ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
     ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
     ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user44')),
@@ -393,6 +394,8 @@ INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     ('f9a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user33')),
     ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'my little channel'), (SELECT id FROM public.user where username ='user44'));
 =======
+=======
+>>>>>>> RK3
     ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
     ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
     ('z0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user22')),
@@ -407,4 +410,7 @@ INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     ('f8a0aaa0-d461-437d-b4eb-bf030a0efc80', 3, (SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user44')),
     ('f9a0aaa0-d461-437d-b4eb-bf030a0efc80', 1, (SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user33')),
     ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 3, (SELECT id FROM public.chat WHERE chat_name = 'my little channel'), (SELECT id FROM public.user where username ='user44'));
+<<<<<<< HEAD
 >>>>>>> ce95e8774339bd426fac838aa7605c88ead9f29e
+=======
+>>>>>>> RK3
