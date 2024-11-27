@@ -23,8 +23,7 @@ type Auth interface {
 }
 
 func init() {
-	prometheus.MustRegister(requestAuthenticateDuration, requestCreateJWTDuration, requestGetUserByJWTDuration, requestGetUserDataByUsernameDuration,
-		requestIsAuthorizedDuration, requestRegistrationDuration)
+	prometheus.MustRegister(requestAuthDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для авторизации зарегистрированы")
 }
@@ -40,9 +39,9 @@ func New(auth Auth) authv1.AuthServer {
 	}
 }
 
-var requestAuthenticateDuration = prometheus.NewHistogramVec(
+var requestAuthDuration = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
-		Name: "Authenticate_grpc_request_duration_seconds",
+		Name: "grpc_authenticate_request_duration_seconds",
 		Help: "grpcRequest",
 	},
 	[]string{"method"},
@@ -51,87 +50,47 @@ var requestAuthenticateDuration = prometheus.NewHistogramVec(
 func (s Server) Authenticate(ctx context.Context, in *authv1.AuthRequest) (*authv1.AuthResponse, error) {
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestAuthenticateDuration, "grpc")
+		metric.WriteRequestDuration(start, requestAuthDuration, "Authenticate")
 	}()
 	return s.auth.Authenticate(ctx, in)
 }
 
-var requestRegistrationDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "Registration_grpc_request_duration_seconds",
-		Help: "grpcRequest",
-	},
-	[]string{"method"},
-)
-
 func (s Server) Registration(ctx context.Context, in *authv1.RegistrationRequest) (*authv1.Nothing, error) {
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestRegistrationDuration, "grpc")
+		metric.WriteRequestDuration(start, requestAuthDuration, "Registration")
 	}()
 	return s.auth.Registration(ctx, in)
 }
 
-var requestGetUserDataByUsernameDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "GetUserDataByUsername_grpc_request_duration_seconds",
-		Help: "grpcRequest",
-	},
-	[]string{"method"},
-)
-
 func (s Server) GetUserDataByUsername(ctx context.Context, in *authv1.GetUserDataByUsernameRequest) (*authv1.GetUserDataByUsernameResponse, error) {
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetUserDataByUsernameDuration, "grpc")
+		metric.WriteRequestDuration(start, requestAuthDuration, "GetUserDataByUsername")
 	}()
 	return s.auth.GetUserDataByUsername(ctx, in)
 }
 
-var requestCreateJWTDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "CreateJWT_grpc_request_duration_seconds",
-		Help: "grpcRequest",
-	},
-	[]string{"method"},
-)
-
 func (s Server) CreateJWT(ctx context.Context, in *authv1.CreateJWTRequest) (*authv1.Token, error) {
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestCreateJWTDuration, "grpc")
+		metric.WriteRequestDuration(start, requestAuthDuration, "CreateJWT")
 	}()
 	return s.auth.CreateJWT(ctx, in)
 }
 
-var requestGetUserByJWTDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "GetUserByJWT_grpc_request_duration_seconds",
-		Help: "grpcRequest",
-	},
-	[]string{"method"},
-)
-
 func (s Server) GetUserByJWT(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error) {
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetUserByJWTDuration, "grpc")
+		metric.WriteRequestDuration(start, requestAuthDuration, "GetUserByJWT")
 	}()
 	return s.auth.GetUserByJWT(ctx, in)
 }
 
-var requestIsAuthorizedDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "IsAuthorized_grpc_request_duration_seconds",
-		Help: "grpcRequest",
-	},
-	[]string{"method"},
-)
-
 func (s Server) IsAuthorized(ctx context.Context, in *authv1.Token) (*authv1.UserJWT, error) {
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestIsAuthorizedDuration, "grpc")
+		metric.WriteRequestDuration(start, requestAuthDuration, "IsAuthorized")
 	}()
 
 	log.Printf("Пришел запрос на авторизацию %v", in.Token)
