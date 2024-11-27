@@ -34,16 +34,14 @@ func NewMessageController(usecase usecase.MessageUsecase) MessageController {
 }
 
 func init() {
-	prometheus.MustRegister(requestAddNewMessageDuration, requestDeleteMessageDuration, requestUpdateMessageDuration,
-		requestGetAllMessagesDuration, requestGetMessagesWithPageDuration, requestSearchMessagesDuration)
+	prometheus.MustRegister(requestMessageDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для сообщений зарегистрированы")
 }
 
-var requestAddNewMessageDuration = prometheus.NewHistogramVec(
+var requestMessageDuration = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
-		Name: "AddNewMessage_request_duration_seconds",
-		Help: "/chat/{chatId}/messages",
+		Name: "request_messgae_duration_seconds",
 	},
 	[]string{"method"},
 )
@@ -62,7 +60,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestAddNewMessageDuration, r.Method)
+		metric.WriteRequestDuration(start, requestMessageDuration, "AddNewMessage")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -114,14 +112,6 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusCreated)
 }
 
-var requestDeleteMessageDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "DeleteMessage_request_duration_seconds",
-		Help: "/messages/{messageId}",
-	},
-	[]string{"method"},
-)
-
 // DeleteMessage godoc
 // @Summary Delete message
 // @Tags message
@@ -135,7 +125,7 @@ func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestDeleteMessageDuration, r.Method)
+		metric.WriteRequestDuration(start, requestMessageDuration, "DeleteMessage")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -174,14 +164,6 @@ func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request
 	responser.SendOK(w, "Сообщение удалено", http.StatusOK)
 }
 
-var requestUpdateMessageDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "UpdateMessage_request_duration_seconds",
-		Help: "/messages/{messageId}",
-	},
-	[]string{"method"},
-)
-
 // UpdateMessage godoc
 // @Summary Update message
 // @Tags message
@@ -196,7 +178,7 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestUpdateMessageDuration, r.Method)
+		metric.WriteRequestDuration(start, requestMessageDuration, "UpdateMessage")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -245,13 +227,6 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 	responser.SendOK(w, "Сообщение обновлено", http.StatusOK)
 }
 
-var requestGetAllMessagesDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "GetAllMessages_request_duration_seconds",
-		Help: "/chat/{chatId}/messages",
-	},
-	[]string{"method"},
-)
 
 // GetAllMessages godoc
 // @Summary Get All messages
@@ -266,7 +241,7 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetAllMessagesDuration, r.Method)
+		metric.WriteRequestDuration(start, requestMessageDuration, "GetAllMessages")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -316,13 +291,6 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	w.Write(jsonResp)
 }
 
-var requestGetMessagesWithPageDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "GetMessagesWithPage_request_duration_seconds",
-		Help: "/chat/{chatId}/messages/pages/{lastMessageId}",
-	},
-	[]string{"method"},
-)
 
 // GetMessagesWithPage godoc
 // @Summary получить 25 сообщений до определенного
@@ -338,7 +306,7 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetMessagesWithPageDuration, r.Method)
+		metric.WriteRequestDuration(start, requestMessageDuration, "GetMessagesWithPage")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -390,14 +358,6 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 	responser.SendStruct(ctx, w, messages, http.StatusOK)
 }
 
-var requestSearchMessagesDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "SearchMessages_request_duration_seconds",
-		Help: "/chat/{chatId}/messages/search",
-	},
-	[]string{"method"},
-)
-
 // SearchMessages godoc
 // @Summary поиск сообщений
 // @Tags message
@@ -412,7 +372,7 @@ func (h *MessageController) SearchMessages(w http.ResponseWriter, r *http.Reques
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestSearchMessagesDuration, r.Method)
+		metric.WriteRequestDuration(start, requestMessageDuration, "SearchMessages")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
