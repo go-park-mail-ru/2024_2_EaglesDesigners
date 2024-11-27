@@ -80,7 +80,7 @@ func (u *Usecase) Registration(ctx context.Context, in *authv1.RegistrationReque
 	}
 
 	log.Println("пользователь создан")
-	metric.IncMetric(newUserMetric)
+	metric.IncMetric(*newUserMetric)
 	return &authv1.Nothing{Dummy: true}, nil
 }
 

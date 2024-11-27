@@ -90,7 +90,7 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
 	u.sendIvent(ctx, socketUsecase.NewMessage, message)
-	metric.IncMetric(sendedMessagesMetric)
+	metric.IncMetric(*sendedMessagesMetric)
 	return nil
 }
 
@@ -123,7 +123,7 @@ func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, 
 	}
 
 	u.sendIvent(ctx, socketUsecase.DeleteMessage, message)
-	metric.IncMetric(deleteMessageMetric)
+	metric.IncMetric(*deleteMessageMetric)
 	return nil
 }
 
@@ -159,7 +159,7 @@ func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, 
 	message.Message = newText
 	message.IsRedacted = true
 	u.sendIvent(ctx, socketUsecase.UpdateMessage, message)
-	metric.IncMetric(updateMessageMetric)
+	metric.IncMetric(*updateMessageMetric)
 	return nil
 }
 

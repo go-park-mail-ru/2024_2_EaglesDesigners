@@ -76,7 +76,7 @@ func (u *Usecase) AddContact(ctx context.Context, contactData models.ContactData
 
 	contact := convertContactFromDAO(contactDAO)
 
-	metric.IncMetric(newContactMetric)
+	metric.IncMetric(*newContactMetric)
 	return contact, nil
 }
 
@@ -99,7 +99,7 @@ func (u *Usecase) DeleteContact(ctx context.Context, contactData models.ContactD
 		return err
 	}
 
-	metric.IncMetric(deleteContactMetric)
+	metric.IncMetric(*deleteContactMetric)
 	return nil
 }
 

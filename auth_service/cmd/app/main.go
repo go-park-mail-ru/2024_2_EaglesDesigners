@@ -13,6 +13,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/usecase"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -48,7 +49,7 @@ func main() {
 		}
 		log.Println("server started at:8081")
 	}()
-
+	metric.CollectMetrics()
 	http.Handle("/metrics", promhttp.Handler())
 	if err := http.ListenAndServe(":8087", nil); err != nil {
 		log.Fatalf("failed to start HTTP server %v", err)

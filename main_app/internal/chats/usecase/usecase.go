@@ -172,7 +172,7 @@ func (s *ChatUsecaseImpl) addUsersIntoChat(ctx context.Context, user_ids []uuid.
 		addedUsers = append(addedUsers, id)
 	}
 	log.Printf("Участники добавлены в чат %v", chatId)
-	metric.IncMetric(addUsersIntoChatMetric)
+	metric.IncMetric(*addUsersIntoChatMetric)
 	return addedUsers, notAddedUsers
 }
 
@@ -273,7 +273,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 	// отправляем уведомление
 	s.sendIvent(ctx, NewChat, chatId, nil)
-	metric.IncMetric(addNewChatMetric)
+	metric.IncMetric(*addNewChatMetric)
 	return newChatDTO, nil
 }
 

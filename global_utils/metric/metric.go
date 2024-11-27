@@ -2,6 +2,7 @@ package metric
 
 import (
 	"context"
+	"log"
 	"runtime"
 	"strconv"
 	"sync"
@@ -68,6 +69,7 @@ func init() {
 	log.Info("Метрики железа зарегистрировагы")
 }
 
+// RecordMetrics запускаем в основном сервисе
 func RecordMetrics() {
 	go func() {
 		for {
@@ -90,7 +92,7 @@ func RecordMetrics() {
 					usageStat, err := disk.Usage(partition.Mountpoint)
 					if err == nil {
 						// Устанавливаем значение для использования диска
-						diskUsage.WithLabelValues(partition.Mountpoint).Set(float64(usageStat.Used) / 1024 / 1024)
+						diskUsage.WithLabelValues(partition.Mountpoint).Set(float64(usageStat.UsedPercent))
 					}
 				}
 			}
@@ -99,6 +101,11 @@ func RecordMetrics() {
 		}
 	}()
 
+	CollectMetrics()
+}
+
+// CollectMetrics запускаем не в основном сервисе
+func CollectMetrics() {
 	go func() {
 		for {
 			// ошибки
@@ -116,7 +123,6 @@ func RecordMetrics() {
 				metricStorage.metrics[key] = 0
 			}
 			metricStorage.mu.Unlock()
-
 			time.Sleep(1 * time.Minute)
 		}
 	}()
@@ -170,12 +176,14 @@ var metricStorage MetricStorage = MetricStorage{
 	mu:      sync.Mutex{},
 }
 
-func IncMetric(met *prometheus.GaugeVec) {
+func IncMetric(met prometheus.GaugeVec) {
 	metricStorage.mu.Lock()
 	defer metricStorage.mu.Unlock()
-	if value, ok := metricStorage.metrics[*met]; ok {
-		metricStorage.metrics[*met] = value + 1
+	if value, ok := metricStorage.metrics[met]; ok {
+		metricStorage.metrics[met] = value + 1
 	} else {
-		metricStorage.metrics[*met] = 1
+		metricStorage.metrics[met] = 1
 	}
+
+	log.Println(metricStorage.metrics)
 }
