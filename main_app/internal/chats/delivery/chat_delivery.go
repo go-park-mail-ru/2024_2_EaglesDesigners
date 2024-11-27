@@ -41,17 +41,14 @@ func NewChatDelivery(service chatlist.ChatUsecase) *ChatDelivery {
 }
 
 func init() {
-	prometheus.MustRegister(requestGetUserChatsHandlerDuration, requestAddNewChatDuration, requestAddUsersIntoChatDuration,
-		requestDeleteUserFromChatDuration, requestDeleteUsersFromChatDuration, requestLeaveChatDuration, requestDeleteChatOrGroupDuration,
-		requestUpdateGroupDuration, requestGetChatInfoDuration, requestAddBranchDuration, requestSearchChatsDuration)
+	prometheus.MustRegister(requestChatDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для чатов зарегистрированы")
 }
 
-var requestGetUserChatsHandlerDuration = prometheus.NewHistogramVec(
+var requestChatDuration = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
-		Name: "GetUserChatsHandler_request_duration_seconds",
-		Help: "/chats",
+		Name: "request_chat_duration_seconds",
 	},
 	[]string{"method"},
 )
@@ -69,7 +66,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetUserChatsHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "GetUserChatsHandler")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -111,14 +108,6 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 	w.Write(jsonResp)
 }
 
-var requestAddNewChatDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "AddNewChat_request_duration_seconds",
-		Help: "/addchat",
-	},
-	[]string{"method"},
-)
-
 // AddNewChat godoc
 // @Summary Add new chat
 // @Tags chat
@@ -132,7 +121,7 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestAddNewChatDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "AddNewChat")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -191,14 +180,6 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, returnChat, 201)
 }
 
-var requestAddUsersIntoChatDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "AddUsersIntoChat_request_duration_seconds",
-		Help: "/chat/{chatId}/addusers",
-	},
-	[]string{"method"},
-)
-
 // AddUsersIntoChat godoc
 // @Summary Добавить пользователей в чат
 // @Tags chat
@@ -213,7 +194,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestAddUsersIntoChatDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "AddUsersIntoChat")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -258,14 +239,6 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	responser.SendStruct(ctx, w, addedUsers, 200)
 }
 
-var requestDeleteUsersFromChatDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "DeleteUsersFromChat_request_duration_seconds",
-		Help: "/chat/{chatId}/delusers",
-	},
-	[]string{"method"},
-)
-
 // DeleteUsersFromChat godoc
 // @Summary Удалить пользователей из чата
 // @Tags chat
@@ -280,7 +253,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestDeleteUsersFromChatDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "DeleteUsersFromChat")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -331,14 +304,6 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 	responser.SendStruct(ctx, w, delUsers, 200)
 }
 
-var requestDeleteUserFromChatDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "DeleteUserFromChat_request_duration_seconds",
-		Help: "/chat/{chatId}/deluser/{userId}",
-	},
-	[]string{"method"},
-)
-
 // DeleteUserFromChat godoc
 // @Summary Удалить пользователя из чата
 // @Tags chat
@@ -352,7 +317,7 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestDeleteUserFromChatDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "DeleteUserFromChat")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -401,14 +366,6 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 	responser.SendStruct(ctx, w, delUsers, 200)
 }
 
-var requestLeaveChatDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "LeaveChat_request_duration_seconds",
-		Help: "/chat/{chatId}/leave",
-	},
-	[]string{"method"},
-)
-
 // LeaveChat godoc
 // @Summary Выйти из чата
 // @Tags chat
@@ -422,7 +379,7 @@ func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestLeaveChatDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "LeaveChat")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -456,14 +413,6 @@ func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 	responser.SendOK(w, "Пользователь вышел из чата", http.StatusOK)
 }
 
-var requestDeleteChatOrGroupDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "DeleteChatOrGroup_request_duration_seconds",
-		Help: "/chat/{chatId}/delete",
-	},
-	[]string{"method"},
-)
-
 // DeleteChatOrGroup godoc
 // @Summary Удаличть чат или группу
 // @Tags chat
@@ -477,7 +426,7 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestDeleteChatOrGroupDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "DeleteChatOrGroup")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -534,14 +483,6 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 	return chatUUID, nil
 }
 
-var requestUpdateGroupDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "UpdateGroup_request_duration_seconds",
-		Help: "/chat/{chatId} ",
-	},
-	[]string{"method"},
-)
-
 // UpdateGroup godoc
 // @Summary Обновляем фото и имя
 // @Description Update bio, avatar, name or birthdate of user.
@@ -560,7 +501,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestUpdateGroupDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "UpdateGroup")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -642,14 +583,6 @@ type SuccessfullSuccess struct {
 	Success string `json:success`
 }
 
-var requestGetChatInfoDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "GetChatInfo_request_duration_seconds",
-		Help: "/chat/{chatId} ",
-	},
-	[]string{"method"},
-)
-
 // GetChatInfo godoc
 // @Summary Получаем пользователей и последние сообщении чата
 // @Tags chat
@@ -664,7 +597,7 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetChatInfoDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "GetChatInfo")
 	}()
 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
@@ -703,14 +636,6 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, users, http.StatusOK)
 }
 
-var requestAddBranchDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "AddBranch_request_duration_seconds",
-		Help: "/chat/{chatId}/{messageId}/branch",
-	},
-	[]string{"method"},
-)
-
 // UpdateGroup godoc
 // @Summary Добавить ветку к сообщению в чате
 // @Tags chat
@@ -725,7 +650,7 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestAddBranchDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "AddBranch")
 	}()
 
 	ctx := r.Context()
@@ -764,14 +689,6 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, branch, http.StatusCreated)
 }
 
-var requestSearchChatsDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "SearchChats_request_duration_seconds",
-		Help: "/chat/search",
-	},
-	[]string{"method"},
-)
-
 // SearchChats ищет чаты по названию, в query указать ключевое слово ?key_word=
 //
 // SearchChats godoc
@@ -789,7 +706,7 @@ func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestSearchChatsDuration, r.Method)
+		metric.WriteRequestDuration(start, requestChatDuration, "SearchChats")
 	}()
 
 	ctx := r.Context()
