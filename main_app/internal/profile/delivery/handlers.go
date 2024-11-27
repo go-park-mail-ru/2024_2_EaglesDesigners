@@ -46,15 +46,14 @@ func New(usecase usecase) *Delivery {
 }
 
 func init() {
-	prometheus.MustRegister()
+	prometheus.MustRegister(requestProfileDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для сообщений зарегистрированы")
 }
 
-var requestGetSelfProfileHandlerDuration = prometheus.NewHistogramVec(
+var requestProfileDuration = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
-		Name: "GetSelfProfileHandler_request_duration_seconds",
-		Help: "/chat/{chatId}/messages",
+		Name: "request_profile_duration_seconds",
 	},
 	[]string{"method"},
 )
@@ -75,7 +74,7 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetSelfProfileHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestProfileDuration, "GetSelfProfileHandler")
 	}()
 
 	ctx := r.Context()
@@ -108,14 +107,6 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
-var requestGetProfileHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "GetSelfProfileHandler_request_duration_seconds",
-		Help: "/profile/{userid}",
-	},
-	[]string{"method"},
-)
-
 // GetProfileHandler godoc
 // @Summary Get profile data
 // @Description Get bio, avatar and birthdate of user.
@@ -131,7 +122,7 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestGetProfileHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestProfileDuration, "GetProfileHandler")
 	}()
 
 	ctx := r.Context()
@@ -168,14 +159,6 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusOK)
 }
 
-var requestUpdateProfileHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "UpdateProfileHandler_request_duration_seconds",
-		Help: "/profile",
-	},
-	[]string{"method"},
-)
-
 // UpdateProfileHandler godoc
 // @Summary Update profile data
 // @Description Update bio, avatar, name or birthdate of user.
@@ -194,7 +177,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestUpdateProfileHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestProfileDuration, "UpdateProfileHandler")
 	}()
 
 	d.mu.Lock()
