@@ -30,14 +30,14 @@ var (
 	)
 	memoryUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "memory_usage_bytes",
+			Name: "memory_usage_mbytes",
 			Help: "Current memory usage in bytes",
 		},
 		nil, // no labels for this metric
 	)
 	diskUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "disk_usage_bytes",
+			Name: "disk_usage_mbytes",
 			Help: "Current disk usage in bytes",
 		},
 		[]string{"mountpoint"}, // Метка для точки монтирования
@@ -80,7 +80,7 @@ func RecordMetrics() {
 			// Получаем информацию о памяти
 			virtualMem, err := mem.VirtualMemory()
 			if err == nil {
-				memoryUsage.WithLabelValues().Set(float64(virtualMem.Used)) // Устанавливаем значение метрики
+				memoryUsage.WithLabelValues().Set(float64(virtualMem.Used) / 1024 / 1024) // Устанавливаем значение метрики
 			}
 
 			partitions, err := disk.Partitions(true)
@@ -90,7 +90,7 @@ func RecordMetrics() {
 					usageStat, err := disk.Usage(partition.Mountpoint)
 					if err == nil {
 						// Устанавливаем значение для использования диска
-						diskUsage.WithLabelValues(partition.Mountpoint).Set(float64(usageStat.Used))
+						diskUsage.WithLabelValues(partition.Mountpoint).Set(float64(usageStat.Used) / 1024 / 1024)
 					}
 				}
 			}
