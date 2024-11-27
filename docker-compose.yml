@@ -99,7 +99,7 @@ services:
     image: grafana/grafana:9.5.1
     user: root
     ports:
-      - 3000:3000
+      - 8050:3000
     volumes:
       - ./grafana:/var/lib/grafana
       - ./grafana/provisioning/:/etc/grafana/provisioning/
