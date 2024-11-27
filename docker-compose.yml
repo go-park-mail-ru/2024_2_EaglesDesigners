@@ -1,18 +1,54 @@
+version: '3.8'
+
 services:
   patefon:
     container_name: patefon
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: main_app/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      auth:
+        condition: service_started
+    restart: always
+    ports:
+      - "8082:8082"
+      - "8080:8080"
+    volumes:
+      - ./uploads:/uploads
+
+  auth:
+    container_name: auth
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
     depends_on:
       postgres:
         condition: service_started
     restart: always
     ports:
-      - "8080:8080"
-    volumes:
-      - ./uploads:/uploads
-  
+      - "8081:8081"
+      - "8087:8087"
+
+  websocket:
+    container_name: websocket
+    build:
+      context: .
+      dockerfile: websocket_service/Dockerfile
+    depends_on:
+      auth:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      patefon:
+        condition: service_started
+    restart: always
+    ports:
+      - "8083:8083"
+
   postgres:
     container_name: postgres
     image: postgres:15.0
@@ -25,8 +61,52 @@ services:
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
 
-  redis:
-    container_name: redis
-    image: redis:7.4.1
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=root
     ports:
-      - "6380:6379"
+      - 15672:15672
+      - 5672:5672
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus_data/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: always
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.3.1
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: always
+    volumes:
+      - '/:/host:ro,rslave'
+    ports:
+      - 8093:9100
+
+  grafana:
+    image: grafana/grafana:9.5.1
+    user: root
+    ports:
+      - 8050:3000
+    volumes:
+      - ./grafana:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    container_name: grafana
+    hostname: grafana
+    environment:
+      TZ: "Europe/Moscow"
+    depends_on:
+      - prometheus
+    restart: always

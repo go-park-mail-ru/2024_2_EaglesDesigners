@@ -73,6 +73,7 @@ CREATE TABLE public.message (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     chat_id uuid NOT NULL,
     author_id uuid NOT NULL,
+    branch_id uuid,
     message text,
     sent_at timestamp with time zone NOT NULL,
     is_redacted boolean DEFAULT false NOT NULL,
@@ -169,6 +170,22 @@ ALTER TABLE ONLY public.chat_type
 
 ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT chat_user_pkey PRIMARY KEY (id);
+
+--
+-- Name: message branch_id_fk_messages_chat_id_pk_chat; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT branch_id_fk_messages_chat_id_pk_chat FOREIGN KEY (branch_id) REFERENCES public.chat(id)
+    ON DELETE CASCADE;  
+
+   
+--
+-- Name: user uniq_branch_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT uniq_branch_id UNIQUE (branch_id); 
 
 
 --
@@ -317,7 +334,8 @@ ALTER TABLE ONLY public.chat_user
 INSERT INTO public.chat_type (value) VALUES
 ('personal'),
 ('group'),
-('channel');
+('channel'),
+('branch');
 
 INSERT INTO  public.user_role ( value) VALUES
 ('none'),
@@ -330,8 +348,8 @@ INSERT INTO  public.user_role ( value) VALUES
 --
 
 INSERT INTO public."user" (id, username, version, password, name, bio, birthdate, avatar_path) VALUES
-    (gen_random_uuid(), 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
-    (gen_random_uuid(), 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', '/uploads/avatar/d60053d3-e3a9-4a30-b9a3-cdfdc3431fde.png'),
+    ('39a9aea0-d461-437d-b4eb-bf030a0efc80', 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
+    ('fa4e08e4-1024-49cb-a799-4aa2a4f3a9df', 'user22', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Жабка Пепе', 'Кулинар и знаток природы 🍽️🦎', '1992-08-28T00:00:00Z', '/uploads/avatar/d60053d3-e3a9-4a30-b9a3-cdfdc3431fde.png'),
     (gen_random_uuid(), 'user33', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Dr Peper', 'Люблю газированные напитки 🥤', '1988-12-01T00:00:00Z', NULL),
     (gen_random_uuid(), 'user44', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Vincent Vega', 'Фанат кино 🎬', '1985-07-14T00:00:00Z', '/uploads/avatar/8027453b-fb36-452d-92dc-c356075fabef.png');
 
@@ -341,20 +359,36 @@ INSERT INTO public."user" (id, username, version, password, name, bio, birthdate
 --
 
 INSERT INTO contact (id, user_id, contact_id) VALUES 
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user22')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user33')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user44')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user11')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user33')),
-    (gen_random_uuid(), (SELECT id FROM public."user" WHERE username = 'user33'), (SELECT id FROM public."user" WHERE username = 'user22'));
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user22')),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user11'), (SELECT id FROM public."user" WHERE username = 'user44')),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user11')),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user22'), (SELECT id FROM public."user" WHERE username = 'user33')),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', (SELECT id FROM public."user" WHERE username = 'user33'), (SELECT id FROM public."user" WHERE username = 'user22'));
 
 
 INSERT INTO chat (chat_name, chat_type_id, id) VALUES
-    ('oleg', 1, gen_random_uuid()),
-      ('kizaru', 1, gen_random_uuid());
+    ('oleg', 1, 'a9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('kizaru', 1, 'b9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('marsel', 2, 'c9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('funny channel', 3, 'd9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('not funny channel', 3, 'e9a9aea0-d461-437d-b4eb-bf030a0efc80'),
+    ('my little channel', 3, 'f9a9aea0-d461-437d-b4eb-bf030a0efc80');
 
 INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
-    (gen_random_uuid(), 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
-     (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
-    (gen_random_uuid(), 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user33'));
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2, (SELECT id FROM public.chat WHERE chat_name = 'oleg'), (SELECT id FROM public.user where username ='user11')),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'oleg'),  (SELECT id FROM public.user where username ='user22')),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user11')),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'kizaru'), (SELECT id FROM public.user where username ='user44')),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user11')),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user22')),
+    ('f1a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user33')),
+    ('f2a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'marsel'), (SELECT id FROM public.user where username ='user44')),
+    ('f4a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user11')),
+    ('f5a0aaa0-d461-437d-b4eb-bf030a0efc80', 2,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user22')),
+    ('f6a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'funny channel'), (SELECT id FROM public.user where username ='user33')),
+    ('f7a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user22')),
+    ('f8a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user44')),
+    ('f9a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user33')),
+    ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'my little channel'), (SELECT id FROM public.user where username ='user44'));
+

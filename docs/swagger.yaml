@@ -1,8 +1,21 @@
 basePath: /
 definitions:
+  customerror.NoPermissionError:
+    properties:
+      area:
+        type: string
+      user:
+        type: string
+    type: object
   delivery.SuccessfullSuccess:
     properties:
       success:
+        type: string
+    type: object
+  model.AddBranch:
+    properties:
+      id:
+        example: f0364477-bfd4-496d-b639-d825b009d509
         type: string
     type: object
   model.AddUsersIntoChatDTO:
@@ -51,6 +64,20 @@ definitions:
       lastMessage:
         $ref: '#/definitions/models.Message'
     type: object
+  model.ChatInfoDTO:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
+      role:
+        example: owner
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/model.UserInChatDTO'
+        type: array
+    type: object
   model.ChatUpdate:
     properties:
       chatName:
@@ -93,15 +120,34 @@ definitions:
           type: string
         type: array
     type: object
-  model.UsersInChat:
+  model.SearchChatsDTO:
     properties:
-      usersId:
-        example:
-        - uuid1
-        - uuid2
+      global_channels:
         items:
-          type: string
+          $ref: '#/definitions/model.ChatDTOOutput'
         type: array
+      user_chats:
+        items:
+          $ref: '#/definitions/model.ChatDTOOutput'
+        type: array
+    type: object
+  model.UserInChatDTO:
+    properties:
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      id:
+        example: f0364477-bfd4-496d-b639-d825b009d509
+        type: string
+      name:
+        example: Vincent Vega
+        type: string
+      role:
+        example: owner
+        type: string
+      username:
+        example: mavrodi777
+        type: string
     type: object
   models.AuthReqDTO:
     properties:
@@ -159,7 +205,7 @@ definitions:
     properties:
       authorID:
         type: string
-      authorName:
+      branchId:
         type: string
       chatId:
         type: string
@@ -208,6 +254,17 @@ definitions:
       user:
         $ref: '#/definitions/models.UserDataRespDTO'
     type: object
+  models.SearchContactsDTO:
+    properties:
+      global_users:
+        items:
+          $ref: '#/definitions/models.ContactRespDTO'
+        type: array
+      user_contacts:
+        items:
+          $ref: '#/definitions/models.ContactRespDTO'
+        type: array
+    type: object
   models.UpdateProfileRequestDTO:
     properties:
       bio:
@@ -216,6 +273,8 @@ definitions:
       birthdate:
         example: "2024-04-13T08:30:00Z"
         type: string
+      deleteAvatar:
+        type: boolean
       name:
         example: Vincent Vega
         type: string
@@ -313,7 +372,68 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /channel/{channelId}/join:
+    post:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: channelId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ПОльзователь вступил в чат
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Запрещено
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось двступить в канал
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Войти в канал
+      tags:
+      - channel
   /chat/{chatId}:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователи чата
+          schema:
+            $ref: '#/definitions/model.ChatInfoDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить учатсников
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получаем пользователей и последние сообщении чата
+      tags:
+      - chat
     put:
       consumes:
       - multipart/form-data
@@ -357,6 +477,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновляем фото и имя
+      tags:
+      - chat
+  /chat/{chatId}/{messageId}/branch:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Ветка добавлена
+          schema:
+            $ref: '#/definitions/model.AddBranch'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Добавить ветку к сообщению в чате
       tags:
       - chat
   /chat/{chatId}/addusers:
@@ -423,8 +567,43 @@ paths:
       summary: Удаличть чат или группу
       tags:
       - chat
+  /chat/{chatId}/deluser/{userId}:
+    delete:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: userId
+        required: true
+        type: string
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователь удален
+          schema:
+            $ref: '#/definitions/model.DeletdeUsersFromChatDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось добавить пользователей
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Удалить пользователя из чата
+      tags:
+      - chat
   /chat/{chatId}/delusers:
-    post:
+    delete:
       consumes:
       - application/json
       parameters:
@@ -458,6 +637,35 @@ paths:
       summary: Удалить пользователей из чата
       tags:
       - chat
+  /chat/{chatId}/leave:
+    delete:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователь вышел из чата
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Запрещено
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось добавить пользователей
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Выйти из чата
+      tags:
+      - chat
   /chat/{chatId}/messages:
     get:
       parameters:
@@ -478,6 +686,8 @@ paths:
       responses:
         "200":
           description: Сообщение успешно отаправлены
+          schema:
+            $ref: '#/definitions/models.MessagesArrayDTO'
         "400":
           description: Некорректный запрос
           schema:
@@ -486,7 +696,7 @@ paths:
           description: Не удалось получить сообщениея
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
-      summary: Add new message
+      summary: Get All messages
       tags:
       - message
     post:
@@ -521,7 +731,7 @@ paths:
       summary: Add new message
       tags:
       - message
-  /chat/{chatId}/users:
+  /chat/{chatId}/messages/pages/{lastMessageId}:
     get:
       parameters:
       - description: Chat ID (UUID)
@@ -532,11 +742,83 @@ paths:
         name: chatId
         required: true
         type: string
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: lastMessageId
+        required: true
+        type: string
       responses:
         "200":
-          description: Пользователи чата
+          description: Сообщение успешно отаправлены
           schema:
-            $ref: '#/definitions/model.UsersInChat'
+            $ref: '#/definitions/models.MessagesArrayDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/customerror.NoPermissionError'
+        "500":
+          description: Не удалось получить сообщениея
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: получить 25 сообщений до определенного
+      tags:
+      - message
+  /chat/{chatId}/messages/search:
+    get:
+      parameters:
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      - description: Поиск
+        in: query
+        name: search_query
+        type: integer
+      responses:
+        "200":
+          description: Сообщение успешно отаправлены
+          schema:
+            $ref: '#/definitions/models.MessagesArrayDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/customerror.NoPermissionError'
+        "500":
+          description: Не удалось получить сообщениея
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: поиск сообщений
+      tags:
+      - message
+  /chat/search:
+    get:
+      parameters:
+      - description: Ключевое слово для поиска
+        in: query
+        name: key_word
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SearchChatsDTO'
         "400":
           description: Некорректный запрос
           schema:
@@ -546,22 +828,14 @@ paths:
           schema:
             $ref: '#/definitions/responser.ErrorResponse'
         "500":
-          description: Не удалось получить учатсников
-          schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+          description: Не удалось получить сообщения
       security:
       - BearerAuth: []
-      summary: Получаем id пользователей
+      summary: Поиск чатов пользователя и глобальных каналов по названию
       tags:
       - chat
   /chats:
     get:
-      parameters:
-      - default: 0
-        description: Page number for pagination
-        in: query
-        name: page
-        type: integer
       produces:
       - application/json
       responses:
@@ -665,6 +939,36 @@ paths:
       summary: Add new contact
       tags:
       - contacts
+  /contacts/search:
+    get:
+      parameters:
+      - description: Ключевое слово для поиска
+        in: query
+        name: key_word
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SearchContactsDTO'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "500":
+          description: Не удалось получить контакты
+      security:
+      - BearerAuth: []
+      summary: Поиск контактов пользователя и глобальных пользователей по имени или
+        нику
+      tags:
+      - contacts
   /login:
     post:
       consumes:
@@ -714,6 +1018,69 @@ paths:
       summary: Log out a user
       tags:
       - auth
+  /messages/{messageId}:
+    delete:
+      parameters:
+      - description: messageId ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: messageId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Сообщение успешно удалено
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/customerror.NoPermissionError'
+        "500":
+          description: Не удалось удалить сообщение
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Delete message
+      tags:
+      - message
+    put:
+      parameters:
+      - description: Message info
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.MessageInput'
+      - description: messageId ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: messageId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Сообщение успешно изменено
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/customerror.NoPermissionError'
+        "500":
+          description: Не удалось обновить сообщение
+          schema:
+            $ref: '#/definitions/responser.ErrorResponse'
+      summary: Update message
+      tags:
+      - message
   /profile:
     get:
       consumes:

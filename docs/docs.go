@@ -95,7 +95,146 @@ const docTemplate = `{
                 }
             }
         },
+        "/channel/{channelId}/join": {
+            "post": {
+                "tags": [
+                    "channel"
+                ],
+                "summary": "Войти в канал",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "channelId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ПОльзователь вступил в чат"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Запрещено",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось двступить в канал",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Поиск чатов пользователя и глобальных каналов по названию",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ключевое слово для поиска",
+                        "name": "key_word",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SearchChatsDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщения"
+                    }
+                }
+            }
+        },
         "/chat/{chatId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Получаем пользователей и последние сообщении чата",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователи чата",
+                        "schema": {
+                            "$ref": "#/definitions/model.ChatInfoDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить учатсников",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -260,8 +399,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/{chatId}/deluser/{userId}": {
+            "delete": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Удалить пользователя из чата",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователь удален",
+                        "schema": {
+                            "$ref": "#/definitions/model.DeletdeUsersFromChatDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось добавить пользователей",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/chat/{chatId}/delusers": {
-            "post": {
+            "delete": {
                 "consumes": [
                     "application/json"
                 ],
@@ -312,12 +501,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/{chatId}/leave": {
+            "delete": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Выйти из чата",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователь вышел из чата"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Запрещено",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось добавить пользователей",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/chat/{chatId}/messages": {
             "get": {
                 "tags": [
                     "message"
                 ],
-                "summary": "Add new message",
+                "summary": "Get All messages",
                 "parameters": [
                     {
                         "maxLength": 36,
@@ -341,7 +573,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Сообщение успешно отаправлены"
+                        "description": "Сообщение успешно отаправлены",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -405,17 +640,12 @@ const docTemplate = `{
                 }
             }
         },
-        "/chat/{chatId}/users": {
+        "/chat/{chatId}/messages/pages/{lastMessageId}": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "tags": [
-                    "chat"
+                    "message"
                 ],
-                "summary": "Получаем id пользователей",
+                "summary": "получить 25 сообщений до определенного",
                 "parameters": [
                     {
                         "maxLength": 36,
@@ -426,13 +656,120 @@ const docTemplate = `{
                         "name": "chatId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "lastMessageId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Пользователи чата",
+                        "description": "Сообщение успешно отаправлены",
                         "schema": {
-                            "$ref": "#/definitions/model.UsersInChat"
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/customerror.NoPermissionError"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщениея",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/messages/search": {
+            "get": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "поиск сообщений",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Поиск",
+                        "name": "search_query",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно отаправлены",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/customerror.NoPermissionError"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить сообщениея",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/{chatId}/{messageId}/branch": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Добавить ветку к сообщению в чате",
+                "responses": {
+                    "201": {
+                        "description": "Ветка добавлена",
+                        "schema": {
+                            "$ref": "#/definitions/model.AddBranch"
                         }
                     },
                     "400": {
@@ -443,12 +780,6 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Нет полномочий",
-                        "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Не удалось получить учатсников",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -465,15 +796,6 @@ const docTemplate = `{
                     "chat"
                 ],
                 "summary": "Get chats of user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Page number for pagination",
-                        "name": "page",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -631,6 +953,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/contacts/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Поиск контактов пользователя и глобальных пользователей по имени или нику",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ключевое слово для поиска",
+                        "name": "key_word",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SearchContactsDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось получить контакты"
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Authenticate a user with username and password.",
@@ -699,6 +1068,99 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "No access token found",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/{messageId}": {
+            "put": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "Update message",
+                "parameters": [
+                    {
+                        "description": "Message info",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageInput"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "messageId ID (UUID)",
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно изменено"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/customerror.NoPermissionError"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось обновить сообщение",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "message"
+                ],
+                "summary": "Delete message",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "messageId ID (UUID)",
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение успешно удалено"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/customerror.NoPermissionError"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось удалить сообщение",
                         "schema": {
                             "$ref": "#/definitions/responser.ErrorResponse"
                         }
@@ -952,11 +1414,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "customerror.NoPermissionError": {
+            "type": "object",
+            "properties": {
+                "area": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
         "delivery.SuccessfullSuccess": {
             "type": "object",
             "properties": {
                 "success": {
                     "type": "string"
+                }
+            }
+        },
+        "model.AddBranch": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
                 }
             }
         },
@@ -1026,6 +1508,27 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ChatInfoDTO": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Message"
+                    }
+                },
+                "role": {
+                    "type": "string",
+                    "example": "owner"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.UserInChatDTO"
+                    }
+                }
+            }
+        },
         "model.ChatUpdate": {
             "type": "object",
             "properties": {
@@ -1089,18 +1592,45 @@ const docTemplate = `{
                 }
             }
         },
-        "model.UsersInChat": {
+        "model.SearchChatsDTO": {
             "type": "object",
             "properties": {
-                "usersId": {
+                "global_channels": {
                     "type": "array",
                     "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "uuid1",
-                        "uuid2"
-                    ]
+                        "$ref": "#/definitions/model.ChatDTOOutput"
+                    }
+                },
+                "user_chats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ChatDTOOutput"
+                    }
+                }
+            }
+        },
+        "model.UserInChatDTO": {
+            "type": "object",
+            "properties": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "owner"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "mavrodi777"
                 }
             }
         },
@@ -1185,7 +1715,7 @@ const docTemplate = `{
                 "authorID": {
                     "type": "string"
                 },
-                "authorName": {
+                "branchId": {
                     "type": "string"
                 },
                 "chatId": {
@@ -1257,6 +1787,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SearchContactsDTO": {
+            "type": "object",
+            "properties": {
+                "global_users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ContactRespDTO"
+                    }
+                },
+                "user_contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ContactRespDTO"
+                    }
+                }
+            }
+        },
         "models.UpdateProfileRequestDTO": {
             "type": "object",
             "properties": {
@@ -1267,6 +1814,9 @@ const docTemplate = `{
                 "birthdate": {
                     "type": "string",
                     "example": "2024-04-13T08:30:00Z"
+                },
+                "deleteAvatar": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string",
