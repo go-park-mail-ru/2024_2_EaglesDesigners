@@ -101,7 +101,7 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 	row := conn.QueryRow(context.Background(),
 		`INSERT INTO public.message (id, chat_id, author_id, message, sent_at, is_redacted)
 	VALUES ($1, $2, $3, $4, $5, false) RETURNING id;`,
-		uuid.New(),
+		message.MessageId,
 		chatId,
 		message.AuthorID,
 		message.Message,

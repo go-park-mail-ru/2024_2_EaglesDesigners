@@ -22,6 +22,8 @@ type ChatUsecase interface {
 
 	DeleteUsersFromChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, usertToDelete chatModel.DeleteUsersFromChatDTO) (chatModel.DeletdeUsersFromChatDTO, error)
 
+	JoinChannel(ctx context.Context, userId uuid.UUID, channelId uuid.UUID) error
+	
 	// UserLeaveChat удаляет владельца обращения из чата
 	UserLeaveChat(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error
 
