@@ -89,6 +89,49 @@
                 }
             }
         },
+        "/channel/{channelId}/join": {
+            "post": {
+                "tags": [
+                    "channel"
+                ],
+                "summary": "Войти в канал",
+                "parameters": [
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "channelId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ПОльзователь вступил в чат"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Запрещено",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось двступить в канал",
+                        "schema": {
+                            "$ref": "#/definitions/responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/chat/search": {
             "get": {
                 "security": [
