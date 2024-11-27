@@ -37,15 +37,14 @@ func New(client authv1.AuthClient) *Delivery {
 }
 
 func init() {
-	prometheus.MustRegister(requestLoginHandlerDuration, requestRegisterHandlerDuration, requestAuthHandlerDuration, requestLogoutHandlerDuration)
+	prometheus.MustRegister(requestAuthDuration)
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	log.Info("Метрики для авторизации зарегистрированы")
 }
 
-var requestLoginHandlerDuration = prometheus.NewHistogramVec(
+var requestAuthDuration = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
-		Name: "LoginHandler_request_duration_seconds",
-		Help: "/login",
+		Name: "request_auth_duration_seconds",
 	},
 	[]string{"method"},
 )
@@ -65,7 +64,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestLoginHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestAuthDuration, "LoginHandler")
 	}()
 
 	ctx := r.Context()
@@ -116,14 +115,6 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var requestRegisterHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "RegisterHandler_request_duration_seconds",
-		Help: "/signup",
-	},
-	[]string{"method"},
-)
-
 // @Summary Register a new user
 // @Description Creates a new user with the provided credentials.
 // @Tags auth
@@ -139,7 +130,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestRegisterHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestAuthDuration, "RegisterHandler")
 	}()
 
 	d.mu.Lock()
@@ -204,14 +195,6 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	responser.SendStruct(ctx, w, response, http.StatusCreated)
 }
 
-var requestAuthHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "AuthHandler_request_duration_seconds",
-		Help: "/auth",
-	},
-	[]string{"method"},
-)
-
 // AuthHandler godoc
 // @Summary Authenticate a user
 // @Description Retrieve user data based on the JWT token present in the cookies.
@@ -225,7 +208,7 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestAuthHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestAuthDuration, "AuthHandler")
 	}()
 
 	ctx := r.Context()
@@ -317,14 +300,6 @@ func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-var requestLogoutHandlerDuration = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name: "LogoutHandler_request_duration_seconds",
-		Help: "/logout",
-	},
-	[]string{"method"},
-)
-
 // LogoutHandler godoc
 // @Summary Log out a user
 // @Description Invalidate the user's session by clearing the access token cookie.
@@ -338,7 +313,7 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
 	defer func() {
-		metric.WriteRequestDuration(start, requestLogoutHandlerDuration, r.Method)
+		metric.WriteRequestDuration(start, requestAuthDuration, "LogoutHandler")
 	}()
 
 	ctx := r.Context()
