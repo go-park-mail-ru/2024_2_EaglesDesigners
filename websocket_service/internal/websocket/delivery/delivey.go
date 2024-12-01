@@ -28,6 +28,15 @@ var upgrader = websocket.Upgrader{
 			"https://213.87.152.18:8001",
 			"http://212.233.98.59:8080",
 			"https://212.233.98.59:8080",
+			"https://patefon.site",
+			"http://localhost",
+			"https://localhost",
+			"https://localhost:8083",
+			"http://localhost:8083",
+			"http://localhost:9090",
+			"https://localhost:9090",
+			"http://127.0.0.1:9090",
+			"https://127.0.0.1:9090",
 		}
 
 		for _, origin := range allowedOrigins {
