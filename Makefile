@@ -35,7 +35,7 @@ run: build
 
 swagger:
 
-	swag init -g cmd/app/main.go
+	swag init -g main_app/cmd/app/main.go
 
 
 # Команда для запуска тестов

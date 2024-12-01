@@ -43,6 +43,8 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router = router.PathPrefix("/api/").Subrouter()
+
 	// auth
 
 	grpcConnAuth, err := grpc.Dial(

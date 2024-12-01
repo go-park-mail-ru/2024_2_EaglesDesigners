@@ -55,7 +55,7 @@ import (
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host      212.233.98.59:8080
-// @BasePath  /
+// @BasePath  /api/
 
 // @securityDefinitions.basic  BasicAuth
 
@@ -94,6 +94,8 @@ func main() {
 	govalidator.SetFieldsRequiredByDefault(true)
 
 	router := mux.NewRouter()
+
+	router = router.PathPrefix("/api/").Subrouter()
 
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
@@ -209,21 +211,9 @@ func main() {
 func startMainServer(router *mux.Router) {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			"http://127.0.0.1:8001",
-			"https://127.0.0.1:8001",
-			"http://localhost:8001",
-			"https://localhost:8001",
-			"http://213.87.152.18:8001",
-			"http://212.233.98.59:8001",
-			"https://213.87.152.18:8001",
-			"http://212.233.98.59:8080",
-			"https://212.233.98.59:8080",
-			"https://localhost:8083",
-			"http://localhost:8083",
-			"http://localhost:9090",
-			"https://localhost:9090",
-			"http://127.0.0.1:9090",
-			"https://127.0.0.1:9090",
+			"https://patefon.site",
+			"http://localhost",
+			"https://localhost",
 		},
 		AllowCredentials:   true,
 		AllowedMethods:     []string{"GET", "POST", "PUT", "OPTIONS", "DELETE"},
