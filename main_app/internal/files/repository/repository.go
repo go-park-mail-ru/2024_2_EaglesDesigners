@@ -1,4 +1,4 @@
-package multiparthelper
+package repository
 
 import (
 	"errors"
@@ -10,13 +10,20 @@ import (
 	"github.com/google/uuid"
 )
 
+type Repository struct {
+}
+
+func New() *Repository {
+	return &Repository{}
+}
+
 const (
 	uploadPath = "/uploads/"
 )
 
 var ErrNotImage = errors.New("file is not image")
 
-func SavePhoto(file multipart.File, folderName string) (string, error) {
+func (r *Repository) SavePhoto(file multipart.File, folderName string) (string, error) {
 	if ok := IsImageFile(file); !ok {
 		return "", ErrNotImage
 	}
@@ -39,7 +46,7 @@ func SavePhoto(file multipart.File, folderName string) (string, error) {
 	return path, nil
 }
 
-func RewritePhoto(file multipart.File, photoURL string) error {
+func (r *Repository) RewritePhoto(file multipart.File, photoURL string) error {
 	dst, err := os.Create(photoURL)
 	if err != nil {
 		return err
@@ -54,7 +61,7 @@ func RewritePhoto(file multipart.File, photoURL string) error {
 	return nil
 }
 
-func RemovePhoto(photoURL string) error {
+func (r *Repository) RemovePhoto(photoURL string) error {
 	err := os.Remove(photoURL)
 	if err != nil {
 		return err
