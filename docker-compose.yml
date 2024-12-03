@@ -19,6 +19,8 @@ services:
       - "8080:8080"
     volumes:
       - ./uploads:/uploads
+    environment:
+      - TZ=Europe/Moscow
 
   auth:
     container_name: auth
@@ -48,11 +50,14 @@ services:
     restart: always
     ports:
       - "8083:8083"
+    environment:
+      - TZ=Europe/Moscow
 
   postgres:
     container_name: postgres
     image: postgres:15.0
     environment:
+      TZ: Europe/Moscow
       POSTGRES_DB: patefon
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -82,18 +87,8 @@ services:
     # volumes:
     #   - ./prometheus_data/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     restart: always
-
-  node_exporter:
-    image: quay.io/prometheus/node-exporter:v1.3.1
-    container_name: node_exporter
-    command:
-      - '--path.rootfs=/host'
-    pid: host
-    restart: always
-    volumes:
-      - '/:/host:ro,rslave'
-    ports:
-      - 8093:9100
+    environment:
+      - TZ=Europe/Moscow
 
   grafana:
     image: grafana/grafana:9.5.1
