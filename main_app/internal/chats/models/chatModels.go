@@ -43,10 +43,11 @@ func (a ByLastMessage) Less(i, j int) bool {
 func (a ByLastMessage) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
 type ChatDTOInput struct {
-	ChatName   string          `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
-	ChatType   string          `json:"chatType" example:"personalMessages" valid:"in(personal|group|channel)"`
-	UsersToAdd []uuid.UUID     `json:"usersToAdd" example:"uuid1,uuid2" valid:"-"`
-	Avatar     *multipart.File `json:"-" valid:"-"`
+	ChatName     string                `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
+	ChatType     string                `json:"chatType" example:"personalMessages" valid:"in(personal|group|channel)"`
+	UsersToAdd   []uuid.UUID           `json:"usersToAdd" example:"uuid1,uuid2" valid:"-"`
+	Avatar       *multipart.File       `json:"-" valid:"-"`
+	AvatarHeader *multipart.FileHeader `json:"-" valid:"-"`
 }
 
 func (chat ChatDTOOutput) MarshalBinary() ([]byte, error) {
@@ -70,8 +71,9 @@ type ChatsDTO struct {
 }
 
 type ChatUpdate struct {
-	ChatName string          `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
-	Avatar   *multipart.File `json:"-" valid:"-"`
+	ChatName     string                `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
+	Avatar       *multipart.File       `json:"-" valid:"-"`
+	AvatarHeader *multipart.FileHeader `json:"-" valid:"-"`
 }
 
 type ChatUpdateOutput struct {

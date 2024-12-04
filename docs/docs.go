@@ -1000,11 +1000,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/files": {
-            "post": {
-                "responses": {}
-            }
-        },
         "/files/{fileID}": {
             "get": {
                 "responses": {}
@@ -1801,6 +1796,9 @@ const docTemplate = `{
                 "messageId": {
                     "type": "string",
                     "example": "1"
+                },
+                "message_type": {
+                    "type": "string"
                 },
                 "text": {
                     "type": "string",

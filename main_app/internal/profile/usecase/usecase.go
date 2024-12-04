@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"mime/multipart"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
@@ -16,13 +18,21 @@ type Repository interface {
 	UpdateProfile(ctx context.Context, profile models.Profile) (avatarNewURL *string, avatarOldURL *string, err error)
 }
 
-type Usecase struct {
-	repo Repository
+type FilesUsecase interface {
+	RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) error
+	DeletePhoto(ctx context.Context, fileIDStr string) error
+	IsImage(header multipart.FileHeader) error
 }
 
-func New(repo Repository) *Usecase {
+type Usecase struct {
+	filesUC FilesUsecase
+	repo    Repository
+}
+
+func New(filesUC FilesUsecase, repo Repository) *Usecase {
 	return &Usecase{
-		repo: repo,
+		filesUC: filesUC,
+		repo:    repo,
 	}
 }
 
@@ -32,8 +42,12 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 	profile := convertProfileFromDTO(profileDTO)
 
 	if profile.Avatar != nil {
-		if !multipartHepler.IsImageFile(*profile.Avatar) {
-			log.Errorf("аватарка не картинка")
+		if profile.AvatarHeader == nil {
+			log.Errorf("нет хедера")
+			return errors.New("нет хедера")
+		}
+		if err := u.filesUC.IsImage(*profile.AvatarHeader); err != nil {
+			log.WithError(err).Errorf("аватарка не картинка")
 			return multipartHepler.ErrNotImage
 		}
 	}
@@ -46,7 +60,7 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 
 	if avatarNewURL != nil && profile.Avatar != nil {
 		log.Printf("Сохранение аватарки %s", *avatarNewURL)
-		if err := multipartHepler.RewritePhoto(*profile.Avatar, *avatarNewURL); err != nil {
+		if err := u.filesUC.RewritePhoto(ctx, *profile.Avatar, *profile.AvatarHeader, *avatarNewURL); err != nil {
 			log.Errorf("не удалось сохранить аватарку: %v", err)
 			return err
 		}
@@ -55,7 +69,7 @@ func (u *Usecase) UpdateProfile(ctx context.Context, profileDTO models.UpdatePro
 		if avatarOldURL != nil {
 			go func() {
 				log.Printf("Удаление старой аватарки %s", *avatarOldURL)
-				if err := multipartHepler.RemovePhoto(*avatarOldURL); err != nil {
+				if err := u.filesUC.DeletePhoto(ctx, *avatarOldURL); err != nil {
 					log.Errorf("Не удалось удалить файл: %v", err)
 				}
 				log.Println("Удаление прошло успешно")
@@ -97,6 +111,7 @@ func convertProfileFromDTO(dto models.UpdateProfileRequestDTO) models.Profile {
 		Name:         dto.Name,
 		Bio:          dto.Bio,
 		Avatar:       dto.Avatar,
+		AvatarHeader: dto.AvatarHeader,
 		DeleteAvatar: dto.DeleteAvatar,
 		Birthdate:    dto.Birthdate,
 	}

@@ -994,11 +994,6 @@
                 }
             }
         },
-        "/files": {
-            "post": {
-                "responses": {}
-            }
-        },
         "/files/{fileID}": {
             "get": {
                 "responses": {}
@@ -1795,6 +1790,9 @@
                 "messageId": {
                     "type": "string",
                     "example": "1"
+                },
+                "message_type": {
+                    "type": "string"
                 },
                 "text": {
                     "type": "string",

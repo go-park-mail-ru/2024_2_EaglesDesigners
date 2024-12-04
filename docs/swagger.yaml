@@ -255,6 +255,8 @@ definitions:
         type: string
       isRedacted:
         type: boolean
+      message_type:
+        type: string
       messageId:
         example: "1"
         type: string
@@ -969,9 +971,6 @@ paths:
         нику
       tags:
       - contacts
-  /files:
-    post:
-      responses: {}
   /files/{fileID}:
     get:
       responses: {}

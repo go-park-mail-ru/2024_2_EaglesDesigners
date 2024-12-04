@@ -3,9 +3,11 @@ package usecase
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"strings"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
@@ -14,9 +16,10 @@ import (
 )
 
 type Repository interface {
-	GetFile(ctx context.Context, fileID primitive.ObjectID) (*bytes.Buffer, *models.FileMetaData, error)
+	GetFile(ctx context.Context, filename string) (*bytes.Buffer, *models.FileMetaData, error)
 	SaveFile(ctx context.Context, fileBuffer *bytes.Buffer, metadata primitive.D) (string, error)
 	DeleteFile(ctx context.Context, fileID primitive.ObjectID) error
+	RewriteFile(ctx context.Context, fileID primitive.ObjectID, fileBuffer *bytes.Buffer, metadata primitive.D) error
 }
 
 type Usecase struct {
@@ -30,14 +33,7 @@ func New(repo Repository) *Usecase {
 }
 
 func (u *Usecase) GetFile(ctx context.Context, fileIDStr string) (*bytes.Buffer, *models.FileMetaData, error) {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-
-	fileID, err := primitive.ObjectIDFromHex(fileIDStr)
-	if err != nil {
-		log.WithError(err).Errorln("не удалось преобразовать в objectID")
-		return nil, nil, err
-	}
-	return u.repo.GetFile(ctx, fileID)
+	return u.repo.GetFile(ctx, fileIDStr)
 }
 
 func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
@@ -71,45 +67,113 @@ func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header mul
 
 	metadata := getFileMetadata(&header)
 
-	return u.repo.SaveFile(ctx, &fileBuffer, metadata)
+	fileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
+
+	return "/files/" + fileID, err
 }
 
-func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) (string, error) {
+func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Printf("пришел запрос на перезапись %s", fileIDStr)
+
+	parts := strings.Split(fileIDStr, "/")
+	var ID string
+	if len(parts) > 2 {
+		ID = parts[2]
+	} else {
+		log.Errorln("ID не найден")
+		return errors.New("ID не найден")
+	}
 
 	err := isImage(header)
 	if err != nil {
 		log.WithError(err).Errorln("файл не фото")
-		return "", err
+		return err
 	}
 
-	fileID, err := primitive.ObjectIDFromHex(fileIDStr)
+	fileID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось преобразовать в objectID")
-		return "", err
+		return err
 	}
 
 	fileBuffer, err := getFileBuffer(file)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось создать буфер")
-		return "", err
+		return err
 	}
 
 	metadata := getFileMetadata(&header)
 
-	newFileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
+	err = u.repo.RewriteFile(ctx, fileID, &fileBuffer, metadata)
 	if err != nil {
-		log.WithError(err).Errorln("не удалось создать файл")
-		return "", err
+		log.WithError(err).Errorln("не удалось перезаписать файл")
+		return err
 	}
 
-	err = u.repo.DeleteFile(ctx, fileID)
-	if err != nil {
-		log.WithError(err).Warnln("не удалось удалить файл")
-	}
-
-	return newFileID, nil
+	return nil
 }
+
+func (u *Usecase) DeletePhoto(ctx context.Context, fileIDStr string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	log.Printf("пришел запрос на удаление %s", fileIDStr)
+
+	parts := strings.Split(fileIDStr, "/")
+	var ID string
+	if len(parts) > 2 {
+		ID = parts[2]
+	} else {
+		log.Errorln("ID не найден")
+		return errors.New("ID не найден")
+	}
+
+	fileID, err := primitive.ObjectIDFromHex(ID)
+	if err != nil {
+		log.WithError(err).Errorln("не удалось преобразовать в objectID")
+		return err
+	}
+
+	return u.repo.DeleteFile(ctx, fileID)
+}
+
+// func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) (string, error) {
+// 	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+// 	err := isImage(header)
+// 	if err != nil {
+// 		log.WithError(err).Errorln("файл не фото")
+// 		return "", err
+// 	}
+
+// 	fileID, err := primitive.ObjectIDFromHex(fileIDStr)
+// 	if err != nil {
+// 		log.WithError(err).Errorln("не удалось преобразовать в objectID")
+// 		return "", err
+// 	}
+
+// 	fileBuffer, err := getFileBuffer(file)
+// 	if err != nil {
+// 		log.WithError(err).Errorln("не удалось создать буфер")
+// 		return "", err
+// 	}
+
+// 	metadata := getFileMetadata(&header)
+
+// 	newFileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
+// 	if err != nil {
+// 		log.WithError(err).Errorln("не удалось создать файл")
+// 		return "", err
+// 	}
+
+// 	err = u.repo.DeleteFile(ctx, fileID)
+// 	if err != nil {
+// 		log.WithError(err).Warnln("не удалось удалить файл")
+// 	}
+
+// 	return newFileID, nil
+// }
 
 func (u *Usecase) UpdateFile(ctx context.Context, fileIDStr string, file multipart.File, header *multipart.FileHeader) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -158,6 +222,10 @@ func getFileBuffer(file multipart.File) (bytes.Buffer, error) {
 	}
 
 	return *fileBuffer, nil
+}
+
+func (u *Usecase) IsImage(header multipart.FileHeader) error {
+	return isImage(header)
 }
 
 func isImage(header multipart.FileHeader) error {

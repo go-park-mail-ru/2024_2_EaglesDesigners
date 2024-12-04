@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"sort"
 	"sync"
@@ -18,7 +19,6 @@ import (
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
 	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
-	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -56,13 +56,21 @@ const (
 )
 
 type ChatUsecaseImpl struct {
+	fileUC         FilesUsecase
 	messageUsecase message.MessageUsecase
 	repository     chatlist.ChatRepository
 	chatQuery      string
 	ch             *amqp.Channel
 }
 
-func NewChatUsecase(repository chatlist.ChatRepository, messageRepository message.MessageUsecase, ch *amqp.Channel) ChatUsecase {
+type FilesUsecase interface {
+	RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) error
+	DeletePhoto(ctx context.Context, fileIDStr string) error
+	SavePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader) (string, error)
+	IsImage(header multipart.FileHeader) error
+}
+
+func NewChatUsecase(fileUC FilesUsecase, repository chatlist.ChatRepository, messageRepository message.MessageUsecase, ch *amqp.Channel) ChatUsecase {
 	// объявляем очередь для яатов
 	q, err := ch.QueueDeclare(
 		"chat", // name
@@ -78,8 +86,9 @@ func NewChatUsecase(repository chatlist.ChatRepository, messageRepository messag
 	}
 
 	return &ChatUsecaseImpl{
-		repository:     repository,
+		fileUC:         fileUC,
 		messageUsecase: messageRepository,
+		repository:     repository,
 		chatQuery:      q.Name,
 		ch:             ch,
 	}
@@ -229,7 +238,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 
 	if chat.Avatar != nil {
-		filename, err := multipartHepler.SavePhoto(*chat.Avatar, chatDir)
+		filename, err := s.fileUC.SavePhoto(ctx, *chat.Avatar, *chat.AvatarHeader)
 		if err != nil {
 			log.Printf("Не удалось записать аватарку: %v", err)
 			return chatModel.ChatDTOOutput{}, err
@@ -389,7 +398,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 
 			if chat.AvatarURL != "" {
 
-				err = multipartHepler.RewritePhoto(*chatUpdate.Avatar, chat.AvatarURL)
+				err = s.fileUC.RewritePhoto(ctx, *chatUpdate.Avatar, *chatUpdate.AvatarHeader, chat.AvatarURL)
 				if err != nil {
 					log.Errorf("не удалось обновить аватарку: %v", err)
 					return chatModel.ChatUpdateOutput{}, err
@@ -397,7 +406,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 				updatedChat.Avatar = chat.AvatarURL
 			} else {
 				log.Println("нет старой аватарки -> установка новой")
-				filename, err := multipartHepler.SavePhoto(*chatUpdate.Avatar, chatDir)
+				filename, err := s.fileUC.SavePhoto(ctx, *chatUpdate.Avatar, *chatUpdate.AvatarHeader)
 				if err != nil {
 					log.Errorf("Не удалось записать аватарку: %v", err)
 					return chatModel.ChatUpdateOutput{}, err
