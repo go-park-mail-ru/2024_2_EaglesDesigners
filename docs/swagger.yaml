@@ -1,24 +1,78 @@
-basePath: /
+basePath: /api/
 definitions:
-  customerror.NoPermissionError:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse:
+    properties:
+      error:
+        example: error message
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse:
+    properties:
+      message:
+        example: success message
+        type: string
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.AuthReqDTO:
+    properties:
+      password:
+        example: "12345678"
+        type: string
+      username:
+        example: user11
+        type: string
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterReqDTO:
+    properties:
+      name:
+        example: Vincent Vega
+        type: string
+      password:
+        example: go_do_a_crime
+        type: string
+      username:
+        example: killer1994
+        type: string
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterRespDTO:
+    properties:
+      message:
+        example: Registration successful
+        type: string
+      user:
+        $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.UserDataRespDTO'
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.UserDataRespDTO:
+    properties:
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      id:
+        example: f0364477-bfd4-496d-b639-d825b009d509
+        type: string
+      name:
+        example: Dr Peper
+        type: string
+      username:
+        example: user12
+        type: string
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError:
     properties:
       area:
         type: string
       user:
         type: string
     type: object
-  delivery.SuccessfullSuccess:
-    properties:
-      success:
-        type: string
-    type: object
-  model.AddBranch:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddBranch:
     properties:
       id:
         example: f0364477-bfd4-496d-b639-d825b009d509
         type: string
     type: object
-  model.AddUsersIntoChatDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddUsersIntoChatDTO:
     properties:
       usersId:
         example:
@@ -28,7 +82,7 @@ definitions:
           type: string
         type: array
     type: object
-  model.ChatDTOInput:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOInput:
     properties:
       chatName:
         example: Чат с пользователем 2
@@ -44,7 +98,7 @@ definitions:
           type: string
         type: array
     type: object
-  model.ChatDTOOutput:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput:
     properties:
       avatarPath:
         example: /uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png
@@ -62,29 +116,29 @@ definitions:
         example: 52
         type: integer
       lastMessage:
-        $ref: '#/definitions/models.Message'
+        $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message'
     type: object
-  model.ChatInfoDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO:
     properties:
       messages:
         items:
-          $ref: '#/definitions/models.Message'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message'
         type: array
       role:
         example: owner
         type: string
       users:
         items:
-          $ref: '#/definitions/model.UserInChatDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.UserInChatDTO'
         type: array
     type: object
-  model.ChatUpdate:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdate:
     properties:
       chatName:
         example: Чат с пользователем 2
         type: string
     type: object
-  model.ChatUpdateOutput:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdateOutput:
     properties:
       chatName:
         example: Чат с пользователем 2
@@ -93,14 +147,14 @@ definitions:
         example: /uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png
         type: string
     type: object
-  model.ChatsDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatsDTO:
     properties:
       chats:
         items:
-          $ref: '#/definitions/model.ChatDTOOutput'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput'
         type: array
     type: object
-  model.DeletdeUsersFromChatDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeletdeUsersFromChatDTO:
     properties:
       deletedUsers:
         example:
@@ -110,7 +164,7 @@ definitions:
           type: string
         type: array
     type: object
-  model.DeleteUsersFromChatDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeleteUsersFromChatDTO:
     properties:
       usersId:
         example:
@@ -120,18 +174,18 @@ definitions:
           type: string
         type: array
     type: object
-  model.SearchChatsDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.SearchChatsDTO:
     properties:
       global_channels:
         items:
-          $ref: '#/definitions/model.ChatDTOOutput'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput'
         type: array
       user_chats:
         items:
-          $ref: '#/definitions/model.ChatDTOOutput'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput'
         type: array
     type: object
-  model.UserInChatDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.UserInChatDTO:
     properties:
       avatarURL:
         example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
@@ -149,22 +203,13 @@ definitions:
         example: mavrodi777
         type: string
     type: object
-  models.AuthReqDTO:
-    properties:
-      password:
-        example: "12345678"
-        type: string
-      username:
-        example: user11
-        type: string
-    type: object
-  models.ContactReqDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactReqDTO:
     properties:
       contactUsername:
         example: user11
         type: string
     type: object
-  models.ContactRespDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO:
     properties:
       avatarURL:
         example: /uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png
@@ -179,29 +224,25 @@ definitions:
         example: user11
         type: string
     type: object
-  models.GetContactsRespDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.GetContactsRespDTO:
     properties:
       contacts:
         items:
-          $ref: '#/definitions/models.ContactRespDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO'
         type: array
     type: object
-  models.GetProfileResponseDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.SearchContactsDTO:
     properties:
-      avatarURL:
-        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
-        type: string
-      bio:
-        example: Не люблю сети
-        type: string
-      birthdate:
-        example: "2024-04-13T08:30:00Z"
-        type: string
-      name:
-        example: Vincent Vega
-        type: string
+      global_users:
+        items:
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO'
+        type: array
+      user_contacts:
+        items:
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO'
+        type: array
     type: object
-  models.Message:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message:
     properties:
       authorID:
         type: string
@@ -221,51 +262,35 @@ definitions:
         example: тут много текста
         type: string
     type: object
-  models.MessageInput:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput:
     properties:
       text:
         example: тут много текста
         type: string
     type: object
-  models.MessagesArrayDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO:
     properties:
       messages:
         items:
-          $ref: '#/definitions/models.Message'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message'
         type: array
     type: object
-  models.RegisterReqDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.GetProfileResponseDTO:
     properties:
+      avatarURL:
+        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
+        type: string
+      bio:
+        example: Не люблю сети
+        type: string
+      birthdate:
+        example: "2024-04-13T08:30:00Z"
+        type: string
       name:
         example: Vincent Vega
         type: string
-      password:
-        example: go_do_a_crime
-        type: string
-      username:
-        example: killer1994
-        type: string
     type: object
-  models.RegisterRespDTO:
-    properties:
-      message:
-        example: Registration successful
-        type: string
-      user:
-        $ref: '#/definitions/models.UserDataRespDTO'
-    type: object
-  models.SearchContactsDTO:
-    properties:
-      global_users:
-        items:
-          $ref: '#/definitions/models.ContactRespDTO'
-        type: array
-      user_contacts:
-        items:
-          $ref: '#/definitions/models.ContactRespDTO'
-        type: array
-    type: object
-  models.UpdateProfileRequestDTO:
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.UpdateProfileRequestDTO:
     properties:
       bio:
         example: Не люблю сети
@@ -279,34 +304,9 @@ definitions:
         example: Vincent Vega
         type: string
     type: object
-  models.UserDataRespDTO:
+  main_app_internal_chats_delivery.SuccessfullSuccess:
     properties:
-      avatarURL:
-        example: /uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png
-        type: string
-      id:
-        example: f0364477-bfd4-496d-b639-d825b009d509
-        type: string
-      name:
-        example: Dr Peper
-        type: string
-      username:
-        example: user12
-        type: string
-    type: object
-  responser.ErrorResponse:
-    properties:
-      error:
-        example: error message
-        type: string
-      status:
-        example: error
-        type: string
-    type: object
-  responser.SuccessResponse:
-    properties:
-      message:
-        example: success message
+      success:
         type: string
     type: object
 externalDocs:
@@ -336,20 +336,20 @@ paths:
         name: chat
         required: true
         schema:
-          $ref: '#/definitions/model.ChatDTOInput'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOInput'
       responses:
         "201":
           description: Чат создан
           schema:
-            $ref: '#/definitions/model.ChatDTOOutput'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось добавить чат / группу
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Add new chat
       tags:
       - chat
@@ -364,11 +364,11 @@ paths:
         "200":
           description: User data retrieved successfully
           schema:
-            $ref: '#/definitions/models.UserDataRespDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.UserDataRespDTO'
         "401":
           description: 'Unauthorized: token is invalid'
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Authenticate a user
       tags:
       - auth
@@ -389,15 +389,15 @@ paths:
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Запрещено
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось двступить в канал
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Войти в канал
       tags:
       - channel
@@ -416,19 +416,19 @@ paths:
         "200":
           description: Пользователи чата
           schema:
-            $ref: '#/definitions/model.ChatInfoDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет полномочий
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось получить учатсников
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Получаем пользователей и последние сообщении чата
@@ -444,7 +444,7 @@ paths:
         name: chat_data
         required: true
         schema:
-          $ref: '#/definitions/model.ChatUpdate'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdate'
       - description: group avatar
         in: formData
         name: avatar
@@ -461,19 +461,19 @@ paths:
         "200":
           description: Чат обновлен
           schema:
-            $ref: '#/definitions/model.ChatUpdateOutput'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdateOutput'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет полномочий
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось обновчить чат
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Обновляем фото и имя
@@ -489,15 +489,15 @@ paths:
         "201":
           description: Ветка добавлена
           schema:
-            $ref: '#/definitions/model.AddBranch'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddBranch'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет полномочий
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Добавить ветку к сообщению в чате
@@ -513,7 +513,7 @@ paths:
         name: users
         required: true
         schema:
-          $ref: '#/definitions/model.AddUsersIntoChatDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddUsersIntoChatDTO'
       - description: Chat ID (UUID)
         example: '"123e4567-e89b-12d3-a456-426614174000"'
         in: path
@@ -528,11 +528,11 @@ paths:
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось добавить пользователей
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Добавить пользователей в чат
       tags:
       - chat
@@ -551,19 +551,19 @@ paths:
         "200":
           description: Чат удалён
           schema:
-            $ref: '#/definitions/delivery.SuccessfullSuccess'
+            $ref: '#/definitions/main_app_internal_chats_delivery.SuccessfullSuccess'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет полномочий
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось удалить чат
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Удаличть чат или группу
       tags:
       - chat
@@ -590,15 +590,15 @@ paths:
         "200":
           description: Пользователь удален
           schema:
-            $ref: '#/definitions/model.DeletdeUsersFromChatDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeletdeUsersFromChatDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось добавить пользователей
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Удалить пользователя из чата
       tags:
       - chat
@@ -612,7 +612,7 @@ paths:
         name: users
         required: true
         schema:
-          $ref: '#/definitions/model.DeleteUsersFromChatDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeleteUsersFromChatDTO'
       - description: Chat ID (UUID)
         example: '"123e4567-e89b-12d3-a456-426614174000"'
         in: path
@@ -625,15 +625,15 @@ paths:
         "200":
           description: Пользователи удалены
           schema:
-            $ref: '#/definitions/model.DeletdeUsersFromChatDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeletdeUsersFromChatDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось добавить пользователей
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Удалить пользователей из чата
       tags:
       - chat
@@ -654,15 +654,15 @@ paths:
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Запрещено
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось добавить пользователей
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Выйти из чата
       tags:
       - chat
@@ -682,20 +682,20 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/models.MessagesArrayDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO'
       responses:
         "200":
           description: Сообщение успешно отаправлены
           schema:
-            $ref: '#/definitions/models.MessagesArrayDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось получить сообщениея
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Get All messages
       tags:
       - message
@@ -716,18 +716,18 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/models.MessageInput'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput'
       responses:
         "201":
           description: Сообщение успешно добавлено
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось добавить сообщение
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Add new message
       tags:
       - message
@@ -754,19 +754,19 @@ paths:
         "200":
           description: Сообщение успешно отаправлены
           schema:
-            $ref: '#/definitions/models.MessagesArrayDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет доступа
           schema:
-            $ref: '#/definitions/customerror.NoPermissionError'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError'
         "500":
           description: Не удалось получить сообщениея
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: получить 25 сообщений до определенного
       tags:
       - message
@@ -789,19 +789,19 @@ paths:
         "200":
           description: Сообщение успешно отаправлены
           schema:
-            $ref: '#/definitions/models.MessagesArrayDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет доступа
           schema:
-            $ref: '#/definitions/customerror.NoPermissionError'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError'
         "500":
           description: Не удалось получить сообщениея
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: поиск сообщений
       tags:
       - message
@@ -818,15 +818,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.SearchChatsDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.SearchChatsDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет полномочий
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось получить сообщения
       security:
@@ -842,7 +842,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.ChatsDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatsDTO'
         "500":
           description: Не удалось получить сообщения
       summary: Get chats of user
@@ -859,22 +859,22 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/models.ContactReqDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactReqDTO'
       produces:
       - application/json
       responses:
         "200":
           description: Contact deleted
           schema:
-            $ref: '#/definitions/responser.SuccessResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse'
         "400":
           description: Failed to delete contact
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete contact
@@ -890,15 +890,15 @@ paths:
         "200":
           description: Contacts found
           schema:
-            $ref: '#/definitions/models.GetContactsRespDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.GetContactsRespDTO'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get all contacts
@@ -914,26 +914,26 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/models.ContactReqDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Contact created
           schema:
-            $ref: '#/definitions/models.ContactRespDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO'
         "400":
           description: Failed to create contact
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Add new contact
@@ -952,15 +952,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.SearchContactsDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.SearchContactsDTO'
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет полномочий
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "500":
           description: Не удалось получить контакты
       security:
@@ -969,6 +969,12 @@ paths:
         нику
       tags:
       - contacts
+  /files:
+    post:
+      responses: {}
+  /files/{fileID}:
+    get:
+      responses: {}
   /login:
     post:
       consumes:
@@ -980,22 +986,22 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/models.AuthReqDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.AuthReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Authentication successful
           schema:
-            $ref: '#/definitions/responser.SuccessResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse'
         "400":
           description: Invalid format JSON
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "401":
           description: Incorrect login or password
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: User login
       tags:
       - auth
@@ -1010,11 +1016,11 @@ paths:
         "200":
           description: Logout successful
           schema:
-            $ref: '#/definitions/responser.SuccessResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse'
         "401":
           description: No access token found
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Log out a user
       tags:
       - auth
@@ -1035,15 +1041,15 @@ paths:
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет доступа
           schema:
-            $ref: '#/definitions/customerror.NoPermissionError'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError'
         "500":
           description: Не удалось удалить сообщение
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Delete message
       tags:
       - message
@@ -1054,7 +1060,7 @@ paths:
         name: message
         required: true
         schema:
-          $ref: '#/definitions/models.MessageInput'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput'
       - description: messageId ID (UUID)
         example: '"123e4567-e89b-12d3-a456-426614174000"'
         in: path
@@ -1069,15 +1075,15 @@ paths:
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "403":
           description: Нет доступа
           schema:
-            $ref: '#/definitions/customerror.NoPermissionError'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError'
         "500":
           description: Не удалось обновить сообщение
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Update message
       tags:
       - message
@@ -1092,19 +1098,19 @@ paths:
         "200":
           description: Profile data found
           schema:
-            $ref: '#/definitions/models.GetProfileResponseDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.GetProfileResponseDTO'
         "400":
           description: Invalid format JSON
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get self profile data
@@ -1120,7 +1126,7 @@ paths:
         name: profile_data
         required: true
         schema:
-          $ref: '#/definitions/models.UpdateProfileRequestDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.UpdateProfileRequestDTO'
       - description: User avatar image
         in: formData
         name: avatar
@@ -1131,19 +1137,19 @@ paths:
         "200":
           description: Profile updated
           schema:
-            $ref: '#/definitions/responser.SuccessResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse'
         "400":
           description: Failed to update profile
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update profile data
@@ -1160,19 +1166,19 @@ paths:
         "200":
           description: Profile data found
           schema:
-            $ref: '#/definitions/models.GetProfileResponseDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.GetProfileResponseDTO'
         "400":
           description: Invalid format JSON
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Get profile data
       tags:
       - profile
@@ -1187,22 +1193,22 @@ paths:
         name: creds
         required: true
         schema:
-          $ref: '#/definitions/models.RegisterReqDTO'
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterReqDTO'
       produces:
       - application/json
       responses:
         "201":
           description: Registration successful
           schema:
-            $ref: '#/definitions/models.RegisterRespDTO'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterRespDTO'
         "400":
           description: User failed to create
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
         "409":
           description: A user with that username already exists
           schema:
-            $ref: '#/definitions/responser.ErrorResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
       summary: Register a new user
       tags:
       - auth

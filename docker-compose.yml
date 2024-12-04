@@ -11,6 +11,8 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
+      mongodb:
+        condition: service_started
       auth:
         condition: service_started
     restart: always
@@ -71,6 +73,18 @@ services:
     ports:
       - 15672:15672
       - 5672:5672
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: files
+    ports:
+      - 27017:27017
+    volumes:
+      - ./db/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
 
   prometheus:
     image: prom/prometheus:latest
