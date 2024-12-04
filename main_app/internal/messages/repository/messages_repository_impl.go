@@ -43,8 +43,10 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 	m.sent_at, 
 	m.is_redacted,
 	m.branch_id,
-	m.chat_id
+	m.chat_id,
+	mt.value
 	FROM public.message AS m
+	JOIN public.message_type AS mt ON mt.id = m.message_type_id
 	WHERE m.chat_id = $1
 	ORDER BY sent_at DESC
 	LIMIT $2;`,
@@ -66,21 +68,23 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 		var isRedacted bool
 		var branchID *uuid.UUID
 		var chatID uuid.UUID
+		var messageType string
 
-		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, branchID, &chatID)
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, branchID, &chatID, &messageType)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
 		}
 
 		messages = append(messages, models.Message{
-			MessageId:  messageId,
-			AuthorID:   authorID,
-			Message:    message,
-			SentAt:     sentAt,
-			IsRedacted: isRedacted,
-			BranchID:   branchID,
-			ChatId:     chatID,
+			MessageId:   messageId,
+			AuthorID:    authorID,
+			Message:     message,
+			SentAt:      sentAt,
+			IsRedacted:  isRedacted,
+			BranchID:    branchID,
+			ChatId:      chatID,
+			MessageType: messageType,
 		})
 	}
 
@@ -101,6 +105,35 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 	row := conn.QueryRow(context.Background(),
 		`INSERT INTO public.message (id, chat_id, author_id, message, sent_at, is_redacted)
 	VALUES ($1, $2, $3, $4, $5, false) RETURNING id;`,
+		message.MessageId,
+		chatId,
+		message.AuthorID,
+		message.Message,
+		message.SentAt,
+	)
+
+	var id uuid.UUID
+	if err := row.Scan(&id); err != nil {
+		log.Printf("Repository: не удалось добавить сообщение: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *MessageRepositoryImpl) AddInformationalMessage(message models.Message, chatId uuid.UUID) error {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return err
+	}
+	defer conn.Release()
+	log.Printf("Repository: соединение успешно установлено")
+
+	// нужно чё-то придумать со стикерами
+	row := conn.QueryRow(context.Background(),
+		`INSERT INTO public.message (id, chat_id, author_id, message, sent_at, is_redacted, message_type_id)
+	VALUES ($1, $2, $3, $4, $5, false, (SELECT id FROM message_type WHERE value = 'informational')) RETURNING id;`,
 		message.MessageId,
 		chatId,
 		message.AuthorID,
@@ -182,8 +215,10 @@ func (r *MessageRepositoryImpl) GetMessageById(ctx context.Context, messageId uu
 		m.message,
 		m.sent_at, 
 		m.is_redacted,
-		m.chat_id
+		m.chat_id,
+		mt.value
 		FROM public.message AS m
+		JOIN public.message_type AS mt ON mt.id = m.message_type_id
 		WHERE m.id = $1
 		ORDER BY sent_at DESC
 		LIMIT 1;`,
@@ -195,8 +230,9 @@ func (r *MessageRepositoryImpl) GetMessageById(ctx context.Context, messageId uu
 	var sentAt time.Time
 	var isRedacted bool
 	var chatId uuid.UUID
+	var messageType string
 
-	err = row.Scan(&authorID, &message, &sentAt, &isRedacted, &chatId)
+	err = row.Scan(&authorID, &message, &sentAt, &isRedacted, &chatId, &messageType)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Message{}, nil
@@ -208,12 +244,13 @@ func (r *MessageRepositoryImpl) GetMessageById(ctx context.Context, messageId uu
 	}
 
 	messageModel := models.Message{
-		MessageId:  messageId,
-		AuthorID:   authorID,
-		Message:    message,
-		SentAt:     sentAt,
-		IsRedacted: isRedacted,
-		ChatId:     chatId,
+		MessageId:   messageId,
+		AuthorID:    authorID,
+		Message:     message,
+		SentAt:      sentAt,
+		IsRedacted:  isRedacted,
+		ChatId:      chatId,
+		MessageType: messageType,
 	}
 
 	return messageModel, nil
@@ -288,8 +325,10 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	m.author_id,
 	m.message,
 	m.sent_at, 
-	m.is_redacted
+	m.is_redacted,
+	mt.value
 	FROM public.message AS m
+	JOIN public.message_type AS mt ON mt.id = m.message_type_id
 	WHERE m.chat_id = $1
 	ORDER BY sent_at DESC
 	LIMIT 1;`,
@@ -301,8 +340,9 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	var message string
 	var sentAt time.Time
 	var isRedacted bool
+	var messageType string
 
-	err = row.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted)
+	err = row.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &messageType)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Message{}, nil
@@ -314,17 +354,18 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	}
 
 	messageModel := models.Message{
-		MessageId:  messageId,
-		AuthorID:   authorID,
-		Message:    message,
-		SentAt:     sentAt,
-		IsRedacted: isRedacted,
+		MessageId:   messageId,
+		AuthorID:    authorID,
+		Message:     message,
+		SentAt:      sentAt,
+		IsRedacted:  isRedacted,
+		MessageType: messageType,
 	}
 
 	return messageModel, nil
 }
 
-func (r *MessageRepositoryImpl) GetAllMessagesAfter(ctx context.Context, chatId uuid.UUID, lastMessageId uuid.UUID) ([]models.Message, error) {
+func (r *MessageRepositoryImpl) GetMessagesAfter(ctx context.Context, chatId uuid.UUID, lastMessageId uuid.UUID) ([]models.Message, error) {
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
 		log.Printf("Repository: не удалось установить соединение: %v", err)
@@ -339,8 +380,10 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(ctx context.Context, chatId 
 	m.author_id,
 	m.message,
 	m.sent_at, 
-	m.is_redacted
+	m.is_redacted,
+	mt.value
 	FROM public.message AS m
+	JOIN public.message_type AS mt ON mt.id = m.message_type_id
 	WHERE m.chat_id = $1 AND m.sent_at <= (SELECT sent_at FROM message WHERE id = $2) AND m.id != $2
 	ORDER BY sent_at DESC
 	LIMIT $3;`,
@@ -362,19 +405,21 @@ func (r *MessageRepositoryImpl) GetAllMessagesAfter(ctx context.Context, chatId 
 		var message string
 		var sentAt time.Time
 		var isRedacted bool
+		var messageType string
 
-		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted)
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &messageType)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
 		}
 
 		messages = append(messages, models.Message{
-			MessageId:  messageId,
-			AuthorID:   authorID,
-			Message:    message,
-			SentAt:     sentAt,
-			IsRedacted: isRedacted,
+			MessageId:   messageId,
+			AuthorID:    authorID,
+			Message:     message,
+			SentAt:      sentAt,
+			IsRedacted:  isRedacted,
+			MessageType: messageType,
 		})
 	}
 

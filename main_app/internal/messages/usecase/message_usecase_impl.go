@@ -89,7 +89,7 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	}
 
 	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
-	u.sendIvent(ctx, socketUsecase.NewMessage, message)
+	u.SendIvent(ctx, socketUsecase.NewMessage, message)
 	metric.IncMetric(*sendedMessagesMetric)
 	return nil
 }
@@ -122,7 +122,7 @@ func (u *MessageUsecaseImplm) DeleteMessage(ctx context.Context, user jwt.User, 
 		return err
 	}
 
-	u.sendIvent(ctx, socketUsecase.DeleteMessage, message)
+	u.SendIvent(ctx, socketUsecase.DeleteMessage, message)
 	metric.IncMetric(*deleteMessageMetric)
 	return nil
 }
@@ -134,6 +134,10 @@ var updateMessageMetric = prometheus.NewGaugeVec(
 	},
 	nil, // no labels for this metric
 )
+
+func (u *MessageUsecaseImplm) SendInformationalMessage(_ context.Context, message models.Message, chatId uuid.UUID) error {
+	return u.messageRepository.AddInformationalMessage(message, chatId)
+}
 
 func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, messageId uuid.UUID, message models.Message) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -158,7 +162,7 @@ func (u *MessageUsecaseImplm) UpdateMessage(ctx context.Context, user jwt.User, 
 	// отправляем в сокет
 	message.Message = newText
 	message.IsRedacted = true
-	u.sendIvent(ctx, socketUsecase.UpdateMessage, message)
+	u.SendIvent(ctx, socketUsecase.UpdateMessage, message)
 	metric.IncMetric(*updateMessageMetric)
 	return nil
 }
@@ -227,7 +231,7 @@ func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uu
 			}
 	}
 
-	messages, err := u.messageRepository.GetAllMessagesAfter(ctx, chatId, lastMessageId)
+	messages, err := u.messageRepository.GetMessagesAfter(ctx, chatId, lastMessageId)
 	if err != nil {
 		return models.MessagesArrayDTO{}, err
 	}
@@ -238,7 +242,11 @@ func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uu
 
 }
 
-func (s *MessageUsecaseImplm) sendIvent(ctx context.Context, action string, message models.Message) {
+func (s *MessageUsecaseImplm) GetLastMessage(chatId uuid.UUID) (models.Message, error) {
+	return s.messageRepository.GetLastMessage(chatId)
+}
+
+func (s *MessageUsecaseImplm) SendIvent(ctx context.Context, action string, message models.Message) {
 	newMessage := socketUsecase.Message{
 		MessageId:  message.MessageId,
 		AuthorID:   message.AuthorID,

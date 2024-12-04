@@ -131,7 +131,7 @@ func main() {
 
 	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, ch)
 
-	chatService := chatService.NewChatUsecase(chatRepo, messageRepo, ch)
+	chatService := chatService.NewChatUsecase(chatRepo, messageUsecase, ch)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
