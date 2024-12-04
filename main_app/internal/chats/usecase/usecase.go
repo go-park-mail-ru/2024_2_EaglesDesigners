@@ -17,9 +17,10 @@ import (
 	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
 	messageModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
-	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
+	message "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
 	multipartHepler "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/google/uuid"
@@ -55,13 +56,13 @@ const (
 )
 
 type ChatUsecaseImpl struct {
-	messageRepository message.MessageRepository
-	repository        chatlist.ChatRepository
-	chatQuery         string
-	ch                *amqp.Channel
+	messageUsecase message.MessageUsecase
+	repository     chatlist.ChatRepository
+	chatQuery      string
+	ch             *amqp.Channel
 }
 
-func NewChatUsecase(repository chatlist.ChatRepository, messageRepository message.MessageRepository, ch *amqp.Channel) ChatUsecase {
+func NewChatUsecase(repository chatlist.ChatRepository, messageRepository message.MessageUsecase, ch *amqp.Channel) ChatUsecase {
 	// объявляем очередь для яатов
 	q, err := ch.QueueDeclare(
 		"chat", // name
@@ -77,16 +78,16 @@ func NewChatUsecase(repository chatlist.ChatRepository, messageRepository messag
 	}
 
 	return &ChatUsecaseImpl{
-		repository:        repository,
-		messageRepository: messageRepository,
-		chatQuery:         q.Name,
-		ch:                ch,
+		repository:     repository,
+		messageUsecase: messageRepository,
+		chatQuery:      q.Name,
+		ch:             ch,
 	}
 }
 
 func (s *ChatUsecaseImpl) createChatDTO(ctx context.Context, chat chatModel.Chat) (chatModel.ChatDTOOutput, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
-	message, err := s.messageRepository.GetLastMessage(chat.ChatId)
+	message, err := s.messageUsecase.GetLastMessage(chat.ChatId)
 	if err != nil {
 		log.Printf("Usecase: не удалось получить последнее сообщение: %v", err)
 		return chatModel.ChatDTOOutput{}, err
@@ -259,7 +260,6 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	if err != nil {
 		log.Printf("Chat usecase -> AddNewChat: не удалось создать DTO: %v", err)
 	}
-	newChatDTO.LastMessage.SentAt = time.Now() // Указываем время создания.
 
 	// добавляем пользователей в чат
 	log.Printf("Chat usecase -> AddNewChat: начато добавление пользователей в чат. Количество бользователей на добавление: %v", len(chat.UsersToAdd))
@@ -273,10 +273,24 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 			return chatModel.ChatDTOOutput{}, err
 		}
 	}
-	// отправляем уведомление
+
+	// отправляем уведомлениея
 	s.sendIvent(ctx, NewChat, chatId, nil)
+	newChatDTO.LastMessage = s.sendInformationalMessage(ctx, user.ID, chatId, fmt.Sprintf("Пользователь %s создал чат %v", user.Name, chat.ChatName))
 	metric.IncMetric(*addNewChatMetric)
 	return newChatDTO, nil
+}
+
+func (s *ChatUsecaseImpl) sendInformationalMessage(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, event string) messageModel.Message {
+	message := messageModel.Message{
+		MessageId:   uuid.New(),
+		AuthorID:    userID,
+		Message:     event,
+		SentAt:      time.Now(),
+		MessageType: "informational",
+	}
+	s.messageUsecase.SendInformationalMessage(ctx, message, chatId)
+	return message
 }
 
 func (s *ChatUsecaseImpl) getAvatarAndNameForPersonalChat(ctx context.Context, userID uuid.UUID, chatId uuid.UUID) (string, string, error) {
@@ -460,7 +474,7 @@ func (s *ChatUsecaseImpl) DeleteUsersFromChat(ctx context.Context, userID uuid.U
 		return chatModel.DeletdeUsersFromChatDTO{DeletedUsers: deletedIds}, nil
 
 	default:
-		return chatModel.DeletdeUsersFromChatDTO{}, errors.New("Участники не удалены")
+		return chatModel.DeletdeUsersFromChatDTO{}, errors.New("участники не удалены")
 	}
 }
 
@@ -526,7 +540,8 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 	})
 
 	g.Go(func() error {
-		messages, err = s.messageRepository.GetFirstMessages(ctx, chatId)
+		messagesDTO, err := s.messageUsecase.GetFirstMessages(ctx, chatId)
+		messages = messagesDTO.Messages
 		return err
 	})
 
@@ -660,7 +675,7 @@ func (s *ChatUsecaseImpl) JoinChannel(ctx context.Context, userId uuid.UUID, cha
 	_, notAdded := s.addUsersIntoChat(ctx, []uuid.UUID{userId}, channelId)
 	if len(notAdded) != 0 {
 		log.Errorf("Пользователю %v не удалось вступить в канал %v", userId, channelId)
-		return errors.New("Не удалось добавить пользователя в чат")
+		return errors.New("не удалось добавить пользователя в чат")
 	}
 	return nil
 }

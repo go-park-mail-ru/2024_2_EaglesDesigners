@@ -13,6 +13,8 @@ import (
 
 type MessageUsecase interface {
 	SendMessage(ctx context.Context, user auth.User, chatId uuid.UUID, message models.Message) error
+	SendInformationalMessage(ctx context.Context, message models.Message, chatId uuid.UUID) error
+
 	DeleteMessage(ctx context.Context, user auth.User, messageId uuid.UUID) error
 	UpdateMessage(ctx context.Context, user auth.User, messageId uuid.UUID, message models.Message) error
 
@@ -20,4 +22,7 @@ type MessageUsecase interface {
 	GetMessagesWithPage(ctx context.Context, userId uuid.UUID, chatId uuid.UUID, lastMessageId uuid.UUID) (models.MessagesArrayDTO, error)
 
 	GetFirstMessages(ctx context.Context, chatId uuid.UUID) (models.MessagesArrayDTO, error)
+	GetLastMessage(chatId uuid.UUID) (models.Message, error)
+
+	SendIvent(ctx context.Context, action string, message models.Message)
 }
