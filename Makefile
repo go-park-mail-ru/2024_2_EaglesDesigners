@@ -34,8 +34,8 @@ run: build
 # Команда для генерации сваггера
 
 swagger:
-
-	swag init -g main_app/cmd/app/main.go
+	swag init --parseDependency --parseInternal -g main_app/cmd/app/main.go
+# swag init -g main_app/cmd/app/main.go
 
 
 # Команда для запуска тестов

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 
 	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
 	"github.com/google/uuid"
@@ -13,6 +14,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -23,6 +27,9 @@ import (
 	contactsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/delivery"
 	contactsRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/repository"
 	contactsUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/usecase"
+	filesDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/delivery"
+	filesRepo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/repository"
+	filesUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/usecase"
 	messageDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/delivery"
 	messageRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
 	messageUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/usecase"
@@ -91,12 +98,33 @@ func main() {
 	}()
 	log.Println("rebbit mq подключен")
 
+	// подключаем mongoDB
+	mongoDBClient, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://user:user@mongodb:27017/files"))
+	if err != nil {
+		log.Fatalf("failed to create mongoDB client: %v", err)
+	}
+	defer func() {
+		if err = mongoDBClient.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err = mongoDBClient.Ping(ctx, nil)
+	if err != nil {
+		log.Fatalf("не удалось подключиться к MongoDB: %v", err)
+	}
+	log.Println("mongodb подключен")
+
+	mongoBucket, err := gridfs.NewBucket(mongoDBClient.Database("files"))
+	if err != nil {
+		log.Fatalf("не удалось создать бакет mongoDB: %v", err)
+	}
+
 	govalidator.SetFieldsRequiredByDefault(true)
 
 	router := mux.NewRouter()
-
 	router = router.PathPrefix("/api/").Subrouter()
-
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
 	// auth
@@ -114,6 +142,14 @@ func main() {
 	auth := authDelivery.New(authClient)
 
 	// token рудемент
+
+	// files
+
+	filesRepo := filesRepo.New(mongoBucket)
+	filesUC := filesUC.New(filesRepo)
+	files := filesDelivery.New(filesUC)
+
+	// TODO удалить uploads
 
 	// uploads
 
@@ -162,6 +198,8 @@ func main() {
 	router.HandleFunc("/auth", auth.Authorize(auth.AuthHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
+	router.HandleFunc("/files/{fileID}", files.GetFile).Methods("GET", "OPTIONS")
+	router.HandleFunc("/files", files.UploadFile).Methods("POST", "OPTIONS")
 	router.HandleFunc("/uploads/{folder}/{name}", uploads.GetImage).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Authorize(profile.GetSelfProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Authorize(auth.Csrf(profile.UpdateProfileHandler))).Methods("PUT", "OPTIONS")

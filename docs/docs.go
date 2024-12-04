@@ -40,7 +40,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ChatDTOInput"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOInput"
                         }
                     }
                 ],
@@ -48,19 +48,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Чат создан",
                         "schema": {
-                            "$ref": "#/definitions/model.ChatDTOOutput"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось добавить чат / группу",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -83,13 +83,13 @@ const docTemplate = `{
                     "200": {
                         "description": "User data retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/models.UserDataRespDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.UserDataRespDTO"
                         }
                     },
                     "401": {
                         "description": "Unauthorized: token is invalid",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -120,19 +120,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Запрещено",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось двступить в канал",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -164,19 +164,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.SearchChatsDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.SearchChatsDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет полномочий",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
@@ -212,25 +212,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Пользователи чата",
                         "schema": {
-                            "$ref": "#/definitions/model.ChatInfoDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет полномочий",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось получить учатсников",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -256,7 +256,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ChatUpdate"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdate"
                         }
                     },
                     {
@@ -280,25 +280,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Чат обновлен",
                         "schema": {
-                            "$ref": "#/definitions/model.ChatUpdateOutput"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdateOutput"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет полномочий",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось обновчить чат",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -320,7 +320,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.AddUsersIntoChatDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddUsersIntoChatDTO"
                         }
                     },
                     {
@@ -341,13 +341,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось добавить пользователей",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -375,25 +375,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Чат удалён",
                         "schema": {
-                            "$ref": "#/definitions/delivery.SuccessfullSuccess"
+                            "$ref": "#/definitions/main_app_internal_chats_delivery.SuccessfullSuccess"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет полномочий",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось удалить чат",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -431,19 +431,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Пользователь удален",
                         "schema": {
-                            "$ref": "#/definitions/model.DeletdeUsersFromChatDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeletdeUsersFromChatDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось добавить пользователей",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -465,7 +465,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.DeleteUsersFromChatDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeleteUsersFromChatDTO"
                         }
                     },
                     {
@@ -483,19 +483,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Пользователи удалены",
                         "schema": {
-                            "$ref": "#/definitions/model.DeletdeUsersFromChatDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeletdeUsersFromChatDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось добавить пользователей",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -526,19 +526,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Запрещено",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось добавить пользователей",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -567,7 +567,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO"
                         }
                     }
                 ],
@@ -575,19 +575,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Сообщение успешно отаправлены",
                         "schema": {
-                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось получить сообщениея",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -617,7 +617,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.MessageInput"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput"
                         }
                     }
                 ],
@@ -628,13 +628,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось добавить сообщение",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -672,25 +672,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Сообщение успешно отаправлены",
                         "schema": {
-                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет доступа",
                         "schema": {
-                            "$ref": "#/definitions/customerror.NoPermissionError"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError"
                         }
                     },
                     "500": {
                         "description": "Не удалось получить сообщениея",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -724,25 +724,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Сообщение успешно отаправлены",
                         "schema": {
-                            "$ref": "#/definitions/models.MessagesArrayDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет доступа",
                         "schema": {
-                            "$ref": "#/definitions/customerror.NoPermissionError"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError"
                         }
                     },
                     "500": {
                         "description": "Не удалось получить сообщениея",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -769,19 +769,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Ветка добавлена",
                         "schema": {
-                            "$ref": "#/definitions/model.AddBranch"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddBranch"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет полномочий",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -800,7 +800,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ChatsDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatsDTO"
                         }
                     },
                     "500": {
@@ -831,19 +831,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Contacts found",
                         "schema": {
-                            "$ref": "#/definitions/models.GetContactsRespDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.GetContactsRespDTO"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -872,7 +872,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ContactReqDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactReqDTO"
                         }
                     }
                 ],
@@ -880,25 +880,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Contact created",
                         "schema": {
-                            "$ref": "#/definitions/models.ContactRespDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO"
                         }
                     },
                     "400": {
                         "description": "Failed to create contact",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -927,7 +927,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ContactReqDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactReqDTO"
                         }
                     }
                 ],
@@ -935,19 +935,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Contact deleted",
                         "schema": {
-                            "$ref": "#/definitions/responser.SuccessResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Failed to delete contact",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -979,25 +979,35 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.SearchContactsDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.SearchContactsDTO"
                         }
                     },
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет полномочий",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Не удалось получить контакты"
                     }
                 }
+            }
+        },
+        "/files": {
+            "post": {
+                "responses": {}
+            }
+        },
+        "/files/{fileID}": {
+            "get": {
+                "responses": {}
             }
         },
         "/login": {
@@ -1020,7 +1030,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.AuthReqDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.AuthReqDTO"
                         }
                     }
                 ],
@@ -1028,19 +1038,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Authentication successful",
                         "schema": {
-                            "$ref": "#/definitions/responser.SuccessResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid format JSON",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Incorrect login or password",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1063,13 +1073,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Logout successful",
                         "schema": {
-                            "$ref": "#/definitions/responser.SuccessResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "No access token found",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1088,7 +1098,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.MessageInput"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput"
                         }
                     },
                     {
@@ -1109,19 +1119,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет доступа",
                         "schema": {
-                            "$ref": "#/definitions/customerror.NoPermissionError"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError"
                         }
                     },
                     "500": {
                         "description": "Не удалось обновить сообщение",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1150,19 +1160,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректный запрос",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет доступа",
                         "schema": {
-                            "$ref": "#/definitions/customerror.NoPermissionError"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError"
                         }
                     },
                     "500": {
                         "description": "Не удалось удалить сообщение",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1190,25 +1200,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Profile data found",
                         "schema": {
-                            "$ref": "#/definitions/models.GetProfileResponseDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.GetProfileResponseDTO"
                         }
                     },
                     "400": {
                         "description": "Invalid format JSON",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1237,7 +1247,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdateProfileRequestDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.UpdateProfileRequestDTO"
                         }
                     },
                     {
@@ -1251,25 +1261,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Profile updated",
                         "schema": {
-                            "$ref": "#/definitions/responser.SuccessResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Failed to update profile",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1292,25 +1302,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Profile data found",
                         "schema": {
-                            "$ref": "#/definitions/models.GetProfileResponseDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.GetProfileResponseDTO"
                         }
                     },
                     "400": {
                         "description": "Invalid format JSON",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1336,7 +1346,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.RegisterReqDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterReqDTO"
                         }
                     }
                 ],
@@ -1344,19 +1354,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Registration successful",
                         "schema": {
-                            "$ref": "#/definitions/models.RegisterRespDTO"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterRespDTO"
                         }
                     },
                     "400": {
                         "description": "User failed to create",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "A user with that username already exists",
                         "schema": {
-                            "$ref": "#/definitions/responser.ErrorResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
                         }
                     }
                 }
@@ -1414,7 +1424,92 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "customerror.NoPermissionError": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "error message"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "error"
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success message"
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.AuthReqDTO": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "12345678"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user11"
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterReqDTO": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Vincent Vega"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "go_do_a_crime"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "killer1994"
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.RegisterRespDTO": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Registration successful"
+                },
+                "user": {
+                    "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.UserDataRespDTO"
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_auth_models.UserDataRespDTO": {
+            "type": "object",
+            "properties": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Dr Peper"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user12"
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_custom_error.NoPermissionError": {
             "type": "object",
             "properties": {
                 "area": {
@@ -1425,15 +1520,7 @@ const docTemplate = `{
                 }
             }
         },
-        "delivery.SuccessfullSuccess": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.AddBranch": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddBranch": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1442,7 +1529,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.AddUsersIntoChatDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.AddUsersIntoChatDTO": {
             "type": "object",
             "properties": {
                 "usersId": {
@@ -1457,7 +1544,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ChatDTOInput": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOInput": {
             "type": "object",
             "properties": {
                 "chatName": {
@@ -1480,7 +1567,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ChatDTOOutput": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput": {
             "type": "object",
             "properties": {
                 "avatarPath": {
@@ -1504,17 +1591,17 @@ const docTemplate = `{
                     "example": 52
                 },
                 "lastMessage": {
-                    "$ref": "#/definitions/models.Message"
+                    "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message"
                 }
             }
         },
-        "model.ChatInfoDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO": {
             "type": "object",
             "properties": {
                 "messages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Message"
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message"
                     }
                 },
                 "role": {
@@ -1524,12 +1611,12 @@ const docTemplate = `{
                 "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.UserInChatDTO"
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.UserInChatDTO"
                     }
                 }
             }
         },
-        "model.ChatUpdate": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdate": {
             "type": "object",
             "properties": {
                 "chatName": {
@@ -1538,7 +1625,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ChatUpdateOutput": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatUpdateOutput": {
             "type": "object",
             "properties": {
                 "chatName": {
@@ -1551,18 +1638,18 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ChatsDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatsDTO": {
             "type": "object",
             "properties": {
                 "chats": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ChatDTOOutput"
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput"
                     }
                 }
             }
         },
-        "model.DeletdeUsersFromChatDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeletdeUsersFromChatDTO": {
             "type": "object",
             "properties": {
                 "deletedUsers": {
@@ -1577,7 +1664,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.DeleteUsersFromChatDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.DeleteUsersFromChatDTO": {
             "type": "object",
             "properties": {
                 "usersId": {
@@ -1592,24 +1679,24 @@ const docTemplate = `{
                 }
             }
         },
-        "model.SearchChatsDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.SearchChatsDTO": {
             "type": "object",
             "properties": {
                 "global_channels": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ChatDTOOutput"
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput"
                     }
                 },
                 "user_chats": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ChatDTOOutput"
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatDTOOutput"
                     }
                 }
             }
         },
-        "model.UserInChatDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.UserInChatDTO": {
             "type": "object",
             "properties": {
                 "avatarURL": {
@@ -1634,20 +1721,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.AuthReqDTO": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string",
-                    "example": "12345678"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "user11"
-                }
-            }
-        },
-        "models.ContactReqDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactReqDTO": {
             "type": "object",
             "properties": {
                 "contactUsername": {
@@ -1656,7 +1730,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ContactRespDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO": {
             "type": "object",
             "properties": {
                 "avatarURL": {
@@ -1677,39 +1751,35 @@ const docTemplate = `{
                 }
             }
         },
-        "models.GetContactsRespDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.GetContactsRespDTO": {
             "type": "object",
             "properties": {
                 "contacts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ContactRespDTO"
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO"
                     }
                 }
             }
         },
-        "models.GetProfileResponseDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.SearchContactsDTO": {
             "type": "object",
             "properties": {
-                "avatarURL": {
-                    "type": "string",
-                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                "global_users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO"
+                    }
                 },
-                "bio": {
-                    "type": "string",
-                    "example": "Не люблю сети"
-                },
-                "birthdate": {
-                    "type": "string",
-                    "example": "2024-04-13T08:30:00Z"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Vincent Vega"
+                "user_contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO"
+                    }
                 }
             }
         },
-        "models.Message": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message": {
             "type": "object",
             "properties": {
                 "authorID": {
@@ -1738,7 +1808,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.MessageInput": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput": {
             "type": "object",
             "properties": {
                 "text": {
@@ -1747,64 +1817,39 @@ const docTemplate = `{
                 }
             }
         },
-        "models.MessagesArrayDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessagesArrayDTO": {
             "type": "object",
             "properties": {
                 "messages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Message"
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message"
                     }
                 }
             }
         },
-        "models.RegisterReqDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.GetProfileResponseDTO": {
             "type": "object",
             "properties": {
+                "avatarURL": {
+                    "type": "string",
+                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
+                },
+                "bio": {
+                    "type": "string",
+                    "example": "Не люблю сети"
+                },
+                "birthdate": {
+                    "type": "string",
+                    "example": "2024-04-13T08:30:00Z"
+                },
                 "name": {
                     "type": "string",
                     "example": "Vincent Vega"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "go_do_a_crime"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "killer1994"
                 }
             }
         },
-        "models.RegisterRespDTO": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Registration successful"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.UserDataRespDTO"
-                }
-            }
-        },
-        "models.SearchContactsDTO": {
-            "type": "object",
-            "properties": {
-                "global_users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ContactRespDTO"
-                    }
-                },
-                "user_contacts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ContactRespDTO"
-                    }
-                }
-            }
-        },
-        "models.UpdateProfileRequestDTO": {
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.UpdateProfileRequestDTO": {
             "type": "object",
             "properties": {
                 "bio": {
@@ -1824,46 +1869,11 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UserDataRespDTO": {
+        "main_app_internal_chats_delivery.SuccessfullSuccess": {
             "type": "object",
             "properties": {
-                "avatarURL": {
-                    "type": "string",
-                    "example": "/uploads/avatar/f0364477-bfd4-496d-b639-d825b009d509.png"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "f0364477-bfd4-496d-b639-d825b009d509"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Dr Peper"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "user12"
-                }
-            }
-        },
-        "responser.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "error message"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "error"
-                }
-            }
-        },
-        "responser.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "success message"
+                "success": {
+                    "type": "string"
                 }
             }
         }
@@ -1883,7 +1893,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "212.233.98.59:8080",
-	BasePath:         "/",
+	BasePath:         "/api/",
 	Schemes:          []string{},
 	Title:            "Swagger Patefon API",
 	Description:      "This is a description of the Patefon server.",

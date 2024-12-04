@@ -16,22 +16,6 @@ const (
 
 var ErrNotImage = errors.New("file is not image")
 
-// mb не нужон
-func ReadPhoto(photoId uuid.UUID) ([]byte, error) {
-	// file, err := os.Open("images/" + photoId.String() + ".png")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer file.Close()
-
-	// data, err := io.ReadAll(file)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	return []byte{}, nil
-}
-
 func SavePhoto(file multipart.File, folderName string) (string, error) {
 	if ok := IsImageFile(file); !ok {
 		return "", ErrNotImage
