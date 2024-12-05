@@ -69,6 +69,14 @@ ALTER TABLE public.contact OWNER TO postgres;
 -- Name: message; Type: TABLE; Schema: public; Owner: postgres
 --
 
+CREATE TABLE public.message_type (
+    id integer NOT NULL,
+    value text NOT NULL
+);
+
+ALTER TABLE ONLY public.message_type
+    ADD CONSTRAINT message_type_pkey PRIMARY KEY (id);
+
 CREATE TABLE public.message (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     chat_id uuid NOT NULL,
@@ -77,11 +85,25 @@ CREATE TABLE public.message (
     message text,
     sent_at timestamp with time zone NOT NULL,
     is_redacted boolean DEFAULT false NOT NULL,
-    sticker_path text
+    sticker_path text,
+    message_type_id integer DEFAULT 1 NOT NULL
 );
 
 
 ALTER TABLE public.message OWNER TO postgres;
+
+ALTER TABLE public.message_type ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.message_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+ALTER TABLE ONLY public.message
+    ADD CONSTRAINT message_type_id_fk FOREIGN KEY (message_type_id) REFERENCES public.message_type(id) NOT VALID;
+
 
 --
 -- Name: message_payload; Type: TABLE; Schema: public; Owner: postgres
@@ -346,6 +368,9 @@ INSERT INTO  public.user_role ( value) VALUES
 --
 -- Insert test data to user
 --
+INSERT INTO message_type (value) VALUES 
+    ('default'),
+    ('informational');
 
 INSERT INTO public."user" (id, username, version, password, name, bio, birthdate, avatar_path) VALUES
     ('39a9aea0-d461-437d-b4eb-bf030a0efc80', 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
