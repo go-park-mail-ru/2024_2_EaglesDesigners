@@ -792,3 +792,23 @@ func (s *ChatUsecaseImpl) GetUsersFromChat(ctx context.Context, chatId string) (
 	}
 	return userIds, nil
 }
+
+// SetChatNotofications позволяет включить или выключить уведомления.
+func (s *ChatUsecaseImpl) SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatUUID)
+	if err != nil {
+		return err
+	}
+	if role == NotInChat {
+		log.Printf("Пользователь %v не состоит в чате %v", userId, chatUUID)
+		return &customerror.NoPermissionError{
+			User: userId.String(),
+			Area: fmt.Sprintf("Пользователь %v не состоит в чате %v", userId, chatUUID),
+		}
+	}
+
+	err = s.repository.SetChatNotofications(ctx, chatUUID, userId, value)
+
+	return err
+}
