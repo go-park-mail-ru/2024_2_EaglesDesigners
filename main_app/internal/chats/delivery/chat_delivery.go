@@ -808,7 +808,7 @@ func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	"Не удалось изменить уведомления"
-// @Router /chat/{chatId}/notifications/{send} [get]
+// @Router /chat/{chatId}/notifications/{send} [post]
 func (c *ChatDelivery) SetChatNotofications(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
@@ -846,5 +846,5 @@ func (c *ChatDelivery) SetChatNotofications(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	responser.SendOK(w, "Уведомления изменены", http.StatusOK)
+	responser.SendStruct(ctx, w, value, http.StatusOK)
 }
