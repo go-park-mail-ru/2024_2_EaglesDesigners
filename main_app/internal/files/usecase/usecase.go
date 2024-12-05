@@ -36,7 +36,7 @@ func (u *Usecase) GetFile(ctx context.Context, fileIDStr string) (*bytes.Buffer,
 	return u.repo.GetFile(ctx, fileIDStr)
 }
 
-func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
+func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	fileBuffer, err := getFileBuffer(file)
@@ -46,6 +46,10 @@ func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *mul
 	}
 
 	metadata := getFileMetadata(header)
+
+	if len(users) > 0 {
+		metadata = append(metadata, primitive.E{Key: "users", Value: users})
+	}
 
 	return u.repo.SaveFile(ctx, &fileBuffer, metadata)
 }

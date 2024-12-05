@@ -141,10 +141,26 @@ func (r *MessageRepositoryImpl) AddInformationalMessage(message models.Message, 
 		message.SentAt,
 	)
 
-	var id uuid.UUID
-	if err := row.Scan(&id); err != nil {
+	var message_id uuid.UUID
+	if err := row.Scan(&message_id); err != nil {
 		log.Printf("Repository: не удалось добавить сообщение: %v", err)
 		return err
+	}
+
+	for _, fileURL := range message.FilesURLs {
+		id := uuid.New()
+		row := conn.QueryRow(context.Background(),
+			`INSERT INTO public.message_payload (id, message_id, payload_path)
+		VALUES ($1, $2, $3) RETURNING id;`,
+			id,
+			message_id,
+			fileURL,
+		)
+
+		if err := row.Scan(&id); err != nil {
+			log.Printf("Repository: не удалось добавить сообщение: %v", err)
+			return err
+		}
 	}
 
 	return nil

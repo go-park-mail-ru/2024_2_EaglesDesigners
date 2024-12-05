@@ -51,7 +51,8 @@ var requestMessageDuration = prometheus.NewHistogramVec(
 // @Tags message
 // @Accept json
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Param message body models.MessageInput true "Message info"
+// @Param text formData string true "Message info"
+// @Param files formData []file false "files array"
 // @Success 201 "Сообщение успешно добавлено"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
@@ -73,7 +74,6 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 
 	chatId := mapVars["chatId"]
 	chatUUID, err := uuid.Parse(chatId)
-
 	if err != nil {
 		//conn.400
 		log.Println("Delivery: error during parsing json:", err)
@@ -92,13 +92,32 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var messageDTO models.Message
-	err = json.NewDecoder(r.Body).Decode(&messageDTO)
-
-	if err != nil {
-		log.Printf("Не удалось распарсить Json: %v", err)
-		responser.SendError(ctx, w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		log.Errorf("не удалось распарсить запрос: %v", err)
+		responser.SendError(ctx, w, "Unable to parse form", http.StatusBadRequest)
 		return
+	}
+
+	var messageDTO models.Message
+	jsonString := r.FormValue("text")
+	if jsonString != "" {
+		if err := json.Unmarshal([]byte(jsonString), &messageDTO); err != nil {
+			responser.SendError(ctx, w, "bad request", http.StatusBadRequest)
+			return
+		}
+	}
+
+	files := r.MultipartForm.File["file"]
+	for _, header := range files {
+		file, err := header.Open()
+		if err != nil {
+			responser.SendError(ctx, w, "Failed to open files", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+
+		messageDTO.Files = append(messageDTO.Files, file)
+		messageDTO.FilesHeaders = append(messageDTO.FilesHeaders, header)
 	}
 
 	err = h.usecase.SendMessage(r.Context(), user, chatUUID, messageDTO)
@@ -227,7 +246,6 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 	responser.SendOK(w, "Сообщение обновлено", http.StatusOK)
 }
 
-
 // GetAllMessages godoc
 // @Summary Get All messages
 // @Tags message
@@ -290,7 +308,6 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResp)
 }
-
 
 // GetMessagesWithPage godoc
 // @Summary получить 25 сообщений до определенного

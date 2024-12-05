@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"mime/multipart"
 	"time"
 
 	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
@@ -33,13 +34,18 @@ const (
 )
 
 type MessageUsecaseImplm struct {
+	fileUC            FilesUsecase
 	messageRepository repository.MessageRepository
 	chatRepository    chatRepository.ChatRepository
 	queryName         string
 	ch                *amqp.Channel
 }
 
-func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, ch *amqp.Channel) MessageUsecase {
+type FilesUsecase interface {
+	SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error)
+}
+
+func NewMessageUsecaseImpl(fileUC FilesUsecase, messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, ch *amqp.Channel) MessageUsecase {
 	// объявляем очередь
 	q, err := ch.QueueDeclare(
 		"message", // name
@@ -55,6 +61,7 @@ func NewMessageUsecaseImpl(messageRepository repository.MessageRepository, chatR
 	}
 
 	usecase := MessageUsecaseImplm{
+		fileUC:            fileUC,
 		messageRepository: messageRepository,
 		chatRepository:    chatRepository,
 		queryName:         q.Name,
@@ -82,7 +89,36 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	log.Printf("Usecase: сообщение от прользователя: %v", message.AuthorID)
 
-	err := u.messageRepository.AddMessage(message, chatId)
+	chatType, err := u.chatRepository.GetChatType(ctx, chatId)
+	if err != nil {
+		log.Errorf("Usecase: не удалось получить тип чата: %v", err)
+		return err
+	}
+
+	// Добавление тех, кому можно читать файл, если файл не в публичное место отправлен.
+	var userIDs []string
+	if chatType == "personal" || chatType == "group" {
+		users, err := u.chatRepository.GetUsersFromChat(ctx, chatId)
+		if err != nil {
+			log.Errorf("Usecase: не удалось получить пользователей чата: %v", err)
+			return err
+		}
+		for _, user := range users {
+			userIDs = append(userIDs, user.ID.String())
+		}
+	}
+
+	// Добавление файлов в mongoDB
+	for i := 0; i < len(message.Files); i++ {
+		fileID, err := u.fileUC.SaveFile(ctx, message.Files[i], message.FilesHeaders[i], userIDs)
+		if err != nil {
+			log.Errorf("Usecase: не удалось сохранить файл: %v", err)
+			return err
+		}
+		message.FilesURLs = append(message.FilesURLs, fileID)
+	}
+
+	err = u.messageRepository.AddMessage(message, chatId)
 	if err != nil {
 		log.Errorf("Usecase: не удалось добавить сообщение: %v", err)
 		return err
