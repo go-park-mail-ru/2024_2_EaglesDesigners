@@ -30,7 +30,7 @@ type ChatDTOOutput struct {
 	ChatType          string         `json:"chatType" example:"personal" valid:"in(personal|group|channel)"`
 	LastMessage       models.Message `json:"lastMessage" valid:"-"`
 	AvatarPath        string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
-	SendNotifications bool           `json:"send_notifications"`
+	SendNotifications bool           `json:"send_notifications" valid:"-"`
 }
 
 // для сортировки возвращаемого списка по убыванию
