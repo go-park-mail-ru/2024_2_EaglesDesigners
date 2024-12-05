@@ -124,6 +124,7 @@ func main() {
 	govalidator.SetFieldsRequiredByDefault(true)
 
 	router := mux.NewRouter()
+	router.HandleFunc("/docs/", httpSwagger.WrapHandler).Methods("GET", "OPTIONS")
 	router = router.PathPrefix("/api/").Subrouter()
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
@@ -157,7 +158,7 @@ func main() {
 
 	// profile
 	profileRepo := profileRepo.New(pool)
-	profileUC := profileUC.New(profileRepo)
+	profileUC := profileUC.New(filesUC, profileRepo)
 	profile := profileDelivery.New(profileUC)
 
 	// chats
@@ -167,7 +168,7 @@ func main() {
 
 	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, ch)
 
-	chatService := chatService.NewChatUsecase(chatRepo, messageUsecase, ch)
+	chatService := chatService.NewChatUsecase(filesUC, chatRepo, messageUsecase, ch)
 	chat := chatController.NewChatDelivery(chatService)
 
 	// contacts
@@ -199,7 +200,7 @@ func main() {
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/files/{fileID}", files.GetFile).Methods("GET", "OPTIONS")
-	router.HandleFunc("/files", files.UploadFile).Methods("POST", "OPTIONS")
+	// router.HandleFunc("/files", files.UploadFile).Methods("POST", "OPTIONS")
 	router.HandleFunc("/uploads/{folder}/{name}", uploads.GetImage).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Authorize(profile.GetSelfProfileHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Authorize(auth.Csrf(profile.UpdateProfileHandler))).Methods("PUT", "OPTIONS")
@@ -209,7 +210,6 @@ func main() {
 	router.HandleFunc("/contacts", auth.Authorize(auth.Csrf(contacts.DeleteContactHandler))).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/contacts/search", auth.Authorize(contacts.SearchContactsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/logout", auth.LogoutHandler).Methods("POST")
-	router.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
 	router.HandleFunc("/chats", auth.Authorize(chat.GetUserChatsHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/addchat", auth.Authorize(auth.Csrf(chat.AddNewChat))).Methods("POST", "OPTIONS")

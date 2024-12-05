@@ -222,7 +222,7 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	avatar, _, err := r.FormFile("avatar")
+	avatar, header, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
 		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
 		return
@@ -235,6 +235,10 @@ func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) 
 
 	if avatar != nil {
 		profile.Avatar = &avatar
+	}
+
+	if header != nil {
+		profile.AvatarHeader = header
 	}
 
 	if err := d.usecase.UpdateProfile(ctx, profile); err != nil {

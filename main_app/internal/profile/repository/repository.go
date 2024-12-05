@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Repository struct {
@@ -111,8 +112,8 @@ func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) 
 	if profile.Avatar != nil {
 		rowsWithFields = append(rowsWithFields, fmt.Sprintf("avatar_path = $%d", len(args)+1))
 
-		avatarNewURL = new(string)
-		*avatarNewURL = "/uploads/avatar/" + uuid.New().String() + ".png"
+		avatarNewURL := "/files/" + primitive.NewObjectID().Hex()
+		// *avatarNewURL = "/uploads/avatar/" + uuid.New().String()
 
 		args = append(args, avatarNewURL)
 	}

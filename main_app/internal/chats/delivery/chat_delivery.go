@@ -149,7 +149,7 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	avatar, _, err := r.FormFile("avatar")
+	avatar, header, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
 		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
 		return
@@ -162,6 +162,10 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 
 	if avatar != nil {
 		chatDTO.Avatar = &avatar
+	}
+
+	if header != nil {
+		chatDTO.AvatarHeader = header
 	}
 
 	returnChat, err := c.service.AddNewChat(r.Context(), r.Cookies(), chatDTO)
@@ -580,7 +584,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	avatar, _, err := r.FormFile("avatar")
+	avatar, header, err := r.FormFile("avatar")
 	if err != nil && err != http.ErrMissingFile {
 		responser.SendError(ctx, w, "Failed to get avatar", http.StatusBadRequest)
 		return
@@ -594,6 +598,10 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	if avatar != nil {
 		log.Println("Chat delivery -> UpdateGroup: обновление аватарки")
 		chatUpdate.Avatar = &avatar
+	}
+
+	if header != nil {
+		chatUpdate.AvatarHeader = header
 	}
 
 	log.Printf("Chat delivery -> UpdateGroup: пришёл запрос на изменение чата %v от пользователя %v", chatUUID, user.ID)
