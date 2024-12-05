@@ -748,6 +748,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/{chatId}/notifications/{send}": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Отправка/не отправка уведомлений",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "bool",
+                        "name": "send",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Chat ID (UUID)",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет полномочий",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Не удалось изменить уведомления"
+                    }
+                }
+            }
+        },
         "/chat/{chatId}/{messageId}/branch": {
             "post": {
                 "security": [
@@ -1587,6 +1640,9 @@ const docTemplate = `{
                 },
                 "lastMessage": {
                     "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message"
+                },
+                "send_notifications": {
+                    "type": "boolean"
                 }
             }
         },

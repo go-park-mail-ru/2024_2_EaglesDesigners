@@ -117,6 +117,8 @@ definitions:
         type: integer
       lastMessage:
         $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message'
+      send_notifications:
+        type: boolean
     type: object
   github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO:
     properties:
@@ -807,6 +809,42 @@ paths:
       summary: поиск сообщений
       tags:
       - message
+  /chat/{chatId}/notifications/{send}:
+    post:
+      parameters:
+      - description: bool
+        in: path
+        name: send
+        required: true
+        type: string
+      - description: Chat ID (UUID)
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: chatId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
+        "403":
+          description: Нет полномочий
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
+        "500":
+          description: Не удалось изменить уведомления
+      summary: Отправка/не отправка уведомлений
+      tags:
+      - chat
   /chat/search:
     get:
       parameters:

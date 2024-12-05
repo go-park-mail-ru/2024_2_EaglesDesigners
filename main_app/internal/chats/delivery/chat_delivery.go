@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
@@ -723,6 +724,7 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("не удалось распарсить chatid: %v", err)
 		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
+		return
 	}
 
 	user, ok := ctx.Value(auth.UserKey).(auth.User)
@@ -792,4 +794,57 @@ func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responser.SendStruct(ctx, w, output, http.StatusOK)
+}
+
+// SetChatNotofications позволяет включить или выключить уведомления.
+//
+// SetChatNotofications godoc
+// @Summary Отправка/не отправка уведомлений
+// @Tags chat
+// @Produce json
+// @Param send path string true "bool"
+// @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")// @Success 200 {object} model.ChatUpdateOutput "Чат обновлен"
+// @Success 200 {object} bool
+// @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
+// @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
+// @Failure 500	"Не удалось изменить уведомления"
+// @Router /chat/{chatId}/notifications/{send} [get]
+func (c *ChatDelivery) SetChatNotofications(w http.ResponseWriter, r *http.Request) {
+	log := logger.LoggerWithCtx(r.Context(), logger.Log)
+	ctx := r.Context()
+	chatUUID, err := getChatIdFromContext(r.Context())
+
+	if err != nil {
+		//conn.400
+		log.Println("Chat delivery -> GetUsersFromChat: error parsing chat uuid:", err)
+		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> GetUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	user, ok := r.Context().Value(auth.UserKey).(auth.User)
+	if !ok {
+		responser.SendError(ctx, w, "Не получены нужные параметры", http.StatusInternalServerError)
+		return
+	}
+
+	mapVars, ok := ctx.Value(auth.MuxParamsKey).(map[string]string)
+	if !ok {
+		responser.SendError(ctx, w, "Не удалось достать переменные из контекста", http.StatusInternalServerError)
+		return
+	}
+
+	valueParam := mapVars["send"]
+	value, err := strconv.ParseBool(valueParam)
+	if err != nil {
+		responser.SendError(ctx, w, "invalid messageId", http.StatusBadRequest)
+	}
+
+	err = c.service.SetChatNotofications(ctx, chatUUID, user.ID, value)
+
+	if err != nil {
+		responser.SendError(ctx, w, "Не удалось обновить уведомления", http.StatusInternalServerError)
+		return
+	}
+
+	responser.SendOK(w, "Уведомления изменены", http.StatusOK)
 }
