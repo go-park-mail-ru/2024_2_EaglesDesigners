@@ -124,7 +124,6 @@ func main() {
 	govalidator.SetFieldsRequiredByDefault(true)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/docs/", httpSwagger.WrapHandler).Methods("GET", "OPTIONS")
 	router = router.PathPrefix("/api/").Subrouter()
 	router.MethodNotAllowedHandler = http.HandlerFunc(responser.MethodNotAllowedHandler)
 
@@ -196,6 +195,7 @@ func main() {
 	})
 
 	router.HandleFunc("/", auth.Authorize(auth.AuthHandler)).Methods("GET", "OPTIONS")
+	router.PathPrefix("/docs/").HandlerFunc(httpSwagger.WrapHandler)
 	router.HandleFunc("/auth", auth.Authorize(auth.AuthHandler)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
