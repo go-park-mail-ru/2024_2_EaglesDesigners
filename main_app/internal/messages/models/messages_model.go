@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"mime/multipart"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,15 +10,22 @@ import (
 
 // @Schema
 type Message struct {
-	MessageId    uuid.UUID  `json:"messageId" example:"1" valid:"-"`
-	AuthorID     uuid.UUID  `json:"authorID" exameple:"2" valid:"-"`
-	BranchID     *uuid.UUID `json:"branchId" exameple:"2" valid:"-"`
-	Message      string     `json:"text" example:"тут много текста" valid:"-"`
-	SentAt       time.Time  `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
-	ChatId       uuid.UUID  `json:"chatId" valid:"-"`
-	ChatIdParent uuid.UUID  `json:"parent_chat_id" valid:"-"`
-	IsRedacted   bool       `json:"isRedacted" valid:"-"`
-	MessageType  string     `json:"message_type" valid:"-"`
+	MessageId    uuid.UUID               `json:"messageId" example:"1" valid:"-"`
+	AuthorID     uuid.UUID               `json:"authorID" exameple:"2" valid:"-"`
+	BranchID     *uuid.UUID              `json:"branchId" exameple:"2" valid:"-"`
+	Message      string                  `json:"text" example:"тут много текста" valid:"-"`
+	SentAt       time.Time               `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
+	ChatId       uuid.UUID               `json:"chatId" valid:"-"`
+	IsRedacted   bool                    `json:"isRedacted" valid:"-"`
+	MessageType  string                  `json:"message_type" valid:"-" example:"informational"`
+  IsRedacted   bool       `json:"isRedacted" valid:"-"`
+	Files        []multipart.File        `json:"-" valid:"-"`
+	FilesHeaders []*multipart.FileHeader `json:"-" valid:"-"`
+	FilesURLs    []string                `json:"files" valid:"-" example:"[url1, url2, url3]"`
+	// TODO: photos
+	Photos        []multipart.File        `json:"-" valid:"-"`
+	PhotosHeaders []*multipart.FileHeader `json:"-" valid:"-"`
+	PhotosURLs    []string                `json:"photos" valid:"-" example:"[url1, url2, url3]"`
 }
 
 func (m Message) MarshalBinary() ([]byte, error) {

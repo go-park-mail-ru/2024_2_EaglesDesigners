@@ -14,7 +14,13 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const pageSize = 25
+const (
+	pageSize                 = 25
+	defaultMessageType       = "default"
+	informationalMessageType = "informational"
+	filePayloadType          = "file"
+	photoPayloadType         = "photo"
+)
 
 type MessageRepositoryImpl struct {
 	pool *pgxpool.Pool
@@ -73,6 +79,8 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 		var branchID *uuid.UUID
 		var chatID uuid.UUID
 		var messageType sql.NullString
+		var files []string
+		var photos []string
 
 		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &branchID, &chatID, &messageType)
 		if err != nil {
@@ -89,8 +97,41 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 			BranchID:    branchID,
 			ChatId:      chatID,
 			MessageType: messageType.String,
+			FilesURLs:   files,
+			PhotosURLs:  photos,
 		})
 	}
+
+	for i := 0; i < len(messages); i++ {
+		if messages[i].MessageType != defaultMessageType {
+			log.Printf("поиск вложений сообщения %v", messages[i].MessageId)
+
+			payloadRows, err := conn.Query(context.Background(),
+				`select mp.payload_path 
+				from public.message_payload mp 
+				where mp.message_id = $1 and (select value from public.payload_type pt where pt.id = mp.payload_type) = $2;`,
+				messages[i].MessageId,
+				filePayloadType,
+			)
+			if err != nil {
+				log.Printf("Repository: Unable to SELECT payloads: %v\n", err)
+				return nil, err
+			}
+
+			for payloadRows.Next() {
+				var payloadPath string
+
+				err = payloadRows.Scan(&payloadPath)
+				if err != nil {
+					log.Printf("Repository: unable to scan payloads: %v", err)
+					return nil, err
+				}
+				log.Printf("получено вложение %s", payloadPath)
+				messages[i].FilesURLs = append(messages[i].FilesURLs, payloadPath)
+			}
+		}
+	}
+	log.Println("Repository: вложения получены")
 
 	log.Printf("Repository: сообщения успешно найдеты. Количество сообшений: %d", len(messages))
 	return messages, nil
@@ -105,26 +146,50 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 	defer conn.Release()
 	log.Printf("Repository: соединение успешно установлено")
 
+	messageType := defaultMessageType
+
+	if len(message.Files) > 0 {
+		messageType = informationalMessageType
+	}
+
 	// нужно чё-то придумать со стикерами
 	row := conn.QueryRow(context.Background(),
-		`INSERT INTO public.message (id, chat_id, author_id, message, sent_at, is_redacted)
-	VALUES ($1, $2, $3, $4, $5, false) RETURNING id;`,
+		`INSERT INTO public.message (id, chat_id, author_id, message, sent_at, is_redacted, message_type_id)
+	VALUES ($1, $2, $3, $4, $5, false, (SELECT id FROM message_type WHERE value = $6)) RETURNING id;`,
 		message.MessageId,
 		chatId,
 		message.AuthorID,
 		message.Message,
 		message.SentAt,
+		messageType,
 	)
 
-	var id uuid.UUID
-	if err := row.Scan(&id); err != nil {
+	var message_id uuid.UUID
+	if err := row.Scan(&message_id); err != nil {
 		log.Printf("Repository: не удалось добавить сообщение: %v", err)
 		return err
+	}
+
+	for _, fileURL := range message.FilesURLs {
+		id := uuid.New()
+		row := conn.QueryRow(context.Background(),
+			`INSERT INTO public.message_payload (id, message_id, payload_path)
+		VALUES ($1, $2, $3) RETURNING id;`,
+			id,
+			message_id,
+			fileURL,
+		)
+
+		if err := row.Scan(&id); err != nil {
+			log.Printf("Repository: не удалось добавить сообщение: %v", err)
+			return err
+		}
 	}
 
 	return nil
 }
 
+// не нужен, можно в AddMessage тип определять по наличию файлов
 func (r *MessageRepositoryImpl) AddInformationalMessage(message models.Message, chatId uuid.UUID) error {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
@@ -145,10 +210,26 @@ func (r *MessageRepositoryImpl) AddInformationalMessage(message models.Message, 
 		message.SentAt,
 	)
 
-	var id uuid.UUID
-	if err := row.Scan(&id); err != nil {
+	var message_id uuid.UUID
+	if err := row.Scan(&message_id); err != nil {
 		log.Printf("Repository: не удалось добавить сообщение: %v", err)
 		return err
+	}
+
+	for _, fileURL := range message.FilesURLs {
+		id := uuid.New()
+		row := conn.QueryRow(context.Background(),
+			`INSERT INTO public.message_payload (id, message_id, payload_path)
+		VALUES ($1, $2, $3) RETURNING id;`,
+			id,
+			message_id,
+			fileURL,
+		)
+
+		if err := row.Scan(&id); err != nil {
+			log.Printf("Repository: не удалось добавить сообщение: %v", err)
+			return err
+		}
 	}
 
 	return nil
