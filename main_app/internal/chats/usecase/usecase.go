@@ -285,7 +285,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 
 	// отправляем уведомлениея
 	s.sendIvent(ctx, NewChat, chatId, nil)
-	newChatDTO.LastMessage = s.sendInformationalMessage(ctx, user.ID, chatId, fmt.Sprintf("Пользователь %s создал чат %v", user.Name, chat.ChatName))
+	newChatDTO.LastMessage = s.sendInformationalMessage(ctx, user.ID, chatId, "Чат создан.")
 	metric.IncMetric(*addNewChatMetric)
 	return newChatDTO, nil
 }
