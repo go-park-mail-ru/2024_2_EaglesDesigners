@@ -56,7 +56,7 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, me
 		return chatModel.AddBranch{}, err
 	}
 
-	// log.Debugf("вставка юзеров в ветку %s чата %s", branch.ID.String(), branch.ID)
+	log.Debugf("вставка юзеров в ветку %s чата %s", branch.ID.String(), chatId)
 
 	_, err = tx.Exec(
 		ctx,
@@ -72,8 +72,8 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, me
 			cu.user_id 
 		FROM public.chat_user cu
 		WHERE cu.chat_id = $1;`,
-		branch.ID,
 		chatId,
+		branch.ID,
 	)
 
 	if err != nil {
