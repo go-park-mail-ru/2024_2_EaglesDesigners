@@ -165,7 +165,7 @@ func main() {
 
 	chatRepo, _ := chatRepository.NewChatRepository(pool)
 
-	messageUsecase := messageUsecase.NewMessageUsecaseImpl(messageRepo, chatRepo, ch)
+	messageUsecase := messageUsecase.NewMessageUsecaseImpl(filesUC, messageRepo, chatRepo, ch)
 
 	chatService := chatService.NewChatUsecase(filesUC, chatRepo, messageUsecase, ch)
 	chat := chatController.NewChatDelivery(chatService)

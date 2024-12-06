@@ -106,6 +106,15 @@ ALTER TABLE ONLY public.message
     ADD CONSTRAINT message_type_id_fk FOREIGN KEY (message_type_id) REFERENCES public.message_type(id) NOT VALID;
 
 
+CREATE TABLE public.payload_type (
+	id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+	value text NOT NULL,
+	CONSTRAINT payload_type_pk PRIMARY KEY (id),
+	CONSTRAINT payload_type_unique UNIQUE (value)
+);
+
+ALTER TABLE public.payload_type OWNER TO postgres;
+
 --
 -- Name: message_payload; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -113,11 +122,15 @@ ALTER TABLE ONLY public.message
 CREATE TABLE public.message_payload (
     payload_path text NOT NULL,
     id uuid NOT NULL,
-    message_id uuid NOT NULL
+    message_id uuid NOT NULL,
+    payload_type integer DEFAULT 1 NOT NULL
 );
 
-
 ALTER TABLE public.message_payload OWNER TO postgres;
+
+ALTER TABLE ONLY public.message_payload
+    ADD CONSTRAINT payload_type_id_fk FOREIGN KEY (payload_type) REFERENCES public.payload_type(id) NOT VALID;
+
 
 --
 -- Name: user; Type: TABLE; Schema: public; Owner: postgres
@@ -353,7 +366,6 @@ ALTER TABLE ONLY public.chat_user
 -- PostgreSQL database dump complete
 --
 
-
 INSERT INTO public.chat_type (value) VALUES
 ('personal'),
 ('group'),
@@ -365,13 +377,16 @@ INSERT INTO  public.user_role ( value) VALUES
 ('owner'),
 ('admin');
 
-
 --
 -- Insert test data to user
 --
 INSERT INTO message_type (value) VALUES 
     ('default'),
     ('informational');
+
+INSERT INTO  payload_type (value) VALUES
+('file'),
+('photo');
 
 INSERT INTO public."user" (id, username, version, password, name, bio, birthdate, avatar_path) VALUES
     ('39a9aea0-d461-437d-b4eb-bf030a0efc80', 'user11', 0, 'e208b28e33d1cb6c69bdddbc5f4298652be5ae2064a8933ce8a97556334715483259a4f4e003c6f5c44a9ceed09b49c792c0a619c5c5a276bbbdcfbd45c6c648', 'Бал Матье', 'Люблю путешествия 🌍', '1990-05-15T00:00:00Z', '/uploads/avatar/642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png'),
@@ -417,3 +432,4 @@ INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     ('f8a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user44')),
     ('f9a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user33')),
     ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'my little channel'), (SELECT id FROM public.user where username ='user44'));
+

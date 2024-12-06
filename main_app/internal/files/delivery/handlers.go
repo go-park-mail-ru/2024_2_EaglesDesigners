@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
@@ -15,7 +14,6 @@ import (
 
 type Usecase interface {
 	GetFile(ctx context.Context, fileIDStr string) (*bytes.Buffer, *models.FileMetaData, error)
-	SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error)
 }
 
 type Delivery struct {
@@ -53,6 +51,15 @@ func New(usecase Usecase) *Delivery {
 // 	http.ServeFile(w, r, imagePath)
 // }
 
+// // GetImage godoc
+// // @Summary Получить файл
+// // @Description Получить файл по его Id
+// // @Tags files
+// // @Accept json
+// // @Produce json
+// // @Param fileID path string true "File ID" example("642c5a57-ebc7-49d0-ac2d-f2f1f474bee7")
+// // @Success 200 {file} responser.SuccessResponse "Файл успешно получен"
+// // @Failure 404 {object} responser.ErrorResponse "файл не найден"
 // @Router /files/{fileID} [get]
 func (d Delivery) GetFile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -65,7 +72,8 @@ func (d Delivery) GetFile(w http.ResponseWriter, r *http.Request) {
 
 	fileBuffer, metadata, err := d.usecase.GetFile(ctx, fileIDStr)
 	if err != nil {
-		responser.SendError(ctx, w, "internal server error", http.StatusInternalServerError)
+		log.WithError(err).Errorln("не удалось получить файл")
+		responser.SendError(ctx, w, "File not found", http.StatusNotFound)
 		return
 	}
 
