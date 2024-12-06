@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"sync"
 
@@ -20,8 +19,6 @@ type ChatRepositoryImpl struct {
 	pool       *pgxpool.Pool
 	chat_types map[string]int
 }
-
-const pageSize = 25
 
 // readChatTypes подгружает id чатов из бд
 func readChatTypes(p *pgxpool.Pool) (map[string]int, error) {
@@ -275,7 +272,7 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(ctx context.Context, userId uuid.UU
 	).Scan(&id)
 
 	if err != nil {
-		log.Errorf("польтзователь %v не добавлен в чат %v. Ошибка: ", userId, chatId, err)
+		log.Errorf("польтзователь %v не добавлен в чат %v. Ошибка: %v", userId, chatId, err)
 		return err
 	}
 	log.Printf("польтзователь %v добавлен в чат %v", userId, chatId)
@@ -532,87 +529,6 @@ func (r *ChatRepositoryImpl) GetNameAndAvatar(ctx context.Context, userId uuid.U
 	return name.String, filename.String, nil
 }
 
-func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID) (chatModel.AddBranch, error) {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-	conn, err := r.pool.Acquire(ctx)
-	if err != nil {
-		log.Printf("Repository: Unable to acquire a database connection: %v\n", err)
-		return chatModel.AddBranch{}, err
-	}
-	defer conn.Release()
-
-	tx, err := conn.Conn().Begin(ctx)
-	if err != nil {
-		log.Printf("Repository: Unable to create transaction: %v\n", err)
-		return chatModel.AddBranch{}, err
-	}
-
-	var branch chatModel.AddBranch
-	branch.ID = messageID
-
-	_, err = tx.Exec(
-		ctx,
-		`INSERT INTO public.chat 
-		(id,
-		chat_name,
-		chat_type_id
-		)
-		VALUES ($1, 'branch', (SELECT id FROM public.chat_type WHERE value = 'branch'))`,
-		branch.ID,
-	)
-
-	if err != nil {
-		log.Errorf("Не удалось добавить ветку: %v", err)
-		return chatModel.AddBranch{}, err
-	}
-
-	_, err = tx.Exec(
-		ctx,
-		`UPDATE public.message 
-		SET branch_id = $2
-		WHERE id = $1;`,
-		messageID,
-		branch.ID,
-	)
-
-	if err != nil {
-		log.Errorf("Не удалось привязать ветку к сообщению: %v", err)
-		return chatModel.AddBranch{}, err
-	}
-
-	log.Debugf("вставка юзеров в ветку %s чата %s", branch.ID.String(), chatId)
-
-	_, err = tx.Exec(
-		ctx,
-		`INSERT INTO public.chat_user 
-			(id, 
-			user_role_id, 
-			chat_id, 
-			user_id)
-		SELECT 
-			gen_random_uuid(),
-			(SELECT id FROM public.user_role WHERE value = 'none'), 
-			$2, 
-			cu.user_id 
-		FROM public.chat_user cu
-		WHERE cu.chat_id = $1;`,
-		chatId,
-		branch.ID,
-	)
-
-	if err != nil {
-		log.Errorf("Не удалось добавить пользователей в ветку: %v", err)
-		return chatModel.AddBranch{}, err
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		log.Errorf("Не удалось подтвердить транзакцию: %v", err)
-		return chatModel.AddBranch{}, err
-	}
-
-	return branch, nil
-}
-
 func (r *ChatRepositoryImpl) SearchUserChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
@@ -748,35 +664,4 @@ func (r *ChatRepositoryImpl) SearchGlobalChats(ctx context.Context, userId uuid.
 	log.Debugf("чаты успешно найдеты. Количество чатов: %d", len(chats))
 
 	return chats, nil
-}
-
-func (r *ChatRepositoryImpl) SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-	conn, err := r.pool.Acquire(ctx)
-	if err != nil {
-		log.Errorf("Unable to acquire a database connection: %v\n", err)
-		return err
-	}
-	defer conn.Release()
-
-	var sendNotifications bool
-
-	err = conn.QueryRow(ctx,
-		`UPDATE chat_user SET
-		send_notifications = $1
-		WHERE chat_id = $2 AND user_id = $3 RETURNING send_notifications`,
-		value,
-		chatUUID,
-		userId,
-	).Scan(&sendNotifications)
-
-	if err != nil {
-		return err
-	}
-
-	if sendNotifications != value {
-		return fmt.Errorf("Не удалось обновить значение")
-	}
-
-	return nil
 }

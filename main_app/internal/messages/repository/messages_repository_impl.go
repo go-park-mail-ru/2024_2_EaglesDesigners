@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 	"time"
@@ -72,16 +73,16 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 	for rows.Next() {
 		var messageId uuid.UUID
 		var authorID uuid.UUID
-		var message string
+		var message sql.NullString
 		var sentAt time.Time
 		var isRedacted bool
 		var branchID *uuid.UUID
 		var chatID uuid.UUID
-		var messageType string
+		var messageType sql.NullString
 		var files []string
 		var photos []string
 
-		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, branchID, &chatID, &messageType)
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &branchID, &chatID, &messageType)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
@@ -90,12 +91,12 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 		messages = append(messages, models.Message{
 			MessageId:   messageId,
 			AuthorID:    authorID,
-			Message:     message,
+			Message:     message.String,
 			SentAt:      sentAt,
 			IsRedacted:  isRedacted,
 			BranchID:    branchID,
 			ChatId:      chatID,
-			MessageType: messageType,
+			MessageType: messageType.String,
 			FilesURLs:   files,
 			PhotosURLs:  photos,
 		})

@@ -362,6 +362,30 @@ ALTER TABLE ONLY public.chat_user
     ADD CONSTRAINT user_role_id_fk_chat_users_chat_id_pk_user_roles FOREIGN KEY (user_role_id) REFERENCES public.user_role(id);
 
    
+CREATE TABLE public.chat_branch
+(
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    chat_id uuid NOT NULL,
+    branch_id uuid NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT chat_id_fk_for_branch FOREIGN KEY (chat_id)
+        REFERENCES public.chat (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT branch_id_fk_for_branch FOREIGN KEY (branch_id)
+        REFERENCES public.chat (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+);
+
+ALTER TABLE IF EXISTS public.chat_branch
+    OWNER to postgres;
+
+COMMENT ON TABLE public.chat_branch
+    IS 'Таблица в которой хранятся чаты и их ветки';
+
 --
 -- PostgreSQL database dump complete
 --

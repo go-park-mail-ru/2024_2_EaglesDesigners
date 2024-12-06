@@ -29,13 +29,14 @@ type MessageEvent struct {
 	Message Message `json:"payload"`
 }
 type Message struct {
-	MessageId  uuid.UUID  `json:"messageId" example:"1" valid:"-"`
-	AuthorID   uuid.UUID  `json:"authorID" exameple:"2" valid:"-"`
-	BranchID   *uuid.UUID `json:"branchId" exameple:"2" valid:"-"`
-	Message    string     `json:"text" example:"тут много текста" valid:"-"`
-	SentAt     time.Time  `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
-	ChatId     uuid.UUID  `json:"chatId" valid:"-"`
-	IsRedacted bool       `json:"isRedacted" valid:"-"`
+	MessageId    uuid.UUID  `json:"messageId" example:"1" valid:"-"`
+	AuthorID     uuid.UUID  `json:"authorID" exameple:"2" valid:"-"`
+	BranchID     *uuid.UUID `json:"branchId" exameple:"2" valid:"-"`
+	Message      string     `json:"text" example:"тут много текста" valid:"-"`
+	SentAt       time.Time  `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
+	ChatId       uuid.UUID  `json:"chatId" valid:"-"`
+	IsRedacted   bool       `json:"isRedacted" valid:"-"`
+	ChatIdParent uuid.UUID  `json:"parent_chat_id" valid:"-"`
 }
 
 func SerializeMessageEvent(event MessageEvent) ([]byte, error) {

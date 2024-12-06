@@ -78,6 +78,8 @@ var sendedMessagesMetric = prometheus.NewGaugeVec(
 	nil, // no labels for this metric
 )
 
+const branchType = "branch"
+
 func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, chatId uuid.UUID, message models.Message) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	log.Printf("Usecase: начато добавление сообщения в чат %v", chatId)
@@ -125,7 +127,21 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	}
 
 	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
+
+	// Если это ветка, то нужно указать parent branch.
+	chatType, err := u.chatRepository.GetChatType(ctx, chatId)
+	if err != nil {
+		chatType = ""
+	}
+	if chatType == branchType {
+		parentChatId, err := u.chatRepository.GetBranchParent(ctx, chatId)
+		if err != nil {
+			return err
+		}
+		message.ChatIdParent = parentChatId
+	}
 	u.SendIvent(ctx, socketUsecase.NewMessage, message)
+
 	metric.IncMetric(*sendedMessagesMetric)
 	return nil
 }

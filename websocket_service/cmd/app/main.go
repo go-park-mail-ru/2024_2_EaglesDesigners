@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 
@@ -60,6 +61,12 @@ func main() {
 	auth := authDelivery.New(authClient)
 
 	// ручки
+	tmpl := template.Must(template.ParseFiles("index.html"))
+
+	router.HandleFunc("/index", func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, nil)
+	})
+
 	router.HandleFunc("/startwebsocket", auth.Authorize(socketDelivery.HandleConnection))
 	// мктрики
 	router.Handle("/metrics", promhttp.Handler())

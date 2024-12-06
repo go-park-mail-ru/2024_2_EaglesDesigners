@@ -113,9 +113,10 @@ type DeletdeUsersFromChatDTO struct {
 }
 
 type ChatInfoDTO struct {
-	Role     string           `json:"role" example:"owner" valid:"in(admin|owner|none)"`
-	Users    []UserInChatDTO  `json:"users" valid:"-"`
-	Messages []models.Message `json:"messages" valid:"-"`
+	Role              string           `json:"role" example:"owner" valid:"in(admin|owner|none)"`
+	Users             []UserInChatDTO  `json:"users" valid:"-"`
+	Messages          []models.Message `json:"messages" valid:"-"`
+	SendNotifications bool             `json:"send_notifications" valid:"-"`
 }
 
 type UserInChatDTO struct {
