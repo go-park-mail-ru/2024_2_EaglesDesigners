@@ -559,10 +559,13 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 		return chatModel.ChatInfoDTO{}, err
 	}
 
+	sendNotifications, err := s.repository.GetSendNotificationsForUser(ctx, chatId, userId)
+
 	return chatModel.ChatInfoDTO{
-		Role:     role,
-		Users:    usersDTO,
-		Messages: messages,
+		Role:              role,
+		Users:             usersDTO,
+		Messages:          messages,
+		SendNotifications: sendNotifications,
 	}, nil
 }
 

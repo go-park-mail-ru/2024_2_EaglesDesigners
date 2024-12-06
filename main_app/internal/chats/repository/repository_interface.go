@@ -32,4 +32,6 @@ type ChatRepository interface {
 
 	// SetChatNotofications позволяет включить или выключить уведомления.
 	SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error
+
+	GetSendNotificationsForUser(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (bool, error)
 }

@@ -21,8 +21,6 @@ type ChatRepositoryImpl struct {
 	chat_types map[string]int
 }
 
-const pageSize = 25
-
 // readChatTypes подгружает id чатов из бд
 func readChatTypes(p *pgxpool.Pool) (map[string]int, error) {
 	var chat_types map[string]int = map[string]int{}
@@ -275,7 +273,7 @@ func (r *ChatRepositoryImpl) AddUserIntoChat(ctx context.Context, userId uuid.UU
 	).Scan(&id)
 
 	if err != nil {
-		log.Errorf("польтзователь %v не добавлен в чат %v. Ошибка: ", userId, chatId, err)
+		log.Errorf("польтзователь %v не добавлен в чат %v. Ошибка: %v", userId, chatId, err)
 		return err
 	}
 	log.Printf("польтзователь %v добавлен в чат %v", userId, chatId)
@@ -748,35 +746,4 @@ func (r *ChatRepositoryImpl) SearchGlobalChats(ctx context.Context, userId uuid.
 	log.Debugf("чаты успешно найдеты. Количество чатов: %d", len(chats))
 
 	return chats, nil
-}
-
-func (r *ChatRepositoryImpl) SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error {
-	log := logger.LoggerWithCtx(ctx, logger.Log)
-	conn, err := r.pool.Acquire(ctx)
-	if err != nil {
-		log.Errorf("Unable to acquire a database connection: %v\n", err)
-		return err
-	}
-	defer conn.Release()
-
-	var sendNotifications bool
-
-	err = conn.QueryRow(ctx,
-		`UPDATE chat_user SET
-		send_notifications = $1
-		WHERE chat_id = $2 AND user_id = $3 RETURNING send_notifications`,
-		value,
-		chatUUID,
-		userId,
-	).Scan(&sendNotifications)
-
-	if err != nil {
-		return err
-	}
-
-	if sendNotifications != value {
-		return fmt.Errorf("Не удалось обновить значение")
-	}
-
-	return nil
 }
