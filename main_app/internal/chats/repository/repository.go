@@ -159,7 +159,7 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID)
 		FROM chat_user AS cu
 		JOIN chat AS c ON c.id = cu.chat_id
 		JOIN chat_type AS ch ON ch.id = c.chat_type_id
-		WHERE cu.user_id = $1;`,
+		WHERE cu.user_id = $1 AND ch.value != 'branch';`,
 		userId,
 	)
 	if err != nil {
@@ -548,7 +548,7 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, me
 	}
 
 	var branch chatModel.AddBranch
-	branch.ID = uuid.New()
+	branch.ID = messageID
 
 	_, err = tx.Exec(
 		ctx,
