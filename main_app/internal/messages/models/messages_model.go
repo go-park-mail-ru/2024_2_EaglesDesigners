@@ -18,7 +18,7 @@ type Message struct {
 	ChatId       uuid.UUID               `json:"chatId" valid:"-"`
 	IsRedacted   bool                    `json:"isRedacted" valid:"-"`
 	MessageType  string                  `json:"message_type" valid:"-" example:"informational"`
-  IsRedacted   bool       `json:"isRedacted" valid:"-"`
+	ChatIdParent uuid.UUID               `json:"parent_chat_id" valid:"-"`
 	Files        []multipart.File        `json:"-" valid:"-"`
 	FilesHeaders []*multipart.FileHeader `json:"-" valid:"-"`
 	FilesURLs    []string                `json:"files" valid:"-" example:"[url1, url2, url3]"`

@@ -129,10 +129,6 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 	log.Printf("Usecase: сообщение успешно добавлено: %v", message.MessageId)
 
 	// Если это ветка, то нужно указать parent branch.
-	chatType, err := u.chatRepository.GetChatType(ctx, chatId)
-	if err != nil {
-		chatType = ""
-	}
 	if chatType == branchType {
 		parentChatId, err := u.chatRepository.GetBranchParent(ctx, chatId)
 		if err != nil {
