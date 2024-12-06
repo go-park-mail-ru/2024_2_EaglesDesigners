@@ -17,10 +17,14 @@ type Message struct {
 	SentAt       time.Time               `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
 	ChatId       uuid.UUID               `json:"chatId" valid:"-"`
 	IsRedacted   bool                    `json:"isRedacted" valid:"-"`
-	MessageType  string                  `json:"message_type" valid:"-"`
+	MessageType  string                  `json:"message_type" valid:"-" example:"informational"`
 	Files        []multipart.File        `json:"-" valid:"-"`
 	FilesHeaders []*multipart.FileHeader `json:"-" valid:"-"`
-	FilesURLs    []string                `json:"files" valid:"-"`
+	FilesURLs    []string                `json:"files" valid:"-" example:"[url1, url2, url3]"`
+	// TODO: photos
+	Photos        []multipart.File        `json:"-" valid:"-"`
+	PhotosHeaders []*multipart.FileHeader `json:"-" valid:"-"`
+	PhotosURLs    []string                `json:"photos" valid:"-" example:"[url1, url2, url3]"`
 }
 
 func (m Message) MarshalBinary() ([]byte, error) {

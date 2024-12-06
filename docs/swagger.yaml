@@ -253,13 +253,30 @@ definitions:
       datetime:
         example: "2024-04-13T08:30:00Z"
         type: string
+      files:
+        example:
+        - '[url1'
+        - ' url2'
+        - ' url3]'
+        items:
+          type: string
+        type: array
       isRedacted:
         type: boolean
       message_type:
+        example: informational
         type: string
       messageId:
         example: "1"
         type: string
+      photos:
+        example:
+        - '[url1'
+        - ' url2'
+        - ' url3]'
+        items:
+          type: string
+        type: array
       text:
         example: тут много текста
         type: string
@@ -714,11 +731,18 @@ paths:
         required: true
         type: string
       - description: Message info
-        in: body
-        name: message
+        in: formData
+        name: text
         required: true
-        schema:
-          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput'
+        type: string
+      - description: files array
+        in: formData
+        name: files
+        type: file
+      - description: photos array
+        in: formData
+        name: photos
+        type: file
       responses:
         "201":
           description: Сообщение успешно добавлено

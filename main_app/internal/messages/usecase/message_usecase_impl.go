@@ -110,12 +110,12 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	// Добавление файлов в mongoDB
 	for i := 0; i < len(message.Files); i++ {
-		fileID, err := u.fileUC.SaveFile(ctx, message.Files[i], message.FilesHeaders[i], userIDs)
+		fileURl, err := u.fileUC.SaveFile(ctx, message.Files[i], message.FilesHeaders[i], userIDs)
 		if err != nil {
 			log.Errorf("Usecase: не удалось сохранить файл: %v", err)
 			return err
 		}
-		message.FilesURLs = append(message.FilesURLs, fileID)
+		message.FilesURLs = append(message.FilesURLs, fileURl)
 	}
 
 	err = u.messageRepository.AddMessage(message, chatId)
@@ -171,6 +171,7 @@ var updateMessageMetric = prometheus.NewGaugeVec(
 	nil, // no labels for this metric
 )
 
+// не нужен, можно в repo.AddMessage тип определять по наличию файлов
 func (u *MessageUsecaseImplm) SendInformationalMessage(_ context.Context, message models.Message, chatId uuid.UUID) error {
 	return u.messageRepository.AddInformationalMessage(message, chatId)
 }

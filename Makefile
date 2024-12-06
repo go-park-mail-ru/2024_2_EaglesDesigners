@@ -9,6 +9,15 @@ SRC_DIR=src
 
 CMD_DIR=cmd/app
 
+up:
+
+	sudo docker-compose down && sudo docker-compose up --build
+
+
+down:
+
+	sudo docker-compose down
+
 
 # Устанавливаем команду для сборки
 

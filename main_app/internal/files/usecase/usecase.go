@@ -15,6 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+const fileURLPrefix = "/files/"
+
 type Repository interface {
 	GetFile(ctx context.Context, filename string) (*bytes.Buffer, *models.FileMetaData, error)
 	SaveFile(ctx context.Context, fileBuffer *bytes.Buffer, metadata primitive.D) (string, error)
@@ -39,6 +41,8 @@ func (u *Usecase) GetFile(ctx context.Context, fileIDStr string) (*bytes.Buffer,
 func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
+	log.Println("сохранение файла для пользователей: ", users)
+
 	fileBuffer, err := getFileBuffer(file)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось создать буфер")
@@ -51,7 +55,8 @@ func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *mul
 		metadata = append(metadata, primitive.E{Key: "users", Value: users})
 	}
 
-	return u.repo.SaveFile(ctx, &fileBuffer, metadata)
+	fileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
+	return addFileURLPrefix(fileID), err
 }
 
 func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader) (string, error) {
@@ -73,7 +78,7 @@ func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header mul
 
 	fileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
 
-	return "/files/" + fileID, err
+	return addFileURLPrefix(fileID), err
 }
 
 func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) error {
@@ -239,4 +244,8 @@ func isImage(header multipart.FileHeader) error {
 	default:
 		return fmt.Errorf("недопустимый тип файла: %s", header.Header.Get("Content-Type"))
 	}
+}
+
+func addFileURLPrefix(fileID string) string {
+	return fileURLPrefix + fileID
 }

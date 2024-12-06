@@ -612,13 +612,23 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
                         "description": "Message info",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.MessageInput"
-                        }
+                        "name": "text",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "files array",
+                        "name": "files",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "photos array",
+                        "name": "photos",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -1790,6 +1800,17 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2024-04-13T08:30:00Z"
                 },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[url1",
+                        " url2",
+                        " url3]"
+                    ]
+                },
                 "isRedacted": {
                     "type": "boolean"
                 },
@@ -1798,7 +1819,19 @@ const docTemplate = `{
                     "example": "1"
                 },
                 "message_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "informational"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[url1",
+                        " url2",
+                        " url3]"
+                    ]
                 },
                 "text": {
                     "type": "string",

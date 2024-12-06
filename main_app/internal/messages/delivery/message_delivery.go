@@ -52,8 +52,9 @@ var requestMessageDuration = prometheus.NewHistogramVec(
 // @Accept json
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Param text formData string true "Message info"
-// @Param files formData []file false "files array"
-// @Success 201 "Сообщение успешно добавлено"
+// @Param files formData file false "files array"
+// @Param photos formData file false "photos array"
+// @Success 201 {object} responser.SuccessResponse "Сообщение успешно добавлено"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить сообщение"
 // @Router /chat/{chatId}/messages [post]
@@ -101,13 +102,15 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 	var messageDTO models.Message
 	jsonString := r.FormValue("text")
 	if jsonString != "" {
-		if err := json.Unmarshal([]byte(jsonString), &messageDTO); err != nil {
+		if err := json.Unmarshal([]byte(jsonString), &messageDTO.Message); err != nil {
+			log.Errorf("не удалось распарсить text: %v", err)
 			responser.SendError(ctx, w, "bad request", http.StatusBadRequest)
 			return
 		}
 	}
 
-	files := r.MultipartForm.File["file"]
+	files := r.MultipartForm.File["files"]
+
 	for _, header := range files {
 		file, err := header.Open()
 		if err != nil {
@@ -119,6 +122,8 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		messageDTO.Files = append(messageDTO.Files, file)
 		messageDTO.FilesHeaders = append(messageDTO.FilesHeaders, header)
 	}
+
+	log.Print("messageDTO: ", messageDTO)
 
 	err = h.usecase.SendMessage(r.Context(), user, chatUUID, messageDTO)
 
@@ -135,7 +140,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 // @Summary Delete message
 // @Tags message
 // @Param messageId path string true "messageId ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Success 200 "Сообщение успешно удалено"
+// @Success 200 {object} responser.SuccessResponse "Сообщение успешно удалено"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить сообщение"
@@ -188,7 +193,7 @@ func (h *MessageController) DeleteMessage(w http.ResponseWriter, r *http.Request
 // @Tags message
 // @Param message body models.MessageInput true "Message info"
 // @Param messageId path string true "messageId ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
-// @Success 200 "Сообщение успешно изменено"
+// @Success 200 {object} responser.SuccessResponse "Сообщение успешно изменено"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} customerror.NoPermissionError "Нет доступа"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновить сообщение"
