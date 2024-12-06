@@ -38,7 +38,10 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 	rows, err := conn.Query(context.Background(),
 		`SELECT
 	m.id,
-	m.author_id,
+	CASE 
+        WHEN mt.value = 'informational' THEN '00000000-0000-0000-0000-000000000000' 
+        ELSE m.author_id 
+    END AS author_id,
 	m.message,
 	m.sent_at, 
 	m.is_redacted,
@@ -322,7 +325,10 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	row := conn.QueryRow(context.Background(),
 		`SELECT
 	m.id,
-	m.author_id,
+	CASE 
+        WHEN mt.value = 'informational' THEN '00000000-0000-0000-0000-000000000000' 
+        ELSE m.author_id 
+    END AS author_id,
 	m.message,
 	m.sent_at, 
 	m.is_redacted,
@@ -377,7 +383,10 @@ func (r *MessageRepositoryImpl) GetMessagesAfter(ctx context.Context, chatId uui
 	rows, err := conn.Query(ctx,
 		`SELECT
 	m.id,
-	m.author_id,
+	CASE 
+        WHEN mt.value = 'informational' THEN '00000000-0000-0000-0000-000000000000' 
+        ELSE m.author_id 
+    END AS author_id,
 	m.message,
 	m.sent_at, 
 	m.is_redacted,

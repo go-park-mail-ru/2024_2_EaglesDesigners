@@ -299,6 +299,7 @@ func (s *ChatUsecaseImpl) sendInformationalMessage(ctx context.Context, userID u
 		MessageType: "informational",
 	}
 	s.messageUsecase.SendInformationalMessage(ctx, message, chatId)
+	message.AuthorID, _ = uuid.Parse("00000000-0000-0000-0000-000000000000") // Для информационных сообщений ставим нули в автора.
 	return message
 }
 
