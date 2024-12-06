@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"sync"
 
@@ -153,11 +154,12 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID)
 		c.chat_name,
 		ch.value,
 		c.avatar_path,
-		c.chat_link_name
+		c.chat_link_name,
+		cu.send_notifications
 		FROM chat_user AS cu
 		JOIN chat AS c ON c.id = cu.chat_id
 		JOIN chat_type AS ch ON ch.id = c.chat_type_id
-		WHERE cu.user_id = $1;`,
+		WHERE cu.user_id = $1 AND ch.value != 'branch';`,
 		userId,
 	)
 	if err != nil {
@@ -173,9 +175,10 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID)
 		var chatType string
 		var avatarURL sql.NullString
 		var chatURLName sql.NullString
+		var sendNotifications bool
 
 		log.Println("Repository: поиск параметров из запроса")
-		err = rows.Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName)
+		err = rows.Scan(&chatId, &chatName, &chatType, &avatarURL, &chatURLName, &sendNotifications)
 
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
@@ -183,11 +186,12 @@ func (r *ChatRepositoryImpl) GetUserChats(ctx context.Context, userId uuid.UUID)
 		}
 
 		chats = append(chats, chatModel.Chat{
-			ChatId:      chatId,
-			ChatName:    chatName,
-			ChatType:    chatType,
-			AvatarURL:   avatarURL.String,
-			ChatURLName: chatURLName.String,
+			ChatId:            chatId,
+			ChatName:          chatName,
+			ChatType:          chatType,
+			AvatarURL:         avatarURL.String,
+			ChatURLName:       chatURLName.String,
+			SendNotifications: sendNotifications,
 		})
 	}
 
@@ -544,7 +548,7 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, me
 	}
 
 	var branch chatModel.AddBranch
-	branch.ID = uuid.New()
+	branch.ID = messageID
 
 	_, err = tx.Exec(
 		ctx,
@@ -744,4 +748,35 @@ func (r *ChatRepositoryImpl) SearchGlobalChats(ctx context.Context, userId uuid.
 	log.Debugf("чаты успешно найдеты. Количество чатов: %d", len(chats))
 
 	return chats, nil
+}
+
+func (r *ChatRepositoryImpl) SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+	conn, err := r.pool.Acquire(ctx)
+	if err != nil {
+		log.Errorf("Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	var sendNotifications bool
+
+	err = conn.QueryRow(ctx,
+		`UPDATE chat_user SET
+		send_notifications = $1
+		WHERE chat_id = $2 AND user_id = $3 RETURNING send_notifications`,
+		value,
+		chatUUID,
+		userId,
+	).Scan(&sendNotifications)
+
+	if err != nil {
+		return err
+	}
+
+	if sendNotifications != value {
+		return fmt.Errorf("Не удалось обновить значение")
+	}
+
+	return nil
 }

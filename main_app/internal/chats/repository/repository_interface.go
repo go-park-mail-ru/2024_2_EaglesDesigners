@@ -10,6 +10,7 @@ import (
 //go:generate mockgen -source=repository_interface.go -destination=mocks/mocks.go
 
 type ChatRepository interface {
+	// GetUserChats возвращает список чатов, в которых есть пользователь.
 	GetUserChats(ctx context.Context, userId uuid.UUID) (chats []chatModel.Chat, err error)
 
 	// если не состоит в чате, то вернет пустую строку
@@ -28,4 +29,7 @@ type ChatRepository interface {
 	AddBranch(ctx context.Context, chatId uuid.UUID, messageId uuid.UUID) (chatModel.AddBranch, error)
 	SearchUserChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error)
 	SearchGlobalChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error)
+
+	// SetChatNotofications позволяет включить или выключить уведомления.
+	SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error
 }

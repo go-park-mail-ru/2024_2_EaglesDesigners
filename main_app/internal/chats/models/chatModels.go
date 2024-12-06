@@ -18,17 +18,19 @@ type Chat struct {
 	// путь до фото в папке Messages
 	AvatarURL string
 	// типо неймтаг канала
-	ChatURLName string
+	ChatURLName       string
+	SendNotifications bool
 }
 
 // @Schema
 type ChatDTOOutput struct {
-	ChatId       uuid.UUID      `json:"chatId" example:"08a0f350-e122-467b-8ba8-524d2478b56e" valid:"-"`
-	ChatName     string         `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
-	CountOfUsers int            `json:"countOfUsers" example:"52" valid:"int"`
-	ChatType     string         `json:"chatType" example:"personal" valid:"in(personal|group|channel)"`
-	LastMessage  models.Message `json:"lastMessage" valid:"-"`
-	AvatarPath   string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
+	ChatId            uuid.UUID      `json:"chatId" example:"08a0f350-e122-467b-8ba8-524d2478b56e" valid:"-"`
+	ChatName          string         `json:"chatName" example:"Чат с пользователем 2" valid:"-"`
+	CountOfUsers      int            `json:"countOfUsers" example:"52" valid:"int"`
+	ChatType          string         `json:"chatType" example:"personal" valid:"in(personal|group|channel)"`
+	LastMessage       models.Message `json:"lastMessage" valid:"-"`
+	AvatarPath        string         `json:"avatarPath"  example:"/uploads/chat/f0364477-bfd4-496d-b639-d825b009d509.png" valid:"-"`
+	SendNotifications bool           `json:"send_notifications" valid:"-"`
 }
 
 // для сортировки возвращаемого списка по убыванию
@@ -83,12 +85,13 @@ type ChatUpdateOutput struct {
 
 func СhatToChatDTO(chat Chat, countOfUsers int, lastMessage models.Message) ChatDTOOutput {
 	return ChatDTOOutput{
-		ChatId:       chat.ChatId,
-		ChatName:     chat.ChatName,
-		CountOfUsers: countOfUsers,
-		ChatType:     chat.ChatType,
-		LastMessage:  lastMessage,
-		AvatarPath:   chat.AvatarURL,
+		ChatId:            chat.ChatId,
+		ChatName:          chat.ChatName,
+		CountOfUsers:      countOfUsers,
+		ChatType:          chat.ChatType,
+		LastMessage:       lastMessage,
+		AvatarPath:        chat.AvatarURL,
+		SendNotifications: chat.SendNotifications,
 	}
 }
 
