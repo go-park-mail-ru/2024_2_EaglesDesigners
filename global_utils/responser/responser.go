@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	InvalidJSONError  = "Invalid format JSON"
-	ResponseError     = "Failed to create response"
-	UserNotFoundError = "User not found"
+	InvalidJSONError  = "invalid format JSON"
+	ResponseError     = "failed to create response"
+	UserNotFoundError = "user not found"
 )
 
 // @Schema

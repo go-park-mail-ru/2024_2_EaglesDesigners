@@ -26,7 +26,6 @@ type ChatRepository interface {
 	GetUsersFromChat(ctx context.Context, chatId uuid.UUID) ([]chatModel.UserInChatDAO, error)
 	UpdateChatPhoto(ctx context.Context, chatId uuid.UUID, filename string) error
 	GetNameAndAvatar(ctx context.Context, userId uuid.UUID) (string, string, error)
-	AddBranch(ctx context.Context, chatId uuid.UUID, messageId uuid.UUID) (chatModel.AddBranch, error)
 	SearchUserChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error)
 	SearchGlobalChats(ctx context.Context, userId uuid.UUID, keyWord string) ([]chatModel.Chat, error)
 
@@ -34,4 +33,8 @@ type ChatRepository interface {
 	SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error
 
 	GetSendNotificationsForUser(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (bool, error)
+
+	// GetBranchParent используется для веток, чтобы находить родителя.
+	GetBranchParent(ctx context.Context, branchId uuid.UUID) (uuid.UUID, error)
+	AddBranch(ctx context.Context, chatId uuid.UUID, messageId uuid.UUID) (chatModel.AddBranch, error)
 }
