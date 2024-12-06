@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, branchId uuid.UUID, messageID uuid.UUID) (chatModel.AddBranch, error) {
+func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, chatId uuid.UUID, messageID uuid.UUID) (chatModel.AddBranch, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	conn, err := r.pool.Acquire(ctx)
 	if err != nil {
@@ -56,7 +56,7 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, branchId uuid.UUID, 
 		return chatModel.AddBranch{}, err
 	}
 
-	log.Debugf("вставка юзеров в ветку %s чата %s", branch.ID.String(), branchId)
+	// log.Debugf("вставка юзеров в ветку %s чата %s", branch.ID.String(), branch.ID)
 
 	_, err = tx.Exec(
 		ctx,
@@ -72,8 +72,8 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, branchId uuid.UUID, 
 			cu.user_id 
 		FROM public.chat_user cu
 		WHERE cu.chat_id = $1;`,
-		branchId,
 		branch.ID,
+		chatId,
 	)
 
 	if err != nil {
@@ -81,18 +81,13 @@ func (r *ChatRepositoryImpl) AddBranch(ctx context.Context, branchId uuid.UUID, 
 		return chatModel.AddBranch{}, err
 	}
 
-	parentId, err := r.GetBranchParent(ctx, branchId)
-	if err != nil {
-		log.Errorf("Не удалось получить родителя: %v", err)
-		return chatModel.AddBranch{}, err
-	}
-
 	_, err = tx.Exec(ctx,
-		`INSERT INTO chat_brahch ($1, $2, $3)`,
+		`INSERT INTO chat_branch VALUES ($1, $2, $3);`,
 		uuid.New(),
-		parentId,
-		branchId,
+		chatId,
+		branch.ID,
 	)
+
 	if err != nil {
 		log.Printf("Не удослоь добавить чату ветку: %v", err)
 		return chatModel.AddBranch{}, err
@@ -126,6 +121,6 @@ func (r *ChatRepositoryImpl) GetBranchParent(ctx context.Context, branchId uuid.
 	var chatId uuid.UUID
 
 	row.Scan(&chatId)
-
+	log.Println(chatId, "dew")
 	return chatId, nil
 }
