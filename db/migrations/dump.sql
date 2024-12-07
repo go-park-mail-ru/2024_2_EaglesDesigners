@@ -46,7 +46,8 @@ CREATE TABLE public.chat_user (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_role_id integer NOT NULL,
     chat_id uuid NOT NULL,
-    user_id uuid NOT NULL
+    user_id uuid NOT NULL,
+    send_notifications boolean DEFAULT true NOT NULL 
 );
 
 

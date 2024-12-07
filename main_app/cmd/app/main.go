@@ -225,6 +225,7 @@ func main() {
 	router.HandleFunc("/chat/{chatId}/messages", auth.Authorize(auth.Csrf(messageDelivery.AddNewMessage))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/{messageId}/branch", auth.Authorize(auth.Csrf(chat.AddBranch))).Methods("POST", "OPTIONS")
 	router.HandleFunc("/chat/{chatId}/leave", auth.Authorize(auth.Csrf(chat.LeaveChat))).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/chat/{chatId}/notifications/{send}", auth.Authorize(chat.SetChatNotofications)).Methods("POST", "OPTIONS")
 
 	router.HandleFunc("/channel/{channelId}/join", auth.Authorize(chat.JoinChannel)).Methods("POST", "OPTIONS")
 
