@@ -304,6 +304,7 @@ func (s *MessageUsecaseImplm) SendIvent(ctx context.Context, action string, mess
 		SentAt:     message.SentAt,
 		ChatId:     message.ChatId,
 		IsRedacted: message.IsRedacted,
+		ChatIdParent: message.ChatIdParent,
 	}
 
 	log := logger.LoggerWithCtx(ctx, logger.Log)
