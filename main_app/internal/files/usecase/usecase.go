@@ -11,7 +11,6 @@ import (
 	"image/png"
 	"io"
 	"mime/multipart"
-	"net/http"
 	"strings"
 
 	"github.com/chai2010/webp"
@@ -68,13 +67,13 @@ func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *mul
 func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	_, err := isImage(*header)
+	contentType, err := isImage(*header)
 	if err != nil {
 		log.WithError(err).Errorln("файл не фото")
 		return "", err
 	}
 
-	fileBuffer, err := convertToWebP(file)
+	fileBuffer, err := convertToWebP(file, contentType)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось конвертировать фото в webp")
 		return "", err
@@ -95,13 +94,13 @@ func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header *mu
 func (u *Usecase) SaveAvatar(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	_, err := isImage(*header)
+	contentType, err := isImage(*header)
 	if err != nil {
 		log.WithError(err).Errorln("файл не фото")
 		return "", err
 	}
 
-	fileBuffer, err := convertToWebP(file)
+	fileBuffer, err := convertToWebP(file, contentType)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось конвертировать фото в webp")
 		return "", err
@@ -129,7 +128,7 @@ func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header 
 		return errors.New("ID не найден")
 	}
 
-	_, err := isImage(header)
+	contentType, err := isImage(header)
 	if err != nil {
 		log.WithError(err).Errorln("файл не фото")
 		return err
@@ -141,7 +140,7 @@ func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header 
 		return err
 	}
 
-	fileBuffer, err := convertToWebP(file)
+	fileBuffer, err := convertToWebP(file, contentType)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось создать буфер")
 		return err
@@ -294,22 +293,9 @@ func addFileURLPrefix(fileID string) string {
 	return fileURLPrefix + fileID
 }
 
-func convertToWebP(file multipart.File) (bytes.Buffer, error) {
+func convertToWebP(file multipart.File, contentType string) (bytes.Buffer, error) {
 	var img image.Image
 	var err error
-
-	// Сбросим указатель на начало файла
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		return bytes.Buffer{}, err
-	}
-
-	fileBuf := make([]byte, 512)
-	if _, err := file.Read(fileBuf); err != nil {
-		return bytes.Buffer{}, err
-	}
-	file.Seek(0, 0) // Возвращаем указатель файла обратно
-
-	contentType := http.DetectContentType(fileBuf)
 
 	switch contentType {
 	case "image/gif":
