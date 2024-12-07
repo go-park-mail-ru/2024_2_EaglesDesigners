@@ -107,11 +107,12 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 			log.Printf("поиск вложений сообщения %v", messages[i].MessageId)
 
 			payloadRows, err := conn.Query(context.Background(),
-				`select mp.payload_path 
+				`select 
+					mp.payload_path,
+					(SELECT value FROM public.payload_type WHERE id = mp.payload_type) 
 				from public.message_payload mp 
-				where mp.message_id = $1 and (select value from public.payload_type pt where pt.id = mp.payload_type) = $2;`,
+				where mp.message_id = $1;`,
 				messages[i].MessageId,
-				filePayloadType,
 			)
 			if err != nil {
 				log.Printf("Repository: Unable to SELECT payloads: %v\n", err)
@@ -120,14 +121,20 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 
 			for payloadRows.Next() {
 				var payloadPath string
+				var payloadType string
 
-				err = payloadRows.Scan(&payloadPath)
+				err = payloadRows.Scan(&payloadPath, &payloadType)
 				if err != nil {
 					log.Printf("Repository: unable to scan payloads: %v", err)
 					return nil, err
 				}
-				log.Printf("получено вложение %s", payloadPath)
-				messages[i].FilesURLs = append(messages[i].FilesURLs, payloadPath)
+				if payloadType == filePayloadType {
+					log.Printf("получен файл %s", payloadPath)
+					messages[i].FilesURLs = append(messages[i].FilesURLs, payloadPath)
+				} else if payloadType == photoPayloadType {
+					log.Printf("получено фото %s", payloadPath)
+					messages[i].PhotosURLs = append(messages[i].PhotosURLs, payloadPath)
+				}
 			}
 		}
 	}
@@ -178,6 +185,23 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 			id,
 			message_id,
 			fileURL,
+		)
+
+		if err := row.Scan(&id); err != nil {
+			log.Printf("Repository: не удалось добавить сообщение: %v", err)
+			return err
+		}
+	}
+
+	for _, photoURL := range message.PhotosURLs {
+		id := uuid.New()
+		row := conn.QueryRow(context.Background(),
+			`INSERT INTO public.message_payload (id, message_id, payload_path, payload_type)
+		VALUES ($1, $2, $3, (select id from public.payload_type pt where pt.value = $4)) RETURNING id;`,
+			id,
+			message_id,
+			photoURL,
+			photoPayloadType,
 		)
 
 		if err := row.Scan(&id); err != nil {

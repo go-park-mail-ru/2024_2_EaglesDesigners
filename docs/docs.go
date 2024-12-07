@@ -633,7 +633,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Сообщение успешно добавлено"
+                        "description": "Сообщение успешно добавлено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -1172,7 +1175,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Сообщение успешно изменено"
+                        "description": "Сообщение успешно изменено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -1213,7 +1219,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Сообщение успешно удалено"
+                        "description": "Сообщение успешно удалено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse"
+                        }
                     },
                     "400": {
                         "description": "Некорректный запрос",
@@ -1669,6 +1678,9 @@ const docTemplate = `{
                     "type": "string",
                     "example": "owner"
                 },
+                "send_notifications": {
+                    "type": "boolean"
+                },
                 "users": {
                     "type": "array",
                     "items": {
@@ -1877,6 +1889,9 @@ const docTemplate = `{
                 "message_type": {
                     "type": "string",
                     "example": "informational"
+                },
+                "parent_chat_id": {
+                    "type": "string"
                 },
                 "photos": {
                     "type": "array",

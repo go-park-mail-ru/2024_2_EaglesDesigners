@@ -22,7 +22,6 @@ type Message struct {
 	Files        []multipart.File        `json:"-" valid:"-"`
 	FilesHeaders []*multipart.FileHeader `json:"-" valid:"-"`
 	FilesURLs    []string                `json:"files" valid:"-" example:"[url1, url2, url3]"`
-	// TODO: photos
 	Photos        []multipart.File        `json:"-" valid:"-"`
 	PhotosHeaders []*multipart.FileHeader `json:"-" valid:"-"`
 	PhotosURLs    []string                `json:"photos" valid:"-" example:"[url1, url2, url3]"`

@@ -5,10 +5,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"mime/multipart"
 	"strings"
 
+	"github.com/chai2010/webp"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -59,28 +64,56 @@ func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *mul
 	return addFileURLPrefix(fileID), err
 }
 
-func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader) (string, error) {
+func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
-	err := isImage(header)
+	contentType, err := isImage(*header)
 	if err != nil {
 		log.WithError(err).Errorln("файл не фото")
 		return "", err
 	}
 
-	fileBuffer, err := getFileBuffer(file)
+	fileBuffer, err := convertToWebP(file, contentType)
 	if err != nil {
-		log.WithError(err).Errorln("не удалось создать буфер")
+		log.WithError(err).Errorln("не удалось конвертировать фото в webp")
 		return "", err
 	}
 
-	metadata := getFileMetadata(&header)
+	metadata := getPhotoMetadata(header, int64(fileBuffer.Len()))
+
+	if len(users) > 0 {
+		metadata = append(metadata, primitive.E{Key: "users", Value: users})
+	}
 
 	fileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
 
 	return addFileURLPrefix(fileID), err
 }
 
+// for chats
+func (u *Usecase) SaveAvatar(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	contentType, err := isImage(*header)
+	if err != nil {
+		log.WithError(err).Errorln("файл не фото")
+		return "", err
+	}
+
+	fileBuffer, err := convertToWebP(file, contentType)
+	if err != nil {
+		log.WithError(err).Errorln("не удалось конвертировать фото в webp")
+		return "", err
+	}
+
+	metadata := getPhotoMetadata(header, int64(fileBuffer.Len()))
+
+	fileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
+
+	return addFileURLPrefix(fileID), err
+}
+
+// for profile
 func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -95,7 +128,7 @@ func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header 
 		return errors.New("ID не найден")
 	}
 
-	err := isImage(header)
+	contentType, err := isImage(header)
 	if err != nil {
 		log.WithError(err).Errorln("файл не фото")
 		return err
@@ -107,13 +140,13 @@ func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header 
 		return err
 	}
 
-	fileBuffer, err := getFileBuffer(file)
+	fileBuffer, err := convertToWebP(file, contentType)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось создать буфер")
 		return err
 	}
 
-	metadata := getFileMetadata(&header)
+	metadata := getPhotoMetadata(&header, int64(fileBuffer.Len()))
 
 	err = u.repo.RewriteFile(ctx, fileID, &fileBuffer, metadata)
 	if err != nil {
@@ -223,6 +256,14 @@ func getFileMetadata(header *multipart.FileHeader) bson.D {
 	}
 }
 
+func getPhotoMetadata(header *multipart.FileHeader, size int64) bson.D {
+	return bson.D{
+		{Key: "filename", Value: header.Filename},
+		{Key: "contentType", Value: "image/webp"},
+		{Key: "size", Value: size},
+	}
+}
+
 func getFileBuffer(file multipart.File) (bytes.Buffer, error) {
 	fileBuffer := new(bytes.Buffer)
 
@@ -234,18 +275,49 @@ func getFileBuffer(file multipart.File) (bytes.Buffer, error) {
 }
 
 func (u *Usecase) IsImage(header multipart.FileHeader) error {
-	return isImage(header)
+	_, err := isImage(header)
+	return err
 }
 
-func isImage(header multipart.FileHeader) error {
-	switch header.Header.Get("Content-Type") {
+func isImage(header multipart.FileHeader) (string, error) {
+	imageType := header.Header.Get("Content-Type")
+	switch imageType {
 	case "image/jpeg", "image/png", "image/gif", "image/webp":
-		return nil
+		return imageType, nil
 	default:
-		return fmt.Errorf("недопустимый тип файла: %s", header.Header.Get("Content-Type"))
+		return "", fmt.Errorf("недопустимый тип файла: %s", header.Header.Get("Content-Type"))
 	}
 }
 
 func addFileURLPrefix(fileID string) string {
 	return fileURLPrefix + fileID
+}
+
+func convertToWebP(file multipart.File, contentType string) (bytes.Buffer, error) {
+	var img image.Image
+	var err error
+
+	switch contentType {
+	case "image/gif":
+		img, err = gif.Decode(file)
+	case "image/jpeg":
+		img, err = jpeg.Decode(file)
+	case "image/png":
+		img, err = png.Decode(file)
+	case "image/webp":
+		img, err = webp.Decode(file)
+	default:
+		return bytes.Buffer{}, fmt.Errorf("unsupported image format: %s", contentType)
+	}
+
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+
+	var buf bytes.Buffer
+	if err := webp.Encode(&buf, img, &webp.Options{Lossless: false, Quality: 70}); err != nil {
+		return bytes.Buffer{}, err
+	}
+
+	return buf, nil
 }

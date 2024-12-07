@@ -123,7 +123,19 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		messageDTO.FilesHeaders = append(messageDTO.FilesHeaders, header)
 	}
 
-	log.Print("messageDTO: ", messageDTO)
+	photos := r.MultipartForm.File["photos"]
+
+	for _, header := range photos {
+		photo, err := header.Open()
+		if err != nil {
+			responser.SendError(ctx, w, "Failed to open files", http.StatusBadRequest)
+			return
+		}
+		defer photo.Close()
+
+		messageDTO.Photos = append(messageDTO.Photos, photo)
+		messageDTO.PhotosHeaders = append(messageDTO.PhotosHeaders, header)
+	}
 
 	err = h.usecase.SendMessage(r.Context(), user, chatUUID, messageDTO)
 
@@ -133,7 +145,8 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	// w.WriteHeader(http.StatusCreated)
+	responser.SendOK(w, "message created", http.StatusCreated)
 }
 
 // DeleteMessage godoc

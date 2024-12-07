@@ -129,6 +129,8 @@ definitions:
       role:
         example: owner
         type: string
+      send_notifications:
+        type: boolean
       users:
         items:
           $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.UserInChatDTO'
@@ -270,6 +272,8 @@ definitions:
         type: string
       messageId:
         example: "1"
+        type: string
+      parent_chat_id:
         type: string
       photos:
         example:
@@ -748,6 +752,8 @@ paths:
       responses:
         "201":
           description: Сообщение успешно добавлено
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse'
         "400":
           description: Некорректный запрос
           schema:
@@ -1099,6 +1105,8 @@ paths:
       responses:
         "200":
           description: Сообщение успешно удалено
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse'
         "400":
           description: Некорректный запрос
           schema:
@@ -1133,6 +1141,8 @@ paths:
       responses:
         "200":
           description: Сообщение успешно изменено
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.SuccessResponse'
         "400":
           description: Некорректный запрос
           schema:
