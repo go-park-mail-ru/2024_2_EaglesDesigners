@@ -43,6 +43,7 @@ type MessageUsecaseImplm struct {
 
 type FilesUsecase interface {
 	SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error)
+	SavePhoto(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error)
 }
 
 func NewMessageUsecaseImpl(fileUC FilesUsecase, messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, ch *amqp.Channel) MessageUsecase {
@@ -118,6 +119,16 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 			return err
 		}
 		message.FilesURLs = append(message.FilesURLs, fileURl)
+	}
+
+	// Добавление фото в mongoDB
+	for i := 0; i < len(message.Photos); i++ {
+		photoURl, err := u.fileUC.SavePhoto(ctx, message.Photos[i], message.PhotosHeaders[i], userIDs)
+		if err != nil {
+			log.Errorf("Usecase: не удалось сохранить фото: %v", err)
+			return err
+		}
+		message.PhotosURLs = append(message.PhotosURLs, photoURl)
 	}
 
 	err = u.messageRepository.AddMessage(message, chatId)

@@ -66,8 +66,8 @@ type ChatUsecaseImpl struct {
 type FilesUsecase interface {
 	RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) error
 	DeletePhoto(ctx context.Context, fileIDStr string) error
-	SavePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader) (string, error)
 	IsImage(header multipart.FileHeader) error
+	SaveAvatar(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error)
 }
 
 func NewChatUsecase(fileUC FilesUsecase, repository chatlist.ChatRepository, messageRepository message.MessageUsecase, ch *amqp.Channel) ChatUsecase {
@@ -238,7 +238,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 	}
 
 	if chat.Avatar != nil {
-		filename, err := s.fileUC.SavePhoto(ctx, *chat.Avatar, *chat.AvatarHeader)
+		filename, err := s.fileUC.SaveAvatar(ctx, *chat.Avatar, chat.AvatarHeader)
 		if err != nil {
 			log.Printf("Не удалось записать аватарку: %v", err)
 			return chatModel.ChatDTOOutput{}, err
@@ -407,7 +407,7 @@ func (s *ChatUsecaseImpl) UpdateChat(ctx context.Context, chatId uuid.UUID, chat
 				updatedChat.Avatar = chat.AvatarURL
 			} else {
 				log.Println("нет старой аватарки -> установка новой")
-				filename, err := s.fileUC.SavePhoto(ctx, *chatUpdate.Avatar, *chatUpdate.AvatarHeader)
+				filename, err := s.fileUC.SaveAvatar(ctx, *chatUpdate.Avatar, chatUpdate.AvatarHeader)
 				if err != nil {
 					log.Errorf("Не удалось записать аватарку: %v", err)
 					return chatModel.ChatUpdateOutput{}, err
