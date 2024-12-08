@@ -297,7 +297,7 @@ func connectToPSQL() *pgxpool.Pool {
 	}
 
 	// Формируем строку подключения
-	config.Database.MaxPoolSize = 70
+	config.Database.MaxPoolSize = 14
 	connStr := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?pool_max_conns=%d",
 		config.Database.User,
