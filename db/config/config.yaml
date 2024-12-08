@@ -1,0 +1,7 @@
+database:
+  host: "postgres"        # Адрес сервера базы данных
+  port: 5432               # Порт базы данных
+  user: "user_for_patefon"        # Пользователь базы данных
+  password: "patefon" # Пароль
+  dbname: "patefon"  # Имя базы данных
+  max_pool_size: 10        # Максимальное количество соединений в пуле
