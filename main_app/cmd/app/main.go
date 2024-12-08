@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	dbConfig "github.com/go-park-mail-ru/2024_2_EaglesDesigner/db/config"
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/delivery"
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
@@ -72,11 +74,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	pool, err := pgxpool.Connect(ctx, "postgres://user_for_patefon:patefon@postgres:5432/patefon")
-	// pool, err := pgxpool.Connect(ctx, "postgres://postgres:postgres@localhost:5432/patefon")
-	if err != nil {
-		log.Fatalf("Unable to connection to database: %v\n", err)
-	}
+	pool := connectToPSQL()
 	defer pool.Close()
 	log.Println("База данных подключена")
 
@@ -290,4 +288,36 @@ func startChatServerGRPC(chatService chatService.ChatUsecase) {
 		log.Fatal(err)
 	}
 	log.Println("server started at :8082")
+}
+
+func connectToPSQL() *pgxpool.Pool {
+	config, err := dbConfig.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// Формируем строку подключения
+	config.Database.MaxPoolSize = 70
+	connStr := fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?pool_max_conns=%d",
+		config.Database.User,
+		config.Database.Password,
+		config.Database.Host,
+		config.Database.Port,
+		config.Database.DBName,
+		config.Database.MaxPoolSize,
+	)
+
+	// Настройка пула соединений
+	poolConfig, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		log.Fatalf("Unable to parse config: %v", err)
+	}
+
+	pool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	if err != nil {
+		log.Fatalf("Unable to create connection pool: %v", err)
+	}
+
+	return pool
 }
