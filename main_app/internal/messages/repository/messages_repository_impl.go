@@ -155,7 +155,7 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 
 	messageType := defaultMessageType
 
-	if len(message.Files) > 0 {
+	if len(message.Files) > 0 || len(message.Photos) > 0 {
 		messageType = informationalMessageType
 	}
 
