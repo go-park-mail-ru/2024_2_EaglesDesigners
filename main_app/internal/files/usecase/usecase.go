@@ -43,7 +43,7 @@ func (u *Usecase) GetFile(ctx context.Context, fileIDStr string) (*bytes.Buffer,
 	return u.repo.GetFile(ctx, fileIDStr)
 }
 
-func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error) {
+func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (models.Payload, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	log.Println("сохранение файла для пользователей: ", users)
@@ -51,7 +51,7 @@ func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *mul
 	fileBuffer, err := getFileBuffer(file)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось создать буфер")
-		return "", err
+		return models.Payload{}, err
 	}
 
 	metadata := getFileMetadata(header)
@@ -61,22 +61,30 @@ func (u *Usecase) SaveFile(ctx context.Context, file multipart.File, header *mul
 	}
 
 	fileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
-	return addFileURLPrefix(fileID), err
+	if err != nil {
+		log.WithError(err).Errorln("не удалось создать файл")
+		return models.Payload{}, err
+	}
+
+	out := getFileNameAndSize(header)
+	out.URL = addFileURLPrefix(fileID)
+
+	return out, nil
 }
 
-func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error) {
+func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (models.Payload, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
 	contentType, err := isImage(*header)
 	if err != nil {
 		log.WithError(err).Errorln("файл не фото")
-		return "", err
+		return models.Payload{}, err
 	}
 
 	fileBuffer, err := convertToWebP(file, contentType)
 	if err != nil {
 		log.WithError(err).Errorln("не удалось конвертировать фото в webp")
-		return "", err
+		return models.Payload{}, err
 	}
 
 	metadata := getPhotoMetadata(header, int64(fileBuffer.Len()))
@@ -86,8 +94,15 @@ func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header *mu
 	}
 
 	fileID, err := u.repo.SaveFile(ctx, &fileBuffer, metadata)
+	if err != nil {
+		log.WithError(err).Errorln("не удалось создать файл")
+		return models.Payload{}, err
+	}
 
-	return addFileURLPrefix(fileID), err
+	out := getFileNameAndSize(header)
+	out.URL = addFileURLPrefix(fileID)
+
+	return out, nil
 }
 
 // for chats
@@ -246,6 +261,13 @@ func (u *Usecase) UpdateFile(ctx context.Context, fileIDStr string, file multipa
 	}
 
 	return newFileID, nil
+}
+
+func getFileNameAndSize(header *multipart.FileHeader) models.Payload {
+	return models.Payload{
+		Filename: header.Filename,
+		Size:     header.Size,
+	}
 }
 
 func getFileMetadata(header *multipart.FileHeader) bson.D {

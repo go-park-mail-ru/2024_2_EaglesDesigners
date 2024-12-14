@@ -10,21 +10,27 @@ import (
 
 // @Schema
 type Message struct {
-	MessageId    uuid.UUID               `json:"messageId" example:"1" valid:"-"`
-	AuthorID     uuid.UUID               `json:"authorID" exameple:"2" valid:"-"`
-	BranchID     *uuid.UUID              `json:"branchId" exameple:"2" valid:"-"`
-	Message      string                  `json:"text" example:"тут много текста" valid:"-"`
-	SentAt       time.Time               `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
-	ChatId       uuid.UUID               `json:"chatId" valid:"-"`
-	IsRedacted   bool                    `json:"isRedacted" valid:"-"`
-	MessageType  string                  `json:"message_type" valid:"-" example:"informational"`
-	ChatIdParent uuid.UUID               `json:"parent_chat_id" valid:"-"`
-	Files        []multipart.File        `json:"-" valid:"-"`
-	FilesHeaders []*multipart.FileHeader `json:"-" valid:"-"`
-	FilesURLs    []string                `json:"files" valid:"-" example:"[url1, url2, url3]"`
+	MessageId     uuid.UUID               `json:"messageId" example:"1" valid:"-"`
+	AuthorID      uuid.UUID               `json:"authorID" exameple:"2" valid:"-"`
+	BranchID      *uuid.UUID              `json:"branchId" exameple:"2" valid:"-"`
+	Message       string                  `json:"text" example:"тут много текста" valid:"-"`
+	SentAt        time.Time               `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
+	ChatId        uuid.UUID               `json:"chatId" valid:"-"`
+	IsRedacted    bool                    `json:"isRedacted" valid:"-"`
+	MessageType   string                  `json:"message_type" valid:"-" example:"informational"`
+	ChatIdParent  uuid.UUID               `json:"parent_chat_id" valid:"-"`
+	Files         []multipart.File        `json:"-" valid:"-"`
+	FilesHeaders  []*multipart.FileHeader `json:"-" valid:"-"`
+	FilesDTO      []Payload               `json:"files" valid:"-"`
 	Photos        []multipart.File        `json:"-" valid:"-"`
 	PhotosHeaders []*multipart.FileHeader `json:"-" valid:"-"`
-	PhotosURLs    []string                `json:"photos" valid:"-" example:"[url1, url2, url3]"`
+	PhotosDTO     []Payload               `json:"photos" valid:"-"`
+}
+
+type Payload struct {
+	URL      string `json:"url" example:"url" valid:"-"`
+	Filename string `json:"filename" example:"image.png" valid:"-"`
+	Size     int64  `json:"size" example:"10500" valid:"-"`
 }
 
 func (m Message) MarshalBinary() ([]byte, error) {

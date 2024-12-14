@@ -14,6 +14,7 @@ import (
 
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
+	filesModels "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
 
@@ -42,8 +43,8 @@ type MessageUsecaseImplm struct {
 }
 
 type FilesUsecase interface {
-	SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error)
-	SavePhoto(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (string, error)
+	SaveFile(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (filesModels.Payload, error)
+	SavePhoto(ctx context.Context, file multipart.File, header *multipart.FileHeader, users []string) (filesModels.Payload, error)
 }
 
 func NewMessageUsecaseImpl(fileUC FilesUsecase, messageRepository repository.MessageRepository, chatRepository chatRepository.ChatRepository, ch *amqp.Channel) MessageUsecase {
@@ -113,22 +114,30 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	// Добавление файлов в mongoDB
 	for i := 0; i < len(message.Files); i++ {
-		fileURl, err := u.fileUC.SaveFile(ctx, message.Files[i], message.FilesHeaders[i], userIDs)
+		file, err := u.fileUC.SaveFile(ctx, message.Files[i], message.FilesHeaders[i], userIDs)
 		if err != nil {
 			log.Errorf("Usecase: не удалось сохранить файл: %v", err)
 			return err
 		}
-		message.FilesURLs = append(message.FilesURLs, fileURl)
+		message.FilesDTO = append(message.FilesDTO, models.Payload{
+			URL:      file.URL,
+			Filename: file.Filename,
+			Size:     file.Size,
+		})
 	}
 
 	// Добавление фото в mongoDB
 	for i := 0; i < len(message.Photos); i++ {
-		photoURl, err := u.fileUC.SavePhoto(ctx, message.Photos[i], message.PhotosHeaders[i], userIDs)
+		photo, err := u.fileUC.SavePhoto(ctx, message.Photos[i], message.PhotosHeaders[i], userIDs)
 		if err != nil {
 			log.Errorf("Usecase: не удалось сохранить фото: %v", err)
 			return err
 		}
-		message.PhotosURLs = append(message.PhotosURLs, photoURl)
+		message.PhotosDTO = append(message.PhotosDTO, models.Payload{
+			URL:      photo.URL,
+			Filename: photo.Filename,
+			Size:     photo.Size,
+		})
 	}
 
 	err = u.messageRepository.AddMessage(message, chatId)
@@ -308,13 +317,13 @@ func (s *MessageUsecaseImplm) GetLastMessage(chatId uuid.UUID) (models.Message, 
 
 func (s *MessageUsecaseImplm) SendIvent(ctx context.Context, action string, message models.Message) {
 	newMessage := socketUsecase.Message{
-		MessageId:  message.MessageId,
-		AuthorID:   message.AuthorID,
-		BranchID:   message.BranchID,
-		Message:    message.Message,
-		SentAt:     message.SentAt,
-		ChatId:     message.ChatId,
-		IsRedacted: message.IsRedacted,
+		MessageId:    message.MessageId,
+		AuthorID:     message.AuthorID,
+		BranchID:     message.BranchID,
+		Message:      message.Message,
+		SentAt:       message.SentAt,
+		ChatId:       message.ChatId,
+		IsRedacted:   message.IsRedacted,
 		ChatIdParent: message.ChatIdParent,
 	}
 

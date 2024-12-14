@@ -123,7 +123,9 @@ CREATE TABLE public.message_payload (
     payload_path text NOT NULL,
     id uuid NOT NULL,
     message_id uuid NOT NULL,
-    payload_type integer DEFAULT 1 NOT NULL
+    payload_type integer DEFAULT 1 NOT NULL,
+    filename text NOT NULL,
+    size int NOT NULL
 );
 
 ALTER TABLE public.message_payload OWNER TO postgres;
@@ -406,7 +408,8 @@ INSERT INTO  public.user_role ( value) VALUES
 --
 INSERT INTO message_type (value) VALUES 
     ('default'),
-    ('informational');
+    ('informational'),
+    ('sticker');
 
 INSERT INTO  payload_type (value) VALUES
 ('file'),

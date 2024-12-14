@@ -258,12 +258,8 @@ definitions:
         example: "2024-04-13T08:30:00Z"
         type: string
       files:
-        example:
-        - '[url1'
-        - ' url2'
-        - ' url3]'
         items:
-          type: string
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
         type: array
       isRedacted:
         type: boolean
@@ -276,12 +272,8 @@ definitions:
       parent_chat_id:
         type: string
       photos:
-        example:
-        - '[url1'
-        - ' url2'
-        - ' url3]'
         items:
-          type: string
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
         type: array
       text:
         example: тут много текста
@@ -299,6 +291,18 @@ definitions:
         items:
           $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message'
         type: array
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload:
+    properties:
+      filename:
+        example: image.png
+        type: string
+      size:
+        example: 10500
+        type: integer
+      url:
+        example: url
+        type: string
     type: object
   github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_profile_models.GetProfileResponseDTO:
     properties:

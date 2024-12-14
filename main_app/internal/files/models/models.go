@@ -9,3 +9,9 @@ type FileMetaData struct {
 	ContentType string
 	FileSize    int64
 }
+
+type Payload struct {
+	URL      string
+	Filename string
+	Size     int64
+}

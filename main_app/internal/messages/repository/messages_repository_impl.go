@@ -79,8 +79,8 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 		var branchID *uuid.UUID
 		var chatID uuid.UUID
 		var messageType sql.NullString
-		var files []string
-		var photos []string
+		var files []models.Payload
+		var photos []models.Payload
 
 		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &branchID, &chatID, &messageType)
 		if err != nil {
@@ -97,8 +97,8 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 			BranchID:    branchID,
 			ChatId:      chatID,
 			MessageType: messageType.String,
-			FilesURLs:   files,
-			PhotosURLs:  photos,
+			FilesDTO:    files,
+			PhotosDTO:   photos,
 		})
 	}
 
@@ -109,6 +109,8 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 			payloadRows, err := conn.Query(context.Background(),
 				`select 
 					mp.payload_path,
+					mp.filename,
+					mp.size,
 					(SELECT value FROM public.payload_type WHERE id = mp.payload_type) 
 				from public.message_payload mp 
 				where mp.message_id = $1;`,
@@ -122,18 +124,28 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 			for payloadRows.Next() {
 				var payloadPath string
 				var payloadType string
+				var size int64
+				var filename string
 
-				err = payloadRows.Scan(&payloadPath, &payloadType)
+				err = payloadRows.Scan(&payloadPath, &filename, &size, &payloadType)
 				if err != nil {
 					log.Printf("Repository: unable to scan payloads: %v", err)
 					return nil, err
 				}
 				if payloadType == filePayloadType {
 					log.Printf("получен файл %s", payloadPath)
-					messages[i].FilesURLs = append(messages[i].FilesURLs, payloadPath)
+					messages[i].FilesDTO = append(messages[i].FilesDTO, models.Payload{
+						URL:      payloadPath,
+						Filename: filename,
+						Size:     size,
+					})
 				} else if payloadType == photoPayloadType {
 					log.Printf("получено фото %s", payloadPath)
-					messages[i].PhotosURLs = append(messages[i].PhotosURLs, payloadPath)
+					messages[i].PhotosDTO = append(messages[i].PhotosDTO, models.Payload{
+						URL:      payloadPath,
+						Filename: filename,
+						Size:     size,
+					})
 				}
 			}
 		}
@@ -177,14 +189,16 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 		return err
 	}
 
-	for _, fileURL := range message.FilesURLs {
+	for _, file := range message.FilesDTO {
 		id := uuid.New()
 		row := conn.QueryRow(context.Background(),
-			`INSERT INTO public.message_payload (id, message_id, payload_path)
-		VALUES ($1, $2, $3) RETURNING id;`,
+			`INSERT INTO public.message_payload (id, message_id, payload_path, filename, size)
+		VALUES ($1, $2, $3, $4, $5) RETURNING id;`,
 			id,
 			message_id,
-			fileURL,
+			file.URL,
+			file.Filename,
+			file.Size,
 		)
 
 		if err := row.Scan(&id); err != nil {
@@ -193,14 +207,16 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 		}
 	}
 
-	for _, photoURL := range message.PhotosURLs {
+	for _, photo := range message.PhotosDTO {
 		id := uuid.New()
 		row := conn.QueryRow(context.Background(),
-			`INSERT INTO public.message_payload (id, message_id, payload_path, payload_type)
-		VALUES ($1, $2, $3, (select id from public.payload_type pt where pt.value = $4)) RETURNING id;`,
+			`INSERT INTO public.message_payload (id, message_id, payload_path, filename, size, payload_type)
+		VALUES ($1, $2, $3, $4, $5, (select id from public.payload_type pt where pt.value = $6)) RETURNING id;`,
 			id,
 			message_id,
-			photoURL,
+			photo.URL,
+			photo.Filename,
+			photo.Size,
 			photoPayloadType,
 		)
 
@@ -240,7 +256,7 @@ func (r *MessageRepositoryImpl) AddInformationalMessage(message models.Message, 
 		return err
 	}
 
-	for _, fileURL := range message.FilesURLs {
+	for _, fileURL := range message.FilesDTO {
 		id := uuid.New()
 		row := conn.QueryRow(context.Background(),
 			`INSERT INTO public.message_payload (id, message_id, payload_path)

@@ -1871,13 +1871,8 @@ const docTemplate = `{
                 "files": {
                     "type": "array",
                     "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[url1",
-                        " url2",
-                        " url3]"
-                    ]
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload"
+                    }
                 },
                 "isRedacted": {
                     "type": "boolean"
@@ -1896,13 +1891,8 @@ const docTemplate = `{
                 "photos": {
                     "type": "array",
                     "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[url1",
-                        " url2",
-                        " url3]"
-                    ]
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload"
+                    }
                 },
                 "text": {
                     "type": "string",
@@ -1927,6 +1917,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message"
                     }
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "example": "image.png"
+                },
+                "size": {
+                    "type": "integer",
+                    "example": 10500
+                },
+                "url": {
+                    "type": "string",
+                    "example": "url"
                 }
             }
         },
