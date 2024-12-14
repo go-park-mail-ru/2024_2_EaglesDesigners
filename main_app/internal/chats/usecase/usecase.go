@@ -285,7 +285,16 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 
 	// отправляем уведомлениея
 	s.sendIvent(ctx, NewChat, chatId, nil)
-	newChatDTO.LastMessage = s.sendInformationalMessage(ctx, user.ID, chatId, "Чат создан.")
+
+	createChatMessage := "Группа создана."
+	switch chat.ChatType {
+	case channel:
+		createChatMessage = "Канал создан."
+	case personal:
+		createChatMessage = "Личный чат создан."
+	}
+
+	newChatDTO.LastMessage = s.sendInformationalMessage(ctx, user.ID, chatId, createChatMessage)
 	metric.IncMetric(*addNewChatMetric)
 	return newChatDTO, nil
 }
@@ -293,7 +302,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 func (s *ChatUsecaseImpl) sendInformationalMessage(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, event string) messageModel.Message {
 	message := messageModel.Message{
 		MessageId:   uuid.New(),
-		AuthorID:    userID,
+		AuthorID:    userID,	// При выдаче, если информационное, будет меняться uuid юзера на нули.
 		Message:     event,
 		SentAt:      time.Now(),
 		MessageType: "informational",
