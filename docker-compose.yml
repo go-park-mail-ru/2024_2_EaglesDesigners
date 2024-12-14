@@ -26,6 +26,7 @@ services:
 
   auth:
     container_name: auth
+    user: root
     build:
       context: .
       dockerfile: auth_service/Dockerfile
@@ -58,15 +59,22 @@ services:
   postgres:
     container_name: postgres
     image: postgres:15.0
+    ports:
+      - "127.0.0.1:5450:5432"
+    volumes:
+      - ./db/migrations:/docker-entrypoint-initdb.d
+      - ./gen:/home/gen/
+      - ./config_postgres.conf:/etc/postgresql/postgresql.conf
+      - ./log:/var/log/
     environment:
       TZ: Europe/Moscow
       POSTGRES_DB: patefon
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "127.0.0.1:5450:5432"
-    volumes:
-      - ./db/migrations:/docker-entrypoint-initdb.d
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    user: "999:999"
+    restart: always
+
 
   rabbitmq:
     image: rabbitmq:3.10.7-management
@@ -91,31 +99,31 @@ services:
     volumes:
       - ./db/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - 9090:9090
-    # command:
-    #   - --config.file=/etc/prometheus/prometheus.yml
-    # volumes:
-    #   - ./prometheus_data/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    restart: always
-    environment:
-      - TZ=Europe/Moscow
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   ports:
+  #     - 9090:9090
+  #   command:
+  #     - --config.file=/etc/prometheus/prometheus.yml
+  #   volumes:
+  #     - ./prometheus_data/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #   restart: always
+  #   environment:
+  #     - TZ=Europe/Moscow
 
-  grafana:
-    image: grafana/grafana:9.5.1
-    user: root
-    ports:
-      - 8050:3000
-    volumes:
-      - ./grafana:/var/lib/grafana
-      - ./grafana/provisioning/:/etc/grafana/provisioning/
-    container_name: grafana
-    hostname: grafana
-    environment:
-      TZ: "Europe/Moscow"
-    depends_on:
-      - prometheus
-    restart: always
+  # grafana:
+  #   image: grafana/grafana:9.5.1
+  #   user: root
+  #   ports:
+  #     - 8050:3000
+  #   volumes:
+  #     - ./grafana:/var/lib/grafana
+  #     - ./grafana/provisioning/:/etc/grafana/provisioning/
+  #   container_name: grafana
+  #   hostname: grafana
+  #   environment:
+  #     TZ: "Europe/Moscow"
+  #   depends_on:
+  #     - prometheus
+  #   restart: always
