@@ -317,14 +317,32 @@ func (s *MessageUsecaseImplm) GetLastMessage(chatId uuid.UUID) (models.Message, 
 
 func (s *MessageUsecaseImplm) SendIvent(ctx context.Context, action string, message models.Message) {
 	newMessage := socketUsecase.Message{
-		MessageId:    message.MessageId,
-		AuthorID:     message.AuthorID,
-		BranchID:     message.BranchID,
-		Message:      message.Message,
-		SentAt:       message.SentAt,
-		ChatId:       message.ChatId,
-		IsRedacted:   message.IsRedacted,
-		ChatIdParent: message.ChatIdParent,
+		MessageId:     message.MessageId,
+		AuthorID:      message.AuthorID,
+		BranchID:      message.BranchID,
+		Message:       message.Message,
+		SentAt:        message.SentAt,
+		ChatId:        message.ChatId,
+		IsRedacted:    message.IsRedacted,
+		ChatIdParent:  message.ChatIdParent,
+		Files:         message.Files,
+		FilesHeaders:  message.FilesHeaders,
+		Photos:        message.Photos,
+		PhotosHeaders: message.PhotosHeaders,
+	}
+	for _, value := range message.FilesDTO {
+		newMessage.FilesDTO = append(newMessage.FilesDTO, socketUsecase.Payload{
+			URL:      value.URL,
+			Filename: value.Filename,
+			Size:     value.Size,
+		})
+	}
+	for _, value := range message.PhotosDTO {
+		newMessage.PhotosDTO = append(newMessage.PhotosDTO, socketUsecase.Payload{
+			URL:      value.URL,
+			Filename: value.Filename,
+			Size:     value.Size,
+		})
 	}
 
 	log := logger.LoggerWithCtx(ctx, logger.Log)

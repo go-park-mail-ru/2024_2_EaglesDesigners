@@ -14,8 +14,8 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  5024,
-	WriteBufferSize: 5024,
+	ReadBufferSize:  1024,
+	WriteBufferSize: 10048,
 
 	CheckOrigin: func(r *http.Request) bool {
 		allowedOrigins := []string{
