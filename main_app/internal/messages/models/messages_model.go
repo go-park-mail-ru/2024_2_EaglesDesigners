@@ -17,7 +17,7 @@ type Message struct {
 	SentAt        time.Time               `json:"datetime" example:"2024-04-13T08:30:00Z" valid:"-"`
 	ChatId        uuid.UUID               `json:"chatId" valid:"-"`
 	IsRedacted    bool                    `json:"isRedacted" valid:"-"`
-	MessageType   string                  `json:"message_type" valid:"-" example:"informational"`
+	MessageType   string                  `json:"message_type" valid:"-" example:"with_payload"`
 	ChatIdParent  uuid.UUID               `json:"parent_chat_id" valid:"-"`
 	Files         []multipart.File        `json:"-" valid:"-"`
 	FilesHeaders  []*multipart.FileHeader `json:"-" valid:"-"`

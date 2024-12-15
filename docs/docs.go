@@ -1883,7 +1883,7 @@ const docTemplate = `{
                 },
                 "message_type": {
                     "type": "string",
-                    "example": "informational"
+                    "example": "with_payload"
                 },
                 "parent_chat_id": {
                     "type": "string"

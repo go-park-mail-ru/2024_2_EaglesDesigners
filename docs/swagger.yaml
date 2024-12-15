@@ -264,7 +264,7 @@ definitions:
       isRedacted:
         type: boolean
       message_type:
-        example: informational
+        example: with_payload
         type: string
       messageId:
         example: "1"

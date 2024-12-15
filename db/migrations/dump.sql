@@ -409,6 +409,7 @@ INSERT INTO  public.user_role ( value) VALUES
 INSERT INTO message_type (value) VALUES 
     ('default'),
     ('informational'),
+    ('with_payload'),
     ('sticker');
 
 INSERT INTO  payload_type (value) VALUES

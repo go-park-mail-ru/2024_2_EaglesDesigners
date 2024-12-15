@@ -18,6 +18,7 @@ const (
 	pageSize                 = 25
 	defaultMessageType       = "default"
 	informationalMessageType = "informational"
+	MessageWithPayloadType   = "with_payload"
 	filePayloadType          = "file"
 	photoPayloadType         = "photo"
 )
@@ -103,7 +104,7 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 	}
 
 	for i := 0; i < len(messages); i++ {
-		if messages[i].MessageType != defaultMessageType {
+		if messages[i].MessageType == MessageWithPayloadType {
 			log.Printf("поиск вложений сообщения %v", messages[i].MessageId)
 
 			payloadRows, err := conn.Query(context.Background(),
@@ -168,7 +169,7 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 	messageType := defaultMessageType
 
 	if len(message.Files) > 0 || len(message.Photos) > 0 {
-		messageType = informationalMessageType
+		messageType = MessageWithPayloadType
 	}
 
 	// нужно чё-то придумать со стикерами
@@ -229,7 +230,6 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 	return nil
 }
 
-// не нужен, можно в AddMessage тип определять по наличию файлов
 func (r *MessageRepositoryImpl) AddInformationalMessage(message models.Message, chatId uuid.UUID) error {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
@@ -489,6 +489,54 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 		IsRedacted:  isRedacted,
 		MessageType: messageType,
 	}
+
+	if messageModel.MessageType == MessageWithPayloadType {
+		log.Printf("поиск вложений сообщения %v", messageModel.MessageId)
+
+		payloadRows, err := conn.Query(context.Background(),
+			`select 
+				mp.payload_path,
+				mp.filename,
+				mp.size,
+				(SELECT value FROM public.payload_type WHERE id = mp.payload_type) 
+			from public.message_payload mp 
+			where mp.message_id = $1;`,
+			messageModel.MessageId,
+		)
+		if err != nil {
+			log.Printf("Repository: Unable to SELECT payloads: %v\n", err)
+			return models.Message{}, err
+		}
+
+		for payloadRows.Next() {
+			var payloadPath string
+			var payloadType string
+			var size int64
+			var filename string
+
+			err = payloadRows.Scan(&payloadPath, &filename, &size, &payloadType)
+			if err != nil {
+				log.Printf("Repository: unable to scan payloads: %v", err)
+				return models.Message{}, err
+			}
+			if payloadType == filePayloadType {
+				log.Printf("получен файл %s", payloadPath)
+				messageModel.FilesDTO = append(messageModel.FilesDTO, models.Payload{
+					URL:      payloadPath,
+					Filename: filename,
+					Size:     size,
+				})
+			} else if payloadType == photoPayloadType {
+				log.Printf("получено фото %s", payloadPath)
+				messageModel.PhotosDTO = append(messageModel.PhotosDTO, models.Payload{
+					URL:      payloadPath,
+					Filename: filename,
+					Size:     size,
+				})
+			}
+		}
+	}
+	log.Println("Repository: вложения получены")
 
 	return messageModel, nil
 }
