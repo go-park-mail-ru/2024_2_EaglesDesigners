@@ -31,7 +31,7 @@ func (r *ChatRepositoryImpl) GetSendNotificationsForUser(ctx context.Context, ch
 	if err != nil {
 		return false, err
 	}
-	return true, nil
+	return sendNotifications, nil
 }
 
 func (r *ChatRepositoryImpl) SetChatNotofications(ctx context.Context, chatUUID uuid.UUID, userId uuid.UUID, value bool) error {
