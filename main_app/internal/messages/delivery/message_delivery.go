@@ -94,7 +94,7 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := r.ParseMultipartForm(100 << 20); err != nil {
 		log.Errorf("не удалось распарсить запрос: %v", err)
 		responser.SendError(ctx, w, "Unable to parse form", http.StatusBadRequest)
 		return
