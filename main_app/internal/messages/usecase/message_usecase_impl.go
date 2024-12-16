@@ -99,45 +99,49 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 		return err
 	}
 
-	// Добавление тех, кому можно читать файл, если файл не в публичное место отправлен.
-	var userIDs []string
-	if chatType == "personal" || chatType == "group" {
-		users, err := u.chatRepository.GetUsersFromChat(ctx, chatId)
-		if err != nil {
-			log.Errorf("Usecase: не удалось получить пользователей чата: %v", err)
-			return err
-		}
-		for _, user := range users {
-			userIDs = append(userIDs, user.ID.String())
-		}
-	}
+	// Если есть файлы и сообщение не стикер.
+	if len(message.Files) > 0 || len(message.Photos) > 0 || message.Sticker == "" {
 
-	// Добавление файлов в mongoDB
-	for i := 0; i < len(message.Files); i++ {
-		file, err := u.fileUC.SaveFile(ctx, message.Files[i], message.FilesHeaders[i], userIDs)
-		if err != nil {
-			log.Errorf("Usecase: не удалось сохранить файл: %v", err)
-			return err
+		// Добавление тех, кому можно читать файл, если файл не в публичное место отправлен.
+		var userIDs []string
+		if chatType == "personal" || chatType == "group" {
+			users, err := u.chatRepository.GetUsersFromChat(ctx, chatId)
+			if err != nil {
+				log.Errorf("Usecase: не удалось получить пользователей чата: %v", err)
+				return err
+			}
+			for _, user := range users {
+				userIDs = append(userIDs, user.ID.String())
+			}
 		}
-		message.FilesDTO = append(message.FilesDTO, models.Payload{
-			URL:      file.URL,
-			Filename: file.Filename,
-			Size:     file.Size,
-		})
-	}
 
-	// Добавление фото в mongoDB
-	for i := 0; i < len(message.Photos); i++ {
-		photo, err := u.fileUC.SavePhoto(ctx, message.Photos[i], message.PhotosHeaders[i], userIDs)
-		if err != nil {
-			log.Errorf("Usecase: не удалось сохранить фото: %v", err)
-			return err
+		// Добавление файлов в mongoDB
+		for i := 0; i < len(message.Files); i++ {
+			file, err := u.fileUC.SaveFile(ctx, message.Files[i], message.FilesHeaders[i], userIDs)
+			if err != nil {
+				log.Errorf("Usecase: не удалось сохранить файл: %v", err)
+				return err
+			}
+			message.FilesDTO = append(message.FilesDTO, models.Payload{
+				URL:      file.URL,
+				Filename: file.Filename,
+				Size:     file.Size,
+			})
 		}
-		message.PhotosDTO = append(message.PhotosDTO, models.Payload{
-			URL:      photo.URL,
-			Filename: photo.Filename,
-			Size:     photo.Size,
-		})
+
+		// Добавление фото в mongoDB
+		for i := 0; i < len(message.Photos); i++ {
+			photo, err := u.fileUC.SavePhoto(ctx, message.Photos[i], message.PhotosHeaders[i], userIDs)
+			if err != nil {
+				log.Errorf("Usecase: не удалось сохранить фото: %v", err)
+				return err
+			}
+			message.PhotosDTO = append(message.PhotosDTO, models.Payload{
+				URL:      photo.URL,
+				Filename: photo.Filename,
+				Size:     photo.Size,
+			})
+		}
 	}
 
 	err = u.messageRepository.AddMessage(message, chatId)

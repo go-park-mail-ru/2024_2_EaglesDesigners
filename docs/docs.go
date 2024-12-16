@@ -1439,6 +1439,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/stickerpacks": {
+            "get": {
+                "tags": [
+                    "files"
+                ],
+                "summary": "get sticker pack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "packid ID (UUID)",
+                        "name": "packid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "паки успешно получены",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPacks"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутреннее",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stickerpacks/{packid}": {
+            "get": {
+                "tags": [
+                    "files"
+                ],
+                "summary": "get sticker pack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "packid ID (UUID)",
+                        "name": "packid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "пак успешно получен",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.GetStickerPackResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Не найдено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/uploads/{folder}/{name}": {
             "get": {
                 "description": "Fetches an image from the specified folder and by filename",
@@ -1848,6 +1910,49 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO"
+                    }
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.GetStickerPackResponse": {
+            "type": "object",
+            "properties": {
+                "photo": {
+                    "type": "string",
+                    "example": "url1"
+                },
+                "stickers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "url1",
+                        "url2",
+                        "url3"
+                    ]
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPack": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string",
+                    "example": "url1"
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPacks": {
+            "type": "object",
+            "properties": {
+                "packs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPack"
                     }
                 }
             }

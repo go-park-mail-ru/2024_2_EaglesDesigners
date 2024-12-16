@@ -27,6 +27,9 @@ type Repository interface {
 	SaveFile(ctx context.Context, fileBuffer *bytes.Buffer, metadata primitive.D) (string, error)
 	DeleteFile(ctx context.Context, fileID primitive.ObjectID) error
 	RewriteFile(ctx context.Context, fileID primitive.ObjectID, fileBuffer *bytes.Buffer, metadata primitive.D) error
+	CreateSticker(ctx context.Context, fileBuffer *bytes.Buffer, metadata primitive.D, name string) error
+	GetStickerPack(ctx context.Context, packID string) (models.GetStickerPackResponse, error)
+	GetStickerPacks(ctx context.Context) (models.StickerPacks, error)
 }
 
 type Usecase struct {
@@ -263,6 +266,14 @@ func (u *Usecase) UpdateFile(ctx context.Context, fileIDStr string, file multipa
 	return newFileID, nil
 }
 
+func (u *Usecase) GetStickerPack(ctx context.Context, packID string) (models.GetStickerPackResponse, error) {
+	return u.repo.GetStickerPack(ctx, packID)
+}
+
+func (u *Usecase) GetStickerPacks(ctx context.Context) (models.StickerPacks, error) {
+	return u.repo.GetStickerPacks(ctx)
+}
+
 func getFileNameAndSize(header *multipart.FileHeader) models.Payload {
 	return models.Payload{
 		Filename: header.Filename,
@@ -288,6 +299,8 @@ func getPhotoMetadata(header *multipart.FileHeader, size int64) bson.D {
 
 func getFileBuffer(file multipart.File) (bytes.Buffer, error) {
 	fileBuffer := new(bytes.Buffer)
+
+	fmt.Println("file: ", file)
 
 	if _, err := io.Copy(fileBuffer, file); err != nil {
 		return bytes.Buffer{}, err
@@ -342,4 +355,24 @@ func convertToWebP(file multipart.File, contentType string) (bytes.Buffer, error
 	}
 
 	return buf, nil
+}
+
+func (u *Usecase) SaveSticker(ctx context.Context, file multipart.File, header *multipart.FileHeader, name string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	fileBuffer, err := getFileBuffer(file)
+	if err != nil {
+		log.WithError(err).Errorln("не удалось создать буфер")
+		return err
+	}
+
+	metadata := getFileMetadata(header)
+
+	err = u.repo.CreateSticker(ctx, &fileBuffer, metadata, name)
+	if err != nil {
+		log.WithError(err).Errorln("не удалось создать файл")
+		return err
+	}
+
+	return nil
 }

@@ -388,6 +388,30 @@ ALTER TABLE IF EXISTS public.chat_branch
 COMMENT ON TABLE public.chat_branch
     IS 'Таблица в которой хранятся чаты и их ветки';
 
+CREATE TABLE public.sticker (
+	id uuid NOT NULL,
+	sticker_path text NOT NULL,
+	CONSTRAINT sticker_pk PRIMARY KEY (id),
+	CONSTRAINT sticker_unique UNIQUE (sticker_path)
+);
+
+CREATE TABLE public.sticker_pack (
+	id uuid NOT NULL,
+	"name" text NULL,
+	photo text NOT NULL,
+	CONSTRAINT sticker_pack_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE public.sticker_sticker_pack (
+	id uuid NOT NULL,
+	sticker uuid NOT NULL,
+	pack uuid NOT NULL,
+	CONSTRAINT sticker_sticker_pack_pk PRIMARY KEY (id),
+	CONSTRAINT sticker_sticker_pack_sticker_fk FOREIGN KEY (sticker) REFERENCES public.sticker(id),
+	CONSTRAINT sticker_sticker_pack_sticker_pack_fk FOREIGN KEY (pack) REFERENCES public.sticker_pack(id)
+);
+
+
 --
 -- PostgreSQL database dump complete
 --
@@ -461,3 +485,18 @@ INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
     ('f9a0aaa0-d461-437d-b4eb-bf030a0efc80', 1,(SELECT id FROM public.chat WHERE chat_name = 'not funny channel'), (SELECT id FROM public.user where username ='user33')),
     ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 3,(SELECT id FROM public.chat WHERE chat_name = 'my little channel'), (SELECT id FROM public.user where username ='user44'));
 
+-- /files/675f2ea013dbaf51a93aa2d3
+-- /files/675f466313dbaf51a93aa2e4
+-- /files/675f391413dbaf51a93aa2db
+INSERT INTO sticker (id, sticker_path) VALUES
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f2ea013dbaf51a93aa2d3'),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f466313dbaf51a93aa2e4'),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f391413dbaf51a93aa2db');
+
+INSERT INTO sticker_pack (id, photo) VALUES
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f2ea013dbaf51a93aa2d3');
+
+INSERT INTO sticker_sticker_pack (id, sticker, pack) VALUES
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80','a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80','b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80','c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80');

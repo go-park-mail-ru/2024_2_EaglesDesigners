@@ -143,7 +143,7 @@ func main() {
 
 	// files
 
-	filesRepo := filesRepo.New(mongoBucket)
+	filesRepo := filesRepo.New(mongoBucket, pool)
 	filesUC := filesUC.New(filesRepo)
 	files := filesDelivery.New(filesUC)
 
@@ -214,6 +214,8 @@ func main() {
 	router.HandleFunc("/login", auth.LoginHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/signup", auth.RegisterHandler).Methods("POST", "OPTIONS")
 	router.HandleFunc("/files/{fileID}", files.GetFile).Methods("GET", "OPTIONS")
+	router.HandleFunc("/stickerpacks", files.GetStickerPacks).Methods("GET", "OPTIONS")
+	router.HandleFunc("/stickerpacks/{packid}", files.GetStickerPack).Methods("GET", "OPTIONS")
 	// router.HandleFunc("/files", files.UploadFile).Methods("POST", "OPTIONS")
 	router.HandleFunc("/uploads/{folder}/{name}", uploads.GetImage).Methods("GET", "OPTIONS")
 	router.HandleFunc("/profile", auth.Authorize(profile.GetSelfProfileHandler)).Methods("GET", "OPTIONS")

@@ -19,6 +19,7 @@ const (
 	defaultMessageType       = "default"
 	informationalMessageType = "informational"
 	MessageWithPayloadType   = "with_payload"
+	stickerMessageType       = "sticker"
 	filePayloadType          = "file"
 	photoPayloadType         = "photo"
 )
@@ -55,7 +56,8 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 	m.is_redacted,
 	m.branch_id,
 	m.chat_id,
-	mt.value
+	mt.value,
+	m.sticker_path
 	FROM public.message AS m
 	JOIN public.message_type AS mt ON mt.id = m.message_type_id
 	WHERE m.chat_id = $1
@@ -82,8 +84,9 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 		var messageType sql.NullString
 		var files []models.Payload
 		var photos []models.Payload
+		var sticker sql.NullString
 
-		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &branchID, &chatID, &messageType)
+		err = rows.Scan(&messageId, &authorID, &message, &sentAt, &isRedacted, &branchID, &chatID, &messageType, &sticker)
 		if err != nil {
 			log.Printf("Repository: unable to scan: %v", err)
 			return nil, err
@@ -100,6 +103,7 @@ func (r *MessageRepositoryImpl) GetFirstMessages(ctx context.Context, chatId uui
 			MessageType: messageType.String,
 			FilesDTO:    files,
 			PhotosDTO:   photos,
+			Sticker:     sticker.String,
 		})
 	}
 
@@ -168,21 +172,36 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 
 	messageType := defaultMessageType
 
-	if len(message.Files) > 0 || len(message.Photos) > 0 {
+	if message.Sticker != "" {
+		messageType = stickerMessageType
+	} else if len(message.Files) > 0 || len(message.Photos) > 0 {
 		messageType = MessageWithPayloadType
 	}
 
-	// нужно чё-то придумать со стикерами
-	row := conn.QueryRow(context.Background(),
-		`INSERT INTO public.message (id, chat_id, author_id, message, sent_at, is_redacted, message_type_id)
+	var row pgx.Row
+	if message.Sticker != "" {
+		row = conn.QueryRow(context.Background(),
+			`INSERT INTO public.message (id, chat_id, author_id, sent_at, is_redacted, message_type_id, sticker_path)
+	VALUES ($1, $2, $3, $4, false, (SELECT id FROM message_type WHERE value = $5), $6) RETURNING id;`,
+			message.MessageId,
+			chatId,
+			message.AuthorID,
+			message.SentAt,
+			messageType,
+			message.Sticker,
+		)
+	} else {
+		row = conn.QueryRow(context.Background(),
+			`INSERT INTO public.message (id, chat_id, author_id, message, sent_at, is_redacted, message_type_id)
 	VALUES ($1, $2, $3, $4, $5, false, (SELECT id FROM message_type WHERE value = $6)) RETURNING id;`,
-		message.MessageId,
-		chatId,
-		message.AuthorID,
-		message.Message,
-		message.SentAt,
-		messageType,
-	)
+			message.MessageId,
+			chatId,
+			message.AuthorID,
+			message.Message,
+			message.SentAt,
+			messageType,
+		)
+	}
 
 	var message_id uuid.UUID
 	if err := row.Scan(&message_id); err != nil {
@@ -190,40 +209,43 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 		return err
 	}
 
-	for _, file := range message.FilesDTO {
-		id := uuid.New()
-		row := conn.QueryRow(context.Background(),
-			`INSERT INTO public.message_payload (id, message_id, payload_path, filename, size)
+	if messageType == MessageWithPayloadType {
+
+		for _, file := range message.FilesDTO {
+			id := uuid.New()
+			row := conn.QueryRow(context.Background(),
+				`INSERT INTO public.message_payload (id, message_id, payload_path, filename, size)
 		VALUES ($1, $2, $3, $4, $5) RETURNING id;`,
-			id,
-			message_id,
-			file.URL,
-			file.Filename,
-			file.Size,
-		)
+				id,
+				message_id,
+				file.URL,
+				file.Filename,
+				file.Size,
+			)
 
-		if err := row.Scan(&id); err != nil {
-			log.Printf("Repository: не удалось добавить сообщение: %v", err)
-			return err
+			if err := row.Scan(&id); err != nil {
+				log.Printf("Repository: не удалось добавить сообщение: %v", err)
+				return err
+			}
 		}
-	}
 
-	for _, photo := range message.PhotosDTO {
-		id := uuid.New()
-		row := conn.QueryRow(context.Background(),
-			`INSERT INTO public.message_payload (id, message_id, payload_path, filename, size, payload_type)
+		for _, photo := range message.PhotosDTO {
+			id := uuid.New()
+			row := conn.QueryRow(context.Background(),
+				`INSERT INTO public.message_payload (id, message_id, payload_path, filename, size, payload_type)
 		VALUES ($1, $2, $3, $4, $5, (select id from public.payload_type pt where pt.value = $6)) RETURNING id;`,
-			id,
-			message_id,
-			photo.URL,
-			photo.Filename,
-			photo.Size,
-			photoPayloadType,
-		)
+				id,
+				message_id,
+				photo.URL,
+				photo.Filename,
+				photo.Size,
+				photoPayloadType,
+			)
 
-		if err := row.Scan(&id); err != nil {
-			log.Printf("Repository: не удалось добавить сообщение: %v", err)
-			return err
+			if err := row.Scan(&id); err != nil {
+				log.Printf("Repository: не удалось добавить сообщение: %v", err)
+				return err
+			}
 		}
 	}
 
