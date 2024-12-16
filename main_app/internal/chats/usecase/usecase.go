@@ -302,7 +302,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 func (s *ChatUsecaseImpl) sendInformationalMessage(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, event string) messageModel.Message {
 	message := messageModel.Message{
 		MessageId:   uuid.New(),
-		AuthorID:    userID,	// При выдаче, если информационное, будет меняться uuid юзера на нули.
+		AuthorID:    userID, // При выдаче, если информационное, будет меняться uuid юзера на нули.
 		Message:     event,
 		SentAt:      time.Now(),
 		MessageType: "informational",
@@ -338,6 +338,26 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 	role, err := s.repository.GetUserRoleInChat(ctx, userId, chatId)
 	if err != nil {
 		return err
+	}
+
+	chatType, err := s.repository.GetChatType(ctx, chatId)
+	if err != nil {
+		return err
+	}
+
+	if chatType == personal {
+		log.Printf("Chat usecase -> DeleteChat: удаление чата %v", chatId)
+
+		// send notification to chat
+
+		err = s.repository.DeleteChat(ctx, chatId)
+		if err != nil {
+			log.Printf("Chat usecase -> DeleteChat: не удалось удалить чат: %v", err)
+			return err
+		}
+
+		s.sendIvent(ctx, DeleteChat, chatId, nil)
+		return nil
 	}
 
 	// проверяем есть ли права

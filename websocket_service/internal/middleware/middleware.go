@@ -74,16 +74,6 @@ func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username st
 		return err
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "access_token",
-		Value:    grcpResp.GetToken(),
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
-		MaxAge:   7 * 24 * 60 * 60,
-	})
-
 	csrf, err := csrf.CreateCSRF(grcpResp.GetToken())
 	if err != nil {
 		log.Printf("Auth setTokens: не удалось создать csrf токен: %v", err)

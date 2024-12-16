@@ -339,7 +339,7 @@ func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    "t",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: http.SameSiteNoneMode,
 		MaxAge:   -1,
 	})
@@ -361,7 +361,7 @@ func (d *Delivery) setTokens(w http.ResponseWriter, r *http.Request, username st
 		Value:    grcpResp.GetToken(),
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: http.SameSiteNoneMode,
 		MaxAge:   7 * 24 * 60 * 60,
 	})
