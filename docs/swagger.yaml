@@ -122,9 +122,17 @@ definitions:
     type: object
   github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO:
     properties:
+      files:
+        items:
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
+        type: array
       messages:
         items:
           $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message'
+        type: array
+      photos:
+        items:
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
         type: array
       role:
         example: owner
@@ -304,6 +312,9 @@ definitions:
         items:
           $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
         type: array
+      sticker:
+        example: /files/675f2ea013dbaf51a93aa2d3
+        type: string
       text:
         example: тут много текста
         type: string
@@ -773,6 +784,10 @@ paths:
         in: formData
         name: text
         required: true
+        type: string
+      - description: sticker url
+        in: formData
+        name: sticker
         type: string
       - description: files array
         in: formData
@@ -1318,12 +1333,6 @@ paths:
       - auth
   /stickerpacks:
     get:
-      parameters:
-      - description: packid ID (UUID)
-        in: path
-        name: packid
-        required: true
-        type: string
       responses:
         "200":
           description: паки успешно получены

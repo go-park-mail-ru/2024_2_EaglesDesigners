@@ -373,3 +373,7 @@ func (s *MessageUsecaseImplm) SendIvent(ctx context.Context, action string, mess
 		log.Fatalf("failed to publish a message. Error: %s", err)
 	}
 }
+
+func (s *MessageUsecaseImplm) GetPayload(ctx context.Context, chatId uuid.UUID) (files []models.Payload, photos []models.Payload, err error) {
+	return s.messageRepository.GetPayload(ctx, chatId)
+}

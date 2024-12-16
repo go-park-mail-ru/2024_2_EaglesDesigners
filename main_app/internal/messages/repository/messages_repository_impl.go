@@ -627,3 +627,58 @@ func (r *MessageRepositoryImpl) GetMessagesAfter(ctx context.Context, chatId uui
 	log.Printf("Repository: сообщения успешно найдеты. Количество сообшений: %d", len(messages))
 	return messages, nil
 }
+
+func (r *MessageRepositoryImpl) GetPayload(ctx context.Context, chatId uuid.UUID) (files []models.Payload, photos []models.Payload, err error) {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return nil, nil, err
+	}
+	defer conn.Release()
+
+	payloadRows, err := conn.Query(context.Background(),
+		`SELECT 
+			mp.payload_path,
+			mp.filename,
+			mp.size,
+			(SELECT value FROM public.payload_type WHERE id = mp.payload_type) 
+		FROM message m
+		JOIN message_payload mp ON mp.message_id = m.id
+		WHERE m.chat_id = $1;`,
+		chatId,
+	)
+	if err != nil {
+		log.Printf("Repository: Unable to SELECT payloads: %v\n", err)
+		return nil, nil, err
+	}
+
+	for payloadRows.Next() {
+		var payloadPath string
+		var payloadType string
+		var size int64
+		var filename string
+
+		err = payloadRows.Scan(&payloadPath, &filename, &size, &payloadType)
+		if err != nil {
+			log.Printf("Repository: unable to scan payloads: %v", err)
+			return nil, nil, err
+		}
+		if payloadType == filePayloadType {
+			log.Printf("получен файл %s", payloadPath)
+			files = append(files, models.Payload{
+				URL:      payloadPath,
+				Filename: filename,
+				Size:     size,
+			})
+		} else if payloadType == photoPayloadType {
+			log.Printf("получено фото %s", payloadPath)
+			photos = append(photos, models.Payload{
+				URL:      payloadPath,
+				Filename: filename,
+				Size:     size,
+			})
+		}
+	}
+
+	return files, photos, nil
+}

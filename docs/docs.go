@@ -619,6 +619,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "sticker url",
+                        "name": "sticker",
+                        "in": "formData"
+                    },
+                    {
                         "type": "file",
                         "description": "files array",
                         "name": "files",
@@ -1445,15 +1451,6 @@ const docTemplate = `{
                     "files"
                 ],
                 "summary": "get sticker pack",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "packid ID (UUID)",
-                        "name": "packid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "паки успешно получены",
@@ -1730,10 +1727,22 @@ const docTemplate = `{
         "github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO": {
             "type": "object",
             "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload"
+                    }
+                },
                 "messages": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message"
+                    }
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload"
                     }
                 },
                 "role": {
@@ -1998,6 +2007,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload"
                     }
+                },
+                "sticker": {
+                    "type": "string",
+                    "example": "/files/675f2ea013dbaf51a93aa2d3"
                 },
                 "text": {
                     "type": "string",

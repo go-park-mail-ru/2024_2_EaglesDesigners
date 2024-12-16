@@ -66,6 +66,29 @@ CREATE TABLE public.contact (
 
 ALTER TABLE public.contact OWNER TO postgres;
 
+CREATE TABLE public.sticker (
+	id uuid NOT NULL,
+	sticker_path text NOT NULL,
+	CONSTRAINT sticker_pk PRIMARY KEY (id),
+	CONSTRAINT sticker_unique UNIQUE (sticker_path)
+);
+
+CREATE TABLE public.sticker_pack (
+	id uuid NOT NULL,
+	"name" text NULL,
+	photo text NOT NULL,
+	CONSTRAINT sticker_pack_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE public.sticker_sticker_pack (
+	id uuid NOT NULL,
+	sticker uuid NOT NULL,
+	pack uuid NOT NULL,
+	CONSTRAINT sticker_sticker_pack_pk PRIMARY KEY (id),
+	CONSTRAINT sticker_sticker_pack_sticker_fk FOREIGN KEY (sticker) REFERENCES public.sticker(id),
+	CONSTRAINT sticker_sticker_pack_sticker_pack_fk FOREIGN KEY (pack) REFERENCES public.sticker_pack(id)
+);
+
 --
 -- Name: message; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -87,7 +110,8 @@ CREATE TABLE public.message (
     sent_at timestamp with time zone NOT NULL,
     is_redacted boolean DEFAULT false NOT NULL,
     sticker_path text,
-    message_type_id integer DEFAULT 1 NOT NULL
+    message_type_id integer DEFAULT 1 NOT NULL,
+    CONSTRAINT message_sticker_path_fk FOREIGN KEY (sticker_path) REFERENCES public.sticker(sticker_path)
 );
 
 
@@ -387,30 +411,6 @@ ALTER TABLE IF EXISTS public.chat_branch
 
 COMMENT ON TABLE public.chat_branch
     IS 'Таблица в которой хранятся чаты и их ветки';
-
-CREATE TABLE public.sticker (
-	id uuid NOT NULL,
-	sticker_path text NOT NULL,
-	CONSTRAINT sticker_pk PRIMARY KEY (id),
-	CONSTRAINT sticker_unique UNIQUE (sticker_path)
-);
-
-CREATE TABLE public.sticker_pack (
-	id uuid NOT NULL,
-	"name" text NULL,
-	photo text NOT NULL,
-	CONSTRAINT sticker_pack_pk PRIMARY KEY (id)
-);
-
-CREATE TABLE public.sticker_sticker_pack (
-	id uuid NOT NULL,
-	sticker uuid NOT NULL,
-	pack uuid NOT NULL,
-	CONSTRAINT sticker_sticker_pack_pk PRIMARY KEY (id),
-	CONSTRAINT sticker_sticker_pack_sticker_fk FOREIGN KEY (sticker) REFERENCES public.sticker(id),
-	CONSTRAINT sticker_sticker_pack_sticker_pack_fk FOREIGN KEY (pack) REFERENCES public.sticker_pack(id)
-);
-
 
 --
 -- PostgreSQL database dump complete

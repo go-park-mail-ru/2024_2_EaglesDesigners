@@ -302,7 +302,7 @@ func (s *ChatUsecaseImpl) AddNewChat(ctx context.Context, cookie []*http.Cookie,
 func (s *ChatUsecaseImpl) sendInformationalMessage(ctx context.Context, userID uuid.UUID, chatId uuid.UUID, event string) messageModel.Message {
 	message := messageModel.Message{
 		MessageId:   uuid.New(),
-		AuthorID:    userID,	// При выдаче, если информационное, будет меняться uuid юзера на нули.
+		AuthorID:    userID, // При выдаче, если информационное, будет меняться uuid юзера на нули.
 		Message:     event,
 		SentAt:      time.Now(),
 		MessageType: "informational",
@@ -547,6 +547,8 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 	var users []chatModel.UserInChatDAO
 	var usersDTO []chatModel.UserInChatDTO
 	var messages []messageModel.Message
+	var files []messageModel.Payload
+	var photos []messageModel.Payload
 
 	g.Go(func() error {
 		users, err = s.repository.GetUsersFromChat(ctx, chatId)
@@ -564,6 +566,11 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 		return err
 	})
 
+	g.Go(func() error {
+		files, photos, err = s.messageUsecase.GetPayload(ctx, chatId)
+		return err
+	})
+
 	if err := g.Wait(); err != nil {
 		return chatModel.ChatInfoDTO{}, err
 	}
@@ -575,6 +582,8 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 		Users:             usersDTO,
 		Messages:          messages,
 		SendNotifications: sendNotifications,
+		Files:             files,
+		Photos:            photos,
 	}, nil
 }
 
