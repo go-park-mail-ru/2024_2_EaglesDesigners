@@ -487,7 +487,7 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 
 	var messageId uuid.UUID
 	var authorID uuid.UUID
-	var message string
+	var message sql.NullString
 	var sentAt time.Time
 	var isRedacted bool
 	var messageType string
@@ -506,7 +506,7 @@ func (r *MessageRepositoryImpl) GetLastMessage(chatId uuid.UUID) (models.Message
 	messageModel := models.Message{
 		MessageId:   messageId,
 		AuthorID:    authorID,
-		Message:     message,
+		Message:     message.String,
 		SentAt:      sentAt,
 		IsRedacted:  isRedacted,
 		MessageType: messageType,
