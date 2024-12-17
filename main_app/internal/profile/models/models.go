@@ -8,6 +8,8 @@ import (
 )
 
 // @Schema
+//
+//easyjson:skip
 type UpdateProfileRequestDTO struct {
 	ID           uuid.UUID             `json:"-" valid:"-"`
 	Name         *string               `json:"name" example:"Vincent Vega" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
@@ -26,6 +28,7 @@ type GetProfileResponseDTO struct {
 	Birthdate *time.Time `json:"birthdate" example:"2024-04-13T08:30:00Z" valid:"optional"`
 }
 
+//easyjson:skip
 type Profile struct {
 	ID           uuid.UUID
 	Name         *string

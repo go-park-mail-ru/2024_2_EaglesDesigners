@@ -17,6 +17,7 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
@@ -104,7 +105,9 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 
 	log.Println("данные успешно отправлены")
 
-	responser.SendStruct(ctx, w, response, http.StatusOK)
+	// responser.SendStruct(ctx, w, response, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(response)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // GetProfileHandler godoc
@@ -156,7 +159,9 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("данные успешно отправлены")
 
-	responser.SendStruct(ctx, w, response, http.StatusOK)
+	// responser.SendStruct(ctx, w, response, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(response)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // UpdateProfileHandler godoc
