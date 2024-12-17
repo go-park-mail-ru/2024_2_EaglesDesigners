@@ -333,6 +333,7 @@ func (s *MessageUsecaseImplm) SendIvent(ctx context.Context, action string, mess
 		FilesHeaders:  message.FilesHeaders,
 		Photos:        message.Photos,
 		PhotosHeaders: message.PhotosHeaders,
+		Sticker:       message.Sticker,
 	}
 	for _, value := range message.FilesDTO {
 		newMessage.FilesDTO = append(newMessage.FilesDTO, socketUsecase.Payload{
