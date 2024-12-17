@@ -5,11 +5,16 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
+	"github.com/jackc/pgx/v4/pgxpool"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
@@ -18,11 +23,13 @@ import (
 
 type Repository struct {
 	bucket *gridfs.Bucket
+	pool   *pgxpool.Pool
 }
 
-func New(bucket *gridfs.Bucket) *Repository {
+func New(bucket *gridfs.Bucket, pool *pgxpool.Pool) *Repository {
 	return &Repository{
 		bucket: bucket,
+		pool:   pool,
 	}
 }
 
@@ -169,6 +176,83 @@ func (r *Repository) DeleteFile(ctx context.Context, fileID primitive.ObjectID) 
 	return nil
 }
 
+func (r *Repository) GetStickerPack(ctx context.Context, packID string) (models.GetStickerPackResponse, error) {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return models.GetStickerPackResponse{}, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(context.Background(),
+		`SELECT 
+			s.sticker_path,
+			sp.photo
+		FROM sticker_sticker_pack ssp
+		JOIN sticker_pack sp ON ssp.pack = sp.id
+		JOIN sticker s ON ssp.sticker = s.id
+		WHERE sp.id = $1;`,
+		packID,
+	)
+	if err != nil {
+		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
+		return models.GetStickerPackResponse{}, err
+	}
+	var pack models.GetStickerPackResponse
+	for rows.Next() {
+		var url string
+		var photo string
+		err = rows.Scan(&url, &photo)
+		if err != nil {
+			log.Printf("Repository: unable to scan: %v", err)
+			return models.GetStickerPackResponse{}, err
+		}
+		pack.URLs = append(pack.URLs, url)
+		pack.Photo = photo
+	}
+
+	return pack, nil
+}
+
+func (r *Repository) GetStickerPacks(ctx context.Context) (models.StickerPacks, error) {
+	conn, err := r.pool.Acquire(context.Background())
+	if err != nil {
+		log.Printf("Repository: не удалось установить соединение: %v", err)
+		return models.StickerPacks{}, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(context.Background(),
+		`SELECT 
+			id,
+			photo
+		FROM sticker_pack;`,
+	)
+	if err != nil {
+		log.Printf("Repository: Unable to SELECT: %v\n", err)
+		return models.StickerPacks{}, err
+	}
+	var dto models.StickerPacks
+	for rows.Next() {
+		var id uuid.UUID
+		var photo string
+		err = rows.Scan(&id, &photo)
+		if err != nil {
+			log.Printf("Repository: unable to scan: %v", err)
+			return models.StickerPacks{}, err
+		}
+
+		dto.Packs = append(dto.Packs, models.StickerPack{
+			PackID: id,
+			Photo:  photo,
+		})
+	}
+
+	return dto, nil
+}
+
 func (r *Repository) getIDByFilename(ctx context.Context, filename primitive.ObjectID) (primitive.ObjectID, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -193,6 +277,58 @@ func (r *Repository) getIDByFilename(ctx context.Context, filename primitive.Obj
 	fileID := fileInfo["_id"].(primitive.ObjectID)
 
 	return fileID, nil
+}
+
+func extractID(filePath string) (string, error) {
+	// Получаем только имя файла
+	fileName := filepath.Base(filePath)
+
+	// Удаляем расширение файла
+	id := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+
+	return id, nil
+}
+
+func (r *Repository) CreateSticker(ctx context.Context, fileBuffer *bytes.Buffer, metadata primitive.D, name string) error {
+	log := logger.LoggerWithCtx(ctx, logger.Log)
+
+	fileID, err := extractID(name)
+	if err != nil {
+		log.WithError(err).Errorln("id err")
+		return err
+	}
+
+	filename, err := primitive.ObjectIDFromHex(fileID)
+	if err != nil {
+		log.WithError(err).Errorln("name err")
+		return err
+	}
+
+	uploadOpts := options.GridFSUpload().SetMetadata(metadata)
+
+	uploadStream, err := r.bucket.OpenUploadStream(filename.Hex(), uploadOpts)
+	if err != nil {
+		log.WithError(err).Errorln("не удалось открыть поток для загрузки файла")
+		return err
+	}
+	defer func() {
+		if err = uploadStream.Close(); err != nil {
+			log.WithError(err).Errorln("во прикол а как так-то")
+		}
+	}()
+
+	err = uploadStream.SetWriteDeadline(time.Now().Add(2 * time.Second))
+	if err != nil {
+		log.WithError(err).Errorln("не удалось выставить таймаут")
+		return err
+	}
+
+	if _, err = uploadStream.Write(fileBuffer.Bytes()); err != nil {
+		log.WithError(err).Errorln("не удалось загрузить файл в буфер")
+		return err
+	}
+
+	return nil
 }
 
 // func (r *Repository) RewritePhoto(file multipart.File, photoURL string) error {

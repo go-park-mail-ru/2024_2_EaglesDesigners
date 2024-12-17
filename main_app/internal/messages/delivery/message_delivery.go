@@ -52,6 +52,7 @@ var requestMessageDuration = prometheus.NewHistogramVec(
 // @Accept json
 // @Param chatId path string true "Chat ID (UUID)" minlength(36) maxlength(36) example("123e4567-e89b-12d3-a456-426614174000")
 // @Param text formData string true "Message info"
+// @Param sticker formData string false "sticker url"
 // @Param files formData file false "files array"
 // @Param photos formData file false "photos array"
 // @Success 201 {object} responser.SuccessResponse "Сообщение успешно добавлено"
@@ -93,48 +94,60 @@ func (h *MessageController) AddNewMessage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := r.ParseMultipartForm(100 << 20); err != nil {
 		log.Errorf("не удалось распарсить запрос: %v", err)
 		responser.SendError(ctx, w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
 
 	var messageDTO models.Message
-	jsonString := r.FormValue("text")
+	jsonString := r.FormValue("sticker")
 	if jsonString != "" {
-		if err := json.Unmarshal([]byte(jsonString), &messageDTO.Message); err != nil {
+		if err := json.Unmarshal([]byte(jsonString), &messageDTO.Sticker); err != nil {
 			log.Errorf("не удалось распарсить text: %v", err)
 			responser.SendError(ctx, w, "bad request", http.StatusBadRequest)
 			return
 		}
 	}
 
-	files := r.MultipartForm.File["files"]
+	if messageDTO.Sticker == "" {
 
-	for _, header := range files {
-		file, err := header.Open()
-		if err != nil {
-			responser.SendError(ctx, w, "Failed to open files", http.StatusBadRequest)
-			return
+		jsonString = r.FormValue("text")
+		if jsonString != "" {
+			if err := json.Unmarshal([]byte(jsonString), &messageDTO.Message); err != nil {
+				log.Errorf("не удалось распарсить text: %v", err)
+				responser.SendError(ctx, w, "bad request", http.StatusBadRequest)
+				return
+			}
 		}
-		defer file.Close()
 
-		messageDTO.Files = append(messageDTO.Files, file)
-		messageDTO.FilesHeaders = append(messageDTO.FilesHeaders, header)
-	}
+		files := r.MultipartForm.File["files"]
 
-	photos := r.MultipartForm.File["photos"]
+		for _, header := range files {
+			file, err := header.Open()
+			if err != nil {
+				responser.SendError(ctx, w, "Failed to open files", http.StatusBadRequest)
+				return
+			}
+			defer file.Close()
 
-	for _, header := range photos {
-		photo, err := header.Open()
-		if err != nil {
-			responser.SendError(ctx, w, "Failed to open files", http.StatusBadRequest)
-			return
+			messageDTO.Files = append(messageDTO.Files, file)
+			messageDTO.FilesHeaders = append(messageDTO.FilesHeaders, header)
 		}
-		defer photo.Close()
 
-		messageDTO.Photos = append(messageDTO.Photos, photo)
-		messageDTO.PhotosHeaders = append(messageDTO.PhotosHeaders, header)
+		photos := r.MultipartForm.File["photos"]
+
+		for _, header := range photos {
+			photo, err := header.Open()
+			if err != nil {
+				responser.SendError(ctx, w, "Failed to open files", http.StatusBadRequest)
+				return
+			}
+			defer photo.Close()
+
+			messageDTO.Photos = append(messageDTO.Photos, photo)
+			messageDTO.PhotosHeaders = append(messageDTO.PhotosHeaders, header)
+		}
 	}
 
 	err = h.usecase.SendMessage(r.Context(), user, chatUUID, messageDTO)

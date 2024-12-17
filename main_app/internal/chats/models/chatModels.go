@@ -117,6 +117,8 @@ type ChatInfoDTO struct {
 	Users             []UserInChatDTO  `json:"users" valid:"-"`
 	Messages          []models.Message `json:"messages" valid:"-"`
 	SendNotifications bool             `json:"send_notifications" valid:"-"`
+	Files             []models.Payload `json:"files" valid:"-"`
+	Photos            []models.Payload `json:"photos" valid:"-"`
 }
 
 type UserInChatDTO struct {

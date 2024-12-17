@@ -23,4 +23,5 @@ type MessageRepository interface {
 	GetMessageById(ctx context.Context, messageId uuid.UUID) (models.Message, error)
 	GetLastMessage(chatId uuid.UUID) (models.Message, error)
 	GetMessagesAfter(ctx context.Context, chatId uuid.UUID, lastMessageId uuid.UUID) ([]models.Message, error)
+	GetPayload(ctx context.Context, chatId uuid.UUID) (files []models.Payload, photos []models.Payload, err error)
 }

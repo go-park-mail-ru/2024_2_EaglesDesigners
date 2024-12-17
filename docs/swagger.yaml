@@ -122,9 +122,17 @@ definitions:
     type: object
   github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_chats_models.ChatInfoDTO:
     properties:
+      files:
+        items:
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
+        type: array
       messages:
         items:
           $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message'
+        type: array
+      photos:
+        items:
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
         type: array
       role:
         example: owner
@@ -246,6 +254,35 @@ definitions:
           $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_contacts_models.ContactRespDTO'
         type: array
     type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.GetStickerPackResponse:
+    properties:
+      photo:
+        example: url1
+        type: string
+      stickers:
+        example:
+        - url1
+        - url2
+        - url3
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPack:
+    properties:
+      id:
+        type: string
+      photo:
+        example: url1
+        type: string
+    type: object
+  github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPacks:
+    properties:
+      packs:
+        items:
+          $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPack'
+        type: array
+    type: object
   github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Message:
     properties:
       authorID:
@@ -275,6 +312,9 @@ definitions:
         items:
           $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_messages_models.Payload'
         type: array
+      sticker:
+        example: /files/675f2ea013dbaf51a93aa2d3
+        type: string
       text:
         example: тут много текста
         type: string
@@ -744,6 +784,10 @@ paths:
         in: formData
         name: text
         required: true
+        type: string
+      - description: sticker url
+        in: formData
+        name: sticker
         type: string
       - description: files array
         in: formData
@@ -1287,6 +1331,40 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /stickerpacks:
+    get:
+      responses:
+        "200":
+          description: паки успешно получены
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.StickerPacks'
+        "500":
+          description: Внутреннее
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
+      summary: get sticker pack
+      tags:
+      - files
+  /stickerpacks/{packid}:
+    get:
+      parameters:
+      - description: packid ID (UUID)
+        in: path
+        name: packid
+        required: true
+        type: string
+      responses:
+        "200":
+          description: пак успешно получен
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_main_app_internal_files_models.GetStickerPackResponse'
+        "404":
+          description: Не найдено
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2024_2_EaglesDesigner_global_utils_responser.ErrorResponse'
+      summary: get sticker pack
+      tags:
+      - files
   /uploads/{folder}/{name}:
     get:
       consumes:

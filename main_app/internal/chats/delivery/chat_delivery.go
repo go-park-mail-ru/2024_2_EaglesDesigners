@@ -669,7 +669,7 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.service.GetChatInfo(ctx, chatUUID, user.ID)
+	info, err := c.service.GetChatInfo(ctx, chatUUID, user.ID)
 	if err != nil {
 		if errors.Is(err, noPerm) {
 			responser.SendError(ctx, w, err.Error(), http.StatusForbidden)
@@ -679,13 +679,13 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validator.Check(users); err != nil {
+	if err := validator.Check(info); err != nil {
 		log.Printf("выходные данные не прошли проверку валидации: %v", err)
 		responser.SendError(ctx, w, "Invalid data", http.StatusBadRequest)
 		return
 	}
 
-	responser.SendStruct(ctx, w, users, http.StatusOK)
+	responser.SendStruct(ctx, w, info, http.StatusOK)
 }
 
 // UpdateGroup godoc

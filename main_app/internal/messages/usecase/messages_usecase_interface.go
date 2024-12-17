@@ -25,4 +25,5 @@ type MessageUsecase interface {
 	GetLastMessage(chatId uuid.UUID) (models.Message, error)
 
 	SendIvent(ctx context.Context, action string, message models.Message)
+	GetPayload(ctx context.Context, chatId uuid.UUID) (files []models.Payload, photos []models.Payload, err error)
 }

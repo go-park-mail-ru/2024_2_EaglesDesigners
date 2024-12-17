@@ -97,7 +97,7 @@ func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		case message := <-eventChannel:
 			// запись новых сообщений
 			log.Println("Message delivery websocket: получены новые сообщения")
-
+			log.Println(message.Event)
 			conn.WriteJSON(message.Event)
 
 		default:

@@ -567,6 +567,8 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 	var users []chatModel.UserInChatDAO
 	var usersDTO []chatModel.UserInChatDTO
 	var messages []messageModel.Message
+	var files []messageModel.Payload
+	var photos []messageModel.Payload
 
 	g.Go(func() error {
 		users, err = s.repository.GetUsersFromChat(ctx, chatId)
@@ -584,6 +586,11 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 		return err
 	})
 
+	g.Go(func() error {
+		files, photos, err = s.messageUsecase.GetPayload(ctx, chatId)
+		return err
+	})
+
 	if err := g.Wait(); err != nil {
 		return chatModel.ChatInfoDTO{}, err
 	}
@@ -595,6 +602,8 @@ func (s *ChatUsecaseImpl) GetChatInfo(ctx context.Context, chatId uuid.UUID, use
 		Users:             usersDTO,
 		Messages:          messages,
 		SendNotifications: sendNotifications,
+		Files:             files,
+		Photos:            photos,
 	}, nil
 }
 

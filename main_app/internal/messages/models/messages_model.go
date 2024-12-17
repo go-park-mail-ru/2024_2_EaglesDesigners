@@ -25,6 +25,7 @@ type Message struct {
 	Photos        []multipart.File        `json:"-" valid:"-"`
 	PhotosHeaders []*multipart.FileHeader `json:"-" valid:"-"`
 	PhotosDTO     []Payload               `json:"photos" valid:"-"`
+	Sticker       string                  `json:"sticker" valid:"-" example:"/files/675f2ea013dbaf51a93aa2d3"`
 }
 
 type Payload struct {
