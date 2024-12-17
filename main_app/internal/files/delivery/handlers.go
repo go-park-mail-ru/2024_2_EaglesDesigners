@@ -9,10 +9,11 @@ import (
 	"net/textproto"
 	"os"
 
+	"github.com/gorilla/mux"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
-	"github.com/gorilla/mux"
 )
 
 type Usecase interface {
@@ -28,7 +29,7 @@ type Delivery struct {
 
 // /files/675f2ea013dbaf51a93aa2d3
 // /files/675f466313dbaf51a93aa2e4
-// /files/675f391413dbaf51a93aa2db
+// /files/675f391413dbaf51a93aa2db.
 func New(usecase Usecase) *Delivery {
 	URLs := []string{
 		"/uploads/stickers/675f2ea013dbaf51a93aa2d3.webp",
@@ -87,7 +88,7 @@ func New(usecase Usecase) *Delivery {
 // // @Param fileID path string true "File ID" example("642c5a57-ebc7-49d0-ac2d-f2f1f474bee7")
 // // @Success 200 {file} responser.SuccessResponse "Файл успешно получен"
 // // @Failure 404 {object} responser.ErrorResponse "файл не найден"
-// @Router /files/{fileID} [get]
+// @Router /files/{fileID} [get].
 func (d Delivery) GetFile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.LoggerWithCtx(ctx, logger.Log)
@@ -125,7 +126,7 @@ func (d Delivery) GetFile(w http.ResponseWriter, r *http.Request) {
 // @Param packid path string true "packid ID (UUID)"
 // @Success 200 {object} models.GetStickerPackResponse "пак успешно получен"
 // @Failure 404	{object} responser.ErrorResponse "Не найдено"
-// @Router /stickerpacks/{packid} [get]
+// @Router /stickerpacks/{packid} [get].
 func (d Delivery) GetStickerPack(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
@@ -148,7 +149,7 @@ func (d Delivery) GetStickerPack(w http.ResponseWriter, r *http.Request) {
 // @Tags files
 // @Success 200 {object} models.StickerPacks "паки успешно получены"
 // @Failure 500	{object} responser.ErrorResponse "Внутреннее"
-// @Router /stickerpacks [get]
+// @Router /stickerpacks [get].
 func (d Delivery) GetStickerPacks(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
@@ -187,7 +188,7 @@ type File struct {
 	*os.File
 }
 
-// Реализация интерфейса multipart.File
+// Реализация интерфейса multipart.File.
 func (f *File) Close() error {
 	return f.File.Close()
 }
@@ -212,7 +213,7 @@ func newFileHeader(filePath string) (*multipart.FileHeader, error) {
 	return header, nil
 }
 
-// Глобальная функция для получения файла и заголовка
+// Глобальная функция для получения файла и заголовка.
 func getMultipartFile(filePath string) (multipart.File, *multipart.FileHeader, error) {
 	// Открываем файл
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {

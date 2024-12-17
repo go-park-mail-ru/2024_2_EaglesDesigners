@@ -3,10 +3,15 @@ package delivery
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
@@ -16,11 +21,6 @@ import (
 	model "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 	chatlist "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/usecase"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-
-	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -62,7 +62,7 @@ var requestChatDuration = prometheus.NewHistogramVec(
 // @Produce json
 // @Success 200 {object} model.ChatsDTO
 // @Failure 500	"Не удалось получить сообщения"
-// @Router /chats [get]
+// @Router /chats [get].
 func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -76,11 +76,10 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 	log.Printf("Пришёл запрос на получения чатов с параметрами: %v", r.URL.Query())
 
 	chats, err := c.service.GetChats(r.Context(), r.Cookies())
-
 	if err != nil {
 		fmt.Println(err)
 
-		//вернуть 401
+		// вернуть 401
 		w.WriteHeader(http.StatusInternalServerError)
 
 		log.Printf("НЕ УДАЛОСЬ ПОЛУЧИТЬ ЧАТЫ. ОШИБКА: %s", err)
@@ -98,7 +97,6 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	jsonResp, err := json.Marshal(chatsDTO)
-
 	if err != nil {
 		log.Printf("error happened in JSON marshal. Err: %s", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -117,7 +115,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 // @Success 201 {object} model.ChatDTOOutput "Чат создан"
 // @Failure 400 {object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500 {object} responser.ErrorResponse "Не удалось добавить чат / группу"
-// @Router /addchat [post]
+// @Router /addchat [post].
 func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -193,7 +191,7 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Запрещено"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось двступить в канал"
-// @Router /channel/{channelId}/join [post]
+// @Router /channel/{channelId}/join [post].
 func (c *ChatDelivery) JoinChannel(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -203,7 +201,6 @@ func (c *ChatDelivery) JoinChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	channelId, err := uuid.Parse(mapVars["channelId"])
-
 	if err != nil {
 		responser.SendError(ctx, w, "Неправильный формат channelId", http.StatusBadRequest)
 		return
@@ -216,7 +213,6 @@ func (c *ChatDelivery) JoinChannel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = c.service.JoinChannel(ctx, user.ID, channelId)
-
 	if err != nil {
 		if errors.As(err, &noPerm) {
 			responser.SendError(ctx, w, err.Error(), http.StatusForbidden)
@@ -237,7 +233,7 @@ func (c *ChatDelivery) JoinChannel(w http.ResponseWriter, r *http.Request) {
 // @Success 200 "Пользователи добавлены"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
-// @Router /chat/{chatId}/addusers [post]
+// @Router /chat/{chatId}/addusers [post].
 func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -248,9 +244,8 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> AddUsersIntoChat: error parsing chat uuid:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> AddUsersIntoChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
@@ -271,7 +266,6 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	}
 
 	addedUsers, err := c.service.AddUsersIntoChatWithCheckPermission(r.Context(), usersToAdd.UsersId, chatUUID)
-
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
@@ -296,7 +290,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 // @Success 200 {object} model.DeletdeUsersFromChatDTO "Пользователи удалены"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
-// @Router /chat/{chatId}/delusers [delete]
+// @Router /chat/{chatId}/delusers [delete].
 func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -307,9 +301,8 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid:", err)
 
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
@@ -336,7 +329,6 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 	}
 
 	delUsers, err := c.service.DeleteUsersFromChat(r.Context(), user.ID, chatUUID, usersToDelete)
-
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
@@ -360,7 +352,7 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 // @Success 200 {object} model.DeletdeUsersFromChatDTO "Пользователь удален"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
-// @Router /chat/{chatId}/deluser/{userId} [delete]
+// @Router /chat/{chatId}/deluser/{userId} [delete].
 func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -371,9 +363,8 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
@@ -398,7 +389,6 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 	delUsers, err := c.service.DeleteUsersFromChat(r.Context(), user.ID, chatUUID, model.DeleteUsersFromChatDTO{
 		UsersId: []uuid.UUID{userToDelUUID},
 	})
-
 	if err != nil {
 		log.Printf("Не удалось добавить пользователей в чат: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось добавить пользователей в чат: %v", err), http.StatusInternalServerError)
@@ -422,7 +412,7 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Запрещено"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось добавить пользователей"
-// @Router /chat/{chatId}/leave [delete]
+// @Router /chat/{chatId}/leave [delete].
 func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -433,9 +423,8 @@ func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
@@ -469,7 +458,7 @@ func (c *ChatDelivery) LeaveChat(w http.ResponseWriter, r *http.Request) {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось удалить чат"
-// @Router /chat/{chatId}/delete [delete]
+// @Router /chat/{chatId}/delete [delete].
 func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -480,9 +469,8 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> DeleteChatOrGroup: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
@@ -497,7 +485,6 @@ func (c *ChatDelivery) DeleteChatOrGroup(w http.ResponseWriter, r *http.Request)
 	log.Printf("Chat delivery -> DeleteChatOrGroup: пришёл запрос на удаление чата %v от пользователя %v", chatUUID, user.ID)
 
 	err = c.service.DeleteChat(r.Context(), chatUUID, user.ID)
-
 	if err != nil {
 		if errors.As(err, &noPerm) {
 			w.WriteHeader(http.StatusForbidden)
@@ -515,7 +502,7 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 	mapVars, ok := ctx.Value(auth.MuxParamsKey).(map[string]string)
 	if !ok {
-		return uuid.UUID{}, errors.New("Не удалось достать переменные из контекста")
+		return uuid.UUID{}, errors.New("не удалось достать переменные из контекста")
 	}
 
 	chatId := mapVars["chatId"]
@@ -544,7 +531,7 @@ func getChatIdFromContext(ctx context.Context) (uuid.UUID, error) {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось обновчить чат"
-// @Router /chat/{chatId} [put]
+// @Router /chat/{chatId} [put].
 func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -555,9 +542,8 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> UpdateGroup: error parsing chat uuid:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> UpdateGroup: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
@@ -608,7 +594,6 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Chat delivery -> UpdateGroup: пришёл запрос на изменение чата %v от пользователя %v", chatUUID, user.ID)
 
 	updatedChat, err := c.service.UpdateChat(r.Context(), chatUUID, chatUpdate, user.ID)
-
 	if err != nil {
 		if errors.As(err, &noPerm) {
 			responser.SendError(ctx, w, fmt.Sprintf("Нет доступа: %v", err), http.StatusForbidden)
@@ -644,7 +629,7 @@ type SuccessfullSuccess struct {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	{object} responser.ErrorResponse "Не удалось получить учатсников"
-// @Router /chat/{chatId} [get]
+// @Router /chat/{chatId} [get].
 func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -655,9 +640,8 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> GetUsersFromChat: error parsing chat uuid:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> GetUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
@@ -697,7 +681,7 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 // @Success 201 {object} model.AddBranch "Ветка добавлена"
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
-// @Router /chat/{chatId}/{messageId}/branch [post]
+// @Router /chat/{chatId}/{messageId}/branch [post].
 func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -754,7 +738,7 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	"Не удалось получить сообщения"
-// @Router /chat/search [get]
+// @Router /chat/search [get].
 func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -808,14 +792,13 @@ func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 // @Failure 400	{object} responser.ErrorResponse "Некорректный запрос"
 // @Failure 403	{object} responser.ErrorResponse "Нет полномочий"
 // @Failure 500	"Не удалось изменить уведомления"
-// @Router /chat/{chatId}/notifications/{send} [post]
+// @Router /chat/{chatId}/notifications/{send} [post].
 func (c *ChatDelivery) SetChatNotofications(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 	ctx := r.Context()
 	chatUUID, err := getChatIdFromContext(r.Context())
-
 	if err != nil {
-		//conn.400
+		// conn.400
 		log.Println("Chat delivery -> GetUsersFromChat: error parsing chat uuid:", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Chat delivery -> GetUsersFromChat: error parsing chat uuid: %v", err), http.StatusBadRequest)
 		return
@@ -840,7 +823,6 @@ func (c *ChatDelivery) SetChatNotofications(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = c.service.SetChatNotofications(ctx, chatUUID, user.ID, value)
-
 	if err != nil {
 		responser.SendError(ctx, w, "Не удалось обновить уведомления", http.StatusInternalServerError)
 		return

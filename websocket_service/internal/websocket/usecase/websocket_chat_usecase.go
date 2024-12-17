@@ -3,15 +3,17 @@ package usecase
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	chatEvent "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	grpcChat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/chat"
-
-	"github.com/google/uuid"
 )
 
-const Chat = "chat"
-const Message = "message"
+const (
+	Chat    = "chat"
+	Message = "message"
+)
 
 type ChatEventMain struct {
 	Action  string    `json:"action"`
@@ -23,7 +25,7 @@ type ChatEvent struct {
 	Users  []uuid.UUID `json:"users"`
 }
 
-// consumeChats принимает информацию об изменении чатов
+// consumeChats принимает информацию об изменении чатов.
 func (w *WebsocketUsecase) consumeChats() {
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	for {
@@ -36,7 +38,6 @@ func (w *WebsocketUsecase) consumeChats() {
 			false,  // no-wait
 			nil,    // args
 		)
-
 		if err != nil {
 			log.Fatalf("failed to register a consumer. Error: %s", err)
 		}
@@ -126,7 +127,7 @@ const (
 	DeleteUsersFromChat = "delUsers"
 	AddNewUsersInChat   = "addUsers"
 
-	// пользователь стал онлайн
+	// пользователь стал онлайн.
 	AddWebcosketUser = "addWebSocketUser"
 )
 
@@ -204,7 +205,7 @@ func (w *WebsocketUsecase) sendEventToAllUsers(users map[uuid.UUID]struct{}, eve
 }
 
 const (
-	// current - имеется ввиду пользователь, который щас подписан на вебсокет
+	// current - имеется ввиду пользователь, который щас подписан на вебсокет.
 	CurrentUserDeleeted = "currentUserDeleeted"
 )
 

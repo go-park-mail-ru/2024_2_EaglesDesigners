@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// @Schema
+// @Schema.
 type Message struct {
 	MessageId     uuid.UUID               `json:"messageId" example:"1" valid:"-"`
 	AuthorID      uuid.UUID               `json:"authorID" exameple:"2" valid:"-"`
@@ -38,7 +38,7 @@ func (m Message) MarshalBinary() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-// Custom unmarshaling for Message
+// Custom unmarshaling for Message.
 func (m *Message) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, m)
 }

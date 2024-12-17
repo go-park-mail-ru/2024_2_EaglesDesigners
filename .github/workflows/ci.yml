@@ -1,0 +1,32 @@
+name: Docker Compose Actions Workflow
+on:
+  push:
+    branches: [ "deploy" ]
+  pull_request:
+    branches: [ "deploy" ]
+
+jobs:
+  linter:
+    name: linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.19
+      - uses: actions/checkout@v4
+      - name: run golangci-lint
+        run: 	golangci-lint run
+          
+  test:
+    needs: golangci
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.19
+
+    - name: tests
+      run: go test ./...
+

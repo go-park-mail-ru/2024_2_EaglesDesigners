@@ -6,20 +6,19 @@ import (
 	"mime/multipart"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
+	amqp "github.com/rabbitmq/amqp091-go"
+
 	socketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	"github.com/prometheus/client_golang/prometheus"
-
 	customerror "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/custom_error"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
 	filesModels "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/repository"
-
-	"github.com/google/uuid"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Method = string
@@ -101,7 +100,6 @@ func (u *MessageUsecaseImplm) SendMessage(ctx context.Context, user jwt.User, ch
 
 	// Если есть файлы и сообщение не стикер.
 	if len(message.Files) > 0 || len(message.Photos) > 0 || message.Sticker == "" {
-
 		// Добавление тех, кому можно читать файл, если файл не в публичное место отправлен.
 		var userIDs []string
 		if chatType == "personal" || chatType == "group" {
@@ -207,7 +205,7 @@ var updateMessageMetric = prometheus.NewGaugeVec(
 	nil, // no labels for this metric
 )
 
-// не нужен, можно в repo.AddMessage тип определять по наличию файлов
+// не нужен, можно в repo.AddMessage тип определять по наличию файлов.
 func (u *MessageUsecaseImplm) SendInformationalMessage(_ context.Context, message models.Message, chatId uuid.UUID) error {
 	return u.messageRepository.AddInformationalMessage(message, chatId)
 }
@@ -260,7 +258,6 @@ func (u *MessageUsecaseImplm) SearchMessagesWithQuery(ctx context.Context, user 
 	}
 
 	messages, err := u.messageRepository.SearchMessagesWithQuery(ctx, chatId, searchQuery)
-
 	if err != nil {
 		return models.MessagesArrayDTO{}, err
 	}
@@ -312,7 +309,6 @@ func (u *MessageUsecaseImplm) GetMessagesWithPage(ctx context.Context, userId uu
 	return models.MessagesArrayDTO{
 		Messages: messages,
 	}, nil
-
 }
 
 func (s *MessageUsecaseImplm) GetLastMessage(chatId uuid.UUID) (models.Message, error) {

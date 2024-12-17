@@ -6,11 +6,12 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
 type Delivery struct {

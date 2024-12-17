@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 	"github.com/google/uuid"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 )
 
 //go:generate mockgen -source=messages_repository_interface.go -destination=mocks/mocks.go

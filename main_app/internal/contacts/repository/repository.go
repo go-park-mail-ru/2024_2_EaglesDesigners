@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
 )
 
 var ErrContactAlreadyExist = errors.New("contact already exist")
@@ -100,7 +101,6 @@ func (r *Repository) AddContact(ctx context.Context, contactData models.ContactD
 		contactData.UserID,
 		contactData.ContactUsername,
 	)
-
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
 			log.Errorf("Контакт уже существует")
@@ -125,7 +125,6 @@ func (r *Repository) AddContact(ctx context.Context, contactData models.ContactD
 		WHERE username = $1;`,
 		contactData.ContactUsername,
 	).Scan(&contact.ID, &contact.Name, &contact.AvatarURL)
-
 	if err != nil {
 		log.Errorf("Не удалось получить данные контакта: %v", err)
 		return models.ContactDAO{}, err

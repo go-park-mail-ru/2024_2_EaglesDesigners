@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
 )
 
 type Repository struct {
@@ -70,7 +71,7 @@ func (r *Repository) GetProfileByUsername(ctx context.Context, id uuid.UUID) (mo
 // birthdate = $4,
 // avatar_path = $5
 // WHERE id = $1
-// RETURNING avatar_path;
+// RETURNING avatar_path;.
 func (r *Repository) UpdateProfile(ctx context.Context, profile models.Profile) (avatarNewURL *string, avatarOldURL *string, err error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 

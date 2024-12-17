@@ -32,7 +32,7 @@ func DeserializeMessageEvent(data []byte) (MessageEvent, error) {
 	return event, nil
 }
 
-// consumeMessages принимает информацию о сообщениях (добавление/изменение/удаление)
+// consumeMessages принимает информацию о сообщениях (добавление/изменение/удаление).
 func (w *WebsocketUsecase) consumeMessages() {
 	log := logger.LoggerWithCtx(context.Background(), logger.Log)
 	for {
@@ -45,14 +45,12 @@ func (w *WebsocketUsecase) consumeMessages() {
 			false,     // no-wait
 			nil,       // args
 		)
-
 		if err != nil {
 			log.Fatalf("failed to register a consumer. Error: %s", err)
 		}
 		for message := range messages {
 			log.Printf("received a message: %s", message.Body)
 			msg, err := DeserializeMessageEvent(message.Body)
-
 			if err != nil {
 				log.Errorf("Невозморжно десериализовать оюъект: %v", err)
 				continue
@@ -62,7 +60,6 @@ func (w *WebsocketUsecase) consumeMessages() {
 			}
 			w.sendMessage(msg)
 		}
-
 	}
 }
 

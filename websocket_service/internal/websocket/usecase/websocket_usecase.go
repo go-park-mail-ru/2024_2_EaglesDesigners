@@ -5,18 +5,17 @@ import (
 	"net"
 	"strconv"
 
-	chatModels "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	grpcChat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/chat"
-
+	"github.com/google/uuid"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/google/uuid"
-	amqp "github.com/rabbitmq/amqp091-go"
+	chatModels "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/events"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	grpcChat "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/chat"
 )
 
-// ивент может быть либо изменение сущности чата, либо сообщение
+// ивент может быть либо изменение сущности чата, либо сообщение.
 type AnyEvent struct {
 	TypeOfEvent string
 	Event       interface{}
