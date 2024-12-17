@@ -9,6 +9,8 @@ import (
 )
 
 // @Schema
+//
+//easyjson:json
 type Message struct {
 	MessageId     uuid.UUID               `json:"messageId" example:"1" valid:"-"`
 	AuthorID      uuid.UUID               `json:"authorID" exameple:"2" valid:"-"`
@@ -28,6 +30,7 @@ type Message struct {
 	Sticker       string                  `json:"sticker" valid:"-" example:"/files/675f2ea013dbaf51a93aa2d3"`
 }
 
+//easyjson:json
 type Payload struct {
 	URL      string `json:"url" example:"url" valid:"-"`
 	Filename string `json:"filename" example:"image.png" valid:"-"`
@@ -47,6 +50,7 @@ type MessageInput struct {
 	Message string `json:"text" example:"тут много текста" valid:"-"`
 }
 
+//easyjson:json
 type MessagesArrayDTO struct {
 	Messages []Message `json:"messages" valid:"-"`
 }
@@ -69,6 +73,7 @@ const (
 	DelUserFromChat MsgType = "delUserFromChat"
 )
 
+//easyjson:skip
 type WebScoketDTO struct {
 	MsgType MsgType     `json:"messageType"`
 	Payload interface{} `json:"payload"`

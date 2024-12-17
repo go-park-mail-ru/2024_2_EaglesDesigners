@@ -3,6 +3,8 @@ package models
 import "github.com/google/uuid"
 
 // @Schema
+//
+//easyjson:json
 type ContactRespDTO struct {
 	ID        string  `json:"id" example:"08a0f350-e122-467b-8ba8-524d2478b56e" valid:"uuid"`
 	Username  string  `json:"username" example:"user11" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
@@ -11,11 +13,15 @@ type ContactRespDTO struct {
 }
 
 // @Schema
+//
+//easyjson:json
 type ContactReqDTO struct {
 	Username string `json:"contactUsername" example:"user11" valid:"minstringlength(6),matches(^[a-zA-Z0-9_]+$)"`
 }
 
 // @Schema
+//
+//easyjson:json
 type GetContactsRespDTO struct {
 	Contacts []ContactRespDTO `json:"contacts" valid:"-"`
 }
@@ -44,6 +50,7 @@ type ContactDataDAO struct {
 	ContactUsername string
 }
 
+//easyjson:json
 type SearchContactsDTO struct {
 	UserContacts []ContactRespDTO `json:"user_contacts" valid:"-"`
 	GlobalUsers  []ContactRespDTO `json:"global_users" valid:"-"`

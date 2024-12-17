@@ -214,319 +214,7 @@ func (v *UserDataRespDTO) UnmarshalJSON(data []byte) error {
 func (v *UserDataRespDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels1(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(in *jlexer.Lexer, out *UserData) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "ID":
-			if data := in.UnsafeBytes(); in.Ok() {
-				in.AddError((out.ID).UnmarshalText(data))
-			}
-		case "Username":
-			out.Username = string(in.String())
-		case "Name":
-			out.Name = string(in.String())
-		case "AvatarURL":
-			if in.IsNull() {
-				in.Skip()
-				out.AvatarURL = nil
-			} else {
-				if out.AvatarURL == nil {
-					out.AvatarURL = new(string)
-				}
-				*out.AvatarURL = string(in.String())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(out *jwriter.Writer, in UserData) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"ID\":"
-		out.RawString(prefix[1:])
-		out.RawText((in.ID).MarshalText())
-	}
-	{
-		const prefix string = ",\"Username\":"
-		out.RawString(prefix)
-		out.String(string(in.Username))
-	}
-	{
-		const prefix string = ",\"Name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"AvatarURL\":"
-		out.RawString(prefix)
-		if in.AvatarURL == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.AvatarURL))
-		}
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v UserData) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v UserData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *UserData) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *UserData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(l, v)
-}
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(in *jlexer.Lexer, out *UserDAO) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "ID":
-			if data := in.UnsafeBytes(); in.Ok() {
-				in.AddError((out.ID).UnmarshalText(data))
-			}
-		case "Username":
-			out.Username = string(in.String())
-		case "Name":
-			out.Name = string(in.String())
-		case "Password":
-			out.Password = string(in.String())
-		case "Version":
-			out.Version = int64(in.Int64())
-		case "AvatarURL":
-			if in.IsNull() {
-				in.Skip()
-				out.AvatarURL = nil
-			} else {
-				if out.AvatarURL == nil {
-					out.AvatarURL = new(string)
-				}
-				*out.AvatarURL = string(in.String())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(out *jwriter.Writer, in UserDAO) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"ID\":"
-		out.RawString(prefix[1:])
-		out.RawText((in.ID).MarshalText())
-	}
-	{
-		const prefix string = ",\"Username\":"
-		out.RawString(prefix)
-		out.String(string(in.Username))
-	}
-	{
-		const prefix string = ",\"Name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"Password\":"
-		out.RawString(prefix)
-		out.String(string(in.Password))
-	}
-	{
-		const prefix string = ",\"Version\":"
-		out.RawString(prefix)
-		out.Int64(int64(in.Version))
-	}
-	{
-		const prefix string = ",\"AvatarURL\":"
-		out.RawString(prefix)
-		if in.AvatarURL == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.AvatarURL))
-		}
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v UserDAO) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v UserDAO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *UserDAO) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *UserDAO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(l, v)
-}
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(in *jlexer.Lexer, out *User) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "ID":
-			if data := in.UnsafeBytes(); in.Ok() {
-				in.AddError((out.ID).UnmarshalText(data))
-			}
-		case "Username":
-			out.Username = string(in.String())
-		case "Name":
-			out.Name = string(in.String())
-		case "Password":
-			out.Password = string(in.String())
-		case "Version":
-			out.Version = int64(in.Int64())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(out *jwriter.Writer, in User) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"ID\":"
-		out.RawString(prefix[1:])
-		out.RawText((in.ID).MarshalText())
-	}
-	{
-		const prefix string = ",\"Username\":"
-		out.RawString(prefix)
-		out.String(string(in.Username))
-	}
-	{
-		const prefix string = ",\"Name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"Password\":"
-		out.RawString(prefix)
-		out.String(string(in.Password))
-	}
-	{
-		const prefix string = ",\"Version\":"
-		out.RawString(prefix)
-		out.Int64(int64(in.Version))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v User) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v User) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *User) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *User) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(l, v)
-}
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(in *jlexer.Lexer, out *SignupRespDTO) {
+func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(in *jlexer.Lexer, out *SignupRespDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -559,7 +247,7 @@ func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(out *jwriter.Writer, in SignupRespDTO) {
+func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(out *jwriter.Writer, in SignupRespDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -579,27 +267,27 @@ func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 // MarshalJSON supports json.Marshaler interface
 func (v SignupRespDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(&w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v SignupRespDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *SignupRespDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(&r, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *SignupRespDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(l, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels2(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(in *jlexer.Lexer, out *RegisterRespDTO) {
+func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(in *jlexer.Lexer, out *RegisterRespDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -632,7 +320,7 @@ func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(out *jwriter.Writer, in RegisterRespDTO) {
+func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(out *jwriter.Writer, in RegisterRespDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -652,27 +340,27 @@ func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 // MarshalJSON supports json.Marshaler interface
 func (v RegisterRespDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(&w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v RegisterRespDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *RegisterRespDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(&r, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *RegisterRespDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(l, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels3(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(in *jlexer.Lexer, out *RegisterReqDTO) {
+func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(in *jlexer.Lexer, out *RegisterReqDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -707,7 +395,7 @@ func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(out *jwriter.Writer, in RegisterReqDTO) {
+func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(out *jwriter.Writer, in RegisterReqDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -732,27 +420,27 @@ func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 // MarshalJSON supports json.Marshaler interface
 func (v RegisterReqDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(&w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v RegisterReqDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *RegisterReqDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(&r, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *RegisterReqDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(l, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels4(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels8(in *jlexer.Lexer, out *CsrfDTO) {
+func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(in *jlexer.Lexer, out *CsrfDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -783,7 +471,7 @@ func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels8(out *jwriter.Writer, in CsrfDTO) {
+func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(out *jwriter.Writer, in CsrfDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -798,27 +486,27 @@ func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 // MarshalJSON supports json.Marshaler interface
 func (v CsrfDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels8(&w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CsrfDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels8(w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CsrfDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels8(&r, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CsrfDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels8(l, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels5(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels9(in *jlexer.Lexer, out *AuthRespDTO) {
+func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(in *jlexer.Lexer, out *AuthRespDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -849,7 +537,7 @@ func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels9(out *jwriter.Writer, in AuthRespDTO) {
+func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(out *jwriter.Writer, in AuthRespDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -864,27 +552,27 @@ func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 // MarshalJSON supports json.Marshaler interface
 func (v AuthRespDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels9(&w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v AuthRespDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels9(w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AuthRespDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels9(&r, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *AuthRespDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels9(l, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels6(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels10(in *jlexer.Lexer, out *AuthReqDTO) {
+func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(in *jlexer.Lexer, out *AuthReqDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -917,7 +605,7 @@ func easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels10(out *jwriter.Writer, in AuthReqDTO) {
+func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(out *jwriter.Writer, in AuthReqDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -937,23 +625,23 @@ func easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppIntern
 // MarshalJSON supports json.Marshaler interface
 func (v AuthReqDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels10(&w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v AuthReqDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels10(w, v)
+	easyjsonD2b7633eEncodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *AuthReqDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels10(&r, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *AuthReqDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels10(l, v)
+	easyjsonD2b7633eDecodeGithubComGoParkMailRu20242EaglesDesignerMainAppInternalAuthModels7(l, v)
 }

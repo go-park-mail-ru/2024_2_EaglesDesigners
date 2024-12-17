@@ -21,6 +21,8 @@ type UpdateProfileRequestDTO struct {
 }
 
 // @Schema
+//
+//easyjson:json
 type GetProfileResponseDTO struct {
 	Name      *string    `json:"name" example:"Vincent Vega" valid:"matches(^[а-яА-Яa-zA-Z0-9_ ]+$)"`
 	Bio       *string    `json:"bio" example:"Не люблю сети" valid:"optional"`
