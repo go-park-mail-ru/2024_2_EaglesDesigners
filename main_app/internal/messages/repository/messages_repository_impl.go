@@ -7,11 +7,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
 )
 
 const (
@@ -210,7 +210,6 @@ func (r *MessageRepositoryImpl) AddMessage(message models.Message, chatId uuid.U
 	}
 
 	if messageType == MessageWithPayloadType {
-
 		for _, file := range message.FilesDTO {
 			id := uuid.New()
 			row := conn.QueryRow(context.Background(),
@@ -312,7 +311,6 @@ func (r *MessageRepositoryImpl) DeleteMessage(ctx context.Context, messageId uui
 
 	var msgId uuid.UUID
 	err = row.Scan(&msgId)
-
 	if err != nil {
 		return err
 	}
@@ -340,7 +338,6 @@ func (r *MessageRepositoryImpl) UpdateMessage(ctx context.Context, messageId uui
 
 	var msgId uuid.UUID
 	err = row.Scan(&msgId)
-
 	if err != nil {
 		return err
 	}
@@ -424,7 +421,6 @@ func (r *MessageRepositoryImpl) SearchMessagesWithQuery(ctx context.Context, cha
 		chatId,
 		"%"+searchQuery+"%",
 	)
-
 	if err != nil {
 		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
 		return nil, err
@@ -592,7 +588,6 @@ func (r *MessageRepositoryImpl) GetMessagesAfter(ctx context.Context, chatId uui
 		lastMessageId,
 		pageSize,
 	)
-
 	if err != nil {
 		log.Printf("Repository: Unable to SELECT chats: %v\n", err)
 		return nil, err

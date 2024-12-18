@@ -1,0 +1,72 @@
+run:
+  tests: true
+  build-tags:
+    - integration
+
+linters-settings:
+  exhaustive:
+    default-signifies-exhaustive: true
+
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: github.com/pkg/errors
+            desc: Should be replaced by standard lib errors package
+
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/go-park-mail-ru/2024_2_EaglesDesigner)
+
+  lll:
+    line-length: 200
+
+linters:
+  disable-all: true
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - depguard
+    - durationcheck
+    - errchkjson
+    - execinquery
+    - exhaustive
+    - exportloopref
+    - gci
+    - gocyclo
+    - godot
+    - gofmt
+    - gofumpt
+    - goheader
+    - goimports
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - importas
+    - inamedparam
+    - lll
+    - makezero
+    - misspell
+    - musttag
+    - nakedret
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - predeclared
+    - reassign
+    - rowserrcheck
+    - sqlclosecheck
+    - tenv
+    - testableexamples
+    - thelper
+    - tparallel
+    - typecheck
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace

@@ -3,13 +3,13 @@ package usecase
 import (
 	"context"
 
+	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
+	errGroup "golang.org/x/sync/errgroup"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/contacts/models"
-	"github.com/google/uuid"
-	"github.com/prometheus/client_golang/prometheus"
-
-	errGroup "golang.org/x/sync/errgroup"
 )
 
 //go:generate mockgen -source=usecase.go -destination=mocks/mocks.go
