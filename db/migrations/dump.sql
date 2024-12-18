@@ -489,14 +489,39 @@ INSERT INTO chat_user (id, user_role_id, chat_id, user_id) VALUES
 -- /files/675f466313dbaf51a93aa2e4
 -- /files/675f391413dbaf51a93aa2db
 INSERT INTO sticker (id, sticker_path) VALUES
-    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f2ea013dbaf51a93aa2d3'),
-    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f466313dbaf51a93aa2e4'),
-    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f391413dbaf51a93aa2db');
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/675f2ea013dbaf51a93aa2d3'),
+    ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/675f466313dbaf51a93aa2e4'),
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/675f391413dbaf51a93aa2db'),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/6762d25b5803e3d181d0ecc4'),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/6762d4535803e3d181d0ecc6'),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/6762d4545803e3d181d0ecc7'),
+    ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/6762d5135803e3d181d0ecc8'),
+    ('f1a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d5505803e3d181d0ecc9'),
+    ('f2a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d7f95803e3d181d0ecca'),
+    ('f3a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d8aa5803e3d181d0eccb'),
+    ('f4a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d8d85803e3d181d0eccc'),
+    ('f5a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d8f45803e3d181d0eccd'),
+    ('f6a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d90e5803e3d181d0ecce'),
+    ('f7a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d9215803e3d181d0eccf');
+
+
 
 INSERT INTO sticker_pack (id, photo) VALUES
-    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/675f2ea013dbaf51a93aa2d3');
+    ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/utka/675f2ea013dbaf51a93aa2d3'),
+    ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80', '/files/gopher/6762d7f95803e3d181d0ecca');
 
 INSERT INTO sticker_sticker_pack (id, sticker, pack) VALUES
     ('a0a0aaa0-d461-437d-b4eb-bf030a0efc80','a0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
     ('b0a0aaa0-d461-437d-b4eb-bf030a0efc80','b0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
-    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80','c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80');
+    ('c0a0aaa0-d461-437d-b4eb-bf030a0efc80','c0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('d0a0aaa0-d461-437d-b4eb-bf030a0efc80','d0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('e0a0aaa0-d461-437d-b4eb-bf030a0efc80','e0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f0a0aaa0-d461-437d-b4eb-bf030a0efc80','f0a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('a1a0aaa0-d461-437d-b4eb-bf030a0efc80','a1a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a0a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f1a0aaa0-d461-437d-b4eb-bf030a0efc80','f1a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a1a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f2a0aaa0-d461-437d-b4eb-bf030a0efc80','f2a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a1a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f3a0aaa0-d461-437d-b4eb-bf030a0efc80','f3a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a1a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f4a0aaa0-d461-437d-b4eb-bf030a0efc80','f4a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a1a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f5a0aaa0-d461-437d-b4eb-bf030a0efc80','f5a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a1a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f6a0aaa0-d461-437d-b4eb-bf030a0efc80','f6a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a1a0aaa0-d461-437d-b4eb-bf030a0efc80'),
+    ('f7a0aaa0-d461-437d-b4eb-bf030a0efc80','f7a0aaa0-d461-437d-b4eb-bf030a0efc80', 'a1a0aaa0-d461-437d-b4eb-bf030a0efc80');
