@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/api"
@@ -16,9 +18,6 @@ import (
 	dbConfig "github.com/go-park-mail-ru/2024_2_EaglesDesigner/db/config"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
-
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {

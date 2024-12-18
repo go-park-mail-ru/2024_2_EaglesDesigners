@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 )
 
 type DB interface {
@@ -58,7 +59,6 @@ func (r *Repository) GetUserByUsername(ctx context.Context, username string) (mo
 		&user.Name,
 		&user.AvatarURL,
 	)
-
 	if err != nil {
 		log.Errorf("Пользователь не найден в базе данных: %v", err)
 		return user, errors.New("пользователь не найден")

@@ -14,10 +14,11 @@ import (
 	"strings"
 
 	"github.com/chai2010/webp"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
 )
 
 const fileURLPrefix = "/files/"
@@ -108,7 +109,7 @@ func (u *Usecase) SavePhoto(ctx context.Context, file multipart.File, header *mu
 	return out, nil
 }
 
-// for chats
+// for chats.
 func (u *Usecase) SaveAvatar(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 
@@ -131,7 +132,7 @@ func (u *Usecase) SaveAvatar(ctx context.Context, file multipart.File, header *m
 	return addFileURLPrefix(fileID), err
 }
 
-// for profile
+// for profile.
 func (u *Usecase) RewritePhoto(ctx context.Context, file multipart.File, header multipart.FileHeader, fileIDStr string) error {
 	log := logger.LoggerWithCtx(ctx, logger.Log)
 

@@ -9,7 +9,6 @@ import (
 )
 
 func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
-
 	photoBytes, err := base64.StdEncoding.DecodeString(base64Photo)
 	if err != nil {
 		log.Printf("Ну удалось расшифровать фото: %v \n", err)
@@ -18,9 +17,7 @@ func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
 
 	filenameUUID := uuid.New()
 
-	//здесь можно fullpath. Если указывать relative, то от диркутории в которой пишете go run
-	err = os.WriteFile("images/"+filenameUUID.String()+".png", photoBytes, 0777)
-
+	err = os.WriteFile("images/"+filenameUUID.String()+".png", photoBytes, 0o777)
 	if err != nil {
 		log.Printf("Unable to write into file %v: %v", filenameUUID, err)
 		return uuid.Nil, err
@@ -32,7 +29,6 @@ func SavePhotoBase64(base64Photo string) (uuid.UUID, error) {
 
 func ReadPhotoBase64(photoId uuid.UUID) (string, error) {
 	photoBytes, err := os.ReadFile("images/" + photoId.String() + ".png")
-
 	if err != nil {
 		log.Printf("Unable to read file %v: %v", photoId, err)
 		return "", err
@@ -49,7 +45,7 @@ func RewritePhoto(base64Photo string, filename string) error {
 		return err
 	}
 
-	err = os.WriteFile("images/"+filename+".png", photoBytes, 0777)
+	err = os.WriteFile("images/"+filename+".png", photoBytes, 0o777)
 	if err != nil {
 		log.Printf("Не удалось перезаписать фото %v: %v", filename, err)
 		return err

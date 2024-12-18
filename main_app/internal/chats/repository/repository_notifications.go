@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/google/uuid"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 )
 
 func (r *ChatRepositoryImpl) GetSendNotificationsForUser(ctx context.Context, chatId uuid.UUID, userId uuid.UUID) (bool, error) {
@@ -27,7 +28,6 @@ func (r *ChatRepositoryImpl) GetSendNotificationsForUser(ctx context.Context, ch
 		chatId,
 		userId,
 	).Scan(&sendNotifications)
-
 	if err != nil {
 		return false, err
 	}
@@ -53,7 +53,6 @@ func (r *ChatRepositoryImpl) SetChatNotofications(ctx context.Context, chatUUID 
 		chatUUID,
 		userId,
 	).Scan(&sendNotifications)
-
 	if err != nil {
 		return err
 	}

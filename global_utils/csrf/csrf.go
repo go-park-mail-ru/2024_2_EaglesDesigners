@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/csrf/usecase"
 	"github.com/google/uuid"
+
+	jwt "github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/csrf/usecase"
 )
 
 var jwtSecret = jwt.GenerateJWTSecret()

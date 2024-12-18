@@ -3,12 +3,12 @@ package delivery
 import (
 	"net/http"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/gorilla/mux"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 )
 
-type Delivery struct {
-}
+type Delivery struct{}
 
 func New() *Delivery {
 	return &Delivery{}
@@ -24,7 +24,7 @@ func New() *Delivery {
 // @Param name path string true "File name" example("642c5a57-ebc7-49d0-ac2d-f2f1f474bee7.png")
 // @Success 200 {file} string "Successful image retrieval"
 // @Failure 404 {object} map[string]string "File not found"
-// @Router /uploads/{folder}/{name} [get]
+// @Router /uploads/{folder}/{name} [get].
 func (d *Delivery) GetImage(w http.ResponseWriter, r *http.Request) {
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
 

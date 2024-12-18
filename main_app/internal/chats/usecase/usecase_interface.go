@@ -4,8 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 	"github.com/google/uuid"
+
+	chatModel "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/models"
 )
 
 //go:generate mockgen -source=usecase_interface.go -destination=mocks/mocks.go

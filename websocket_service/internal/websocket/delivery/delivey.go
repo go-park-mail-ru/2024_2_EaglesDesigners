@@ -4,48 +4,49 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
-
-	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 10048,
 
-	CheckOrigin: func(r *http.Request) bool {
-		allowedOrigins := []string{
-			"http://127.0.0.1:8001",
-			"https://127.0.0.1:8001",
-			"http://localhost:8001",
-			"https://localhost:8001",
-			"http://213.87.152.18:8001",
-			"http://212.233.98.59:8001",
-			"https://213.87.152.18:8001",
-			"http://212.233.98.59:8080",
-			"https://212.233.98.59:8080",
-			"https://patefon.site",
-			"http://localhost",
-			"https://localhost",
-			"https://localhost:8083",
-			"http://localhost:8083",
-			"http://localhost:9090",
-			"https://localhost:9090",
-			"http://127.0.0.1:9090",
-			"https://127.0.0.1:9090",
-		}
+	// CheckOrigin: func(r *http.Request) bool {
+	// 	allowedOrigins := []string{
+	// 		"http://127.0.0.1:8001",
+	// 		"https://127.0.0.1:8001",
+	// 		"http://localhost:8001",
+	// 		"https://localhost:8001",
+	// 		"http://213.87.152.18:8001",
+	// 		"http://212.233.98.59:8001",
+	// 		"https://213.87.152.18:8001",
+	// 		"http://212.233.98.59:8080",
+	// 		"https://212.233.98.59:8080",
+	// 		"https://patefon.site",
+	// 		"http://localhost",
+	// 		"https://localhost",
+	// 		"https://localhost:8083",
+	// 		"http://localhost:8083",
+	// 		"http://localhost:9090",
+	// 		"https://localhost:9090",
+	// 		"http://127.0.0.1:9090",
+	// 		"https://127.0.0.1:9090",
+	// 	}
 
-		for _, origin := range allowedOrigins {
-			if r.Header.Get("Origin") == origin {
-				return true
-			}
-		}
-		return false
-	},
+	// 	for _, origin := range allowedOrigins {
+	// 		if r.Header.Get("Origin") == origin {
+	// 			return true
+	// 		}
+	// 	}
+	// 	return false
+	// },
 }
 
 type Webcosket struct {
@@ -61,10 +62,11 @@ func NewWebsocket(usecase websocketUsecase.WebsocketUsecase) Webcosket {
 func (h *Webcosket) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	log := logger.LoggerWithCtx(r.Context(), logger.Log)
-	user, ok := r.Context().Value(middleware.UserKey).(middleware.User)
-	if !ok {
-		responser.SendError(r.Context(), w, "Не переданы параметры", http.StatusInternalServerError)
-		return
+
+	id, _ := uuid.Parse("fa4e08e4-1024-49cb-a799-4aa2a4f3a9df")
+
+	user := middleware.User{
+		ID: id,
 	}
 	log.Printf("Пользователь %v Открыл сокет", user.ID)
 
