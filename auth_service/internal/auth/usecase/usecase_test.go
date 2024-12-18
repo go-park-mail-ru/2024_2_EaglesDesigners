@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/usecase"
 	repo "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/usecase/mocks"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
-	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthenticate_Success(t *testing.T) {
@@ -228,7 +229,6 @@ func TestGetUserByJWT(t *testing.T) {
 				mockRepo.EXPECT().
 					GetUserByUsername(gomock.Any(), "testuser").
 					Return(models.UserDAO{ID: uuid.MustParse("27d4a2da-60a0-4a89-bd68-282526ee108e"), Username: "testuser", Name: "Test User", Password: "password"}, nil)
-
 			},
 			expectedUser: &authv1.UserJWT{
 				ID:       "27d4a2da-60a0-4a89-bd68-282526ee108e",
@@ -263,7 +263,6 @@ func TestGetUserByJWT(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			tt.mockSetup()
 			user, err := u.GetUserByJWT(context.Background(), tt.token)
 
@@ -274,22 +273,21 @@ func TestGetUserByJWT(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			assert.Equal(t, tt.expectedUser, user)
-
 		})
 	}
 }
 
 func createJWTToken(username string) string {
-
 	payload := models.Payload{
-
 		Sub: username,
 	}
 
-	payloadBytes, _ := json.Marshal(payload)
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return ""
+	}
 
 	token := fmt.Sprintf("header.%s.signature", base64.RawURLEncoding.EncodeToString(payloadBytes))
 
 	return token
-
 }

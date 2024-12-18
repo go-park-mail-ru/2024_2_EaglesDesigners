@@ -5,18 +5,20 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/delivery"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/delivery"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
 )
 
-const host = "patefon"
-const port = 8082
+const (
+	host = "patefon"
+	port = 8082
+)
 
 func main() {
 	// подключаем rebbit mq
@@ -46,7 +48,7 @@ func main() {
 
 	// auth
 
-	grpcConnAuth, err := grpc.Dial(
+	grpcConnAuth, err := grpc.NewClient(
 		"auth:8081",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)

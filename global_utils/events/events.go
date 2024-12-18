@@ -15,7 +15,7 @@ const (
 	DeleteUsersFromChat = "delUsers"
 	AddNewUsersInChat   = "addUsers"
 
-	// пользователь стал онлайн
+	// пользователь стал онлайн.
 	AddWebcosketUser = "addWebSocketUser"
 )
 

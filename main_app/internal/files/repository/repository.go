@@ -10,15 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
-	"github.com/jackc/pgx/v4/pgxpool"
-
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/files/models"
 )
 
 type Repository struct {

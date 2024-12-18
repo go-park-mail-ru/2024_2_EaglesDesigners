@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	websocketUsecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
-	"github.com/google/uuid"
-
-	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{

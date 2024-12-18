@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/messages/models"
-
-	"github.com/google/uuid"
 )
 
 //go:generate mockgen -source=messages_usecase_interface.go -destination=mocks/mocks.go

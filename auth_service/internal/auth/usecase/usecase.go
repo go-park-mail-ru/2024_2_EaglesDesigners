@@ -14,12 +14,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"go.octolab.org/pointer"
 
-	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/auth/models"
+	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/auth_service/internal/proto"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 )
@@ -107,17 +106,17 @@ func getSalt() []byte {
 }
 
 func HashPassword(password string) string {
-	var passwordBytes = []byte(password)
-	var sha512Hasher = sha512.New()
+	passwordBytes := []byte(password)
+	sha512Hasher := sha512.New()
 	passwordBytes = append(passwordBytes, getSalt()...)
 	sha512Hasher.Write(passwordBytes)
-	var hashedPasswordBytes = sha512Hasher.Sum(nil)
-	var hashedPasswordHex = hex.EncodeToString(hashedPasswordBytes)
+	hashedPasswordBytes := sha512Hasher.Sum(nil)
+	hashedPasswordHex := hex.EncodeToString(hashedPasswordBytes)
 	return hashedPasswordHex
 }
 
 func DoPasswordsMatch(hashedPassword, currPassword string) bool {
-	var currPasswordHash = HashPassword(currPassword)
+	currPasswordHash := HashPassword(currPassword)
 	return hashedPassword == currPasswordHash
 }
 
@@ -232,7 +231,6 @@ func GenerateJWTSecret() []byte {
 		log.Fatalf("Ошибка при генерации jwtSecret: %v", err)
 	}
 	return secret
-
 }
 
 func GeneratorJWT(header string, payload string, secret []byte) (string, error) {

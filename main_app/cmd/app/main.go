@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"time"
 
-	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
+	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
@@ -21,6 +22,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	dbConfig "github.com/go-park-mail-ru/2024_2_EaglesDesigner/db/config"
+	_ "github.com/go-park-mail-ru/2024_2_EaglesDesigner/docs"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
 	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/delivery"
 	chatController "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/delivery"
 	chatRepository "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/chats/repository"
@@ -39,13 +44,6 @@ import (
 	profileUC "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/usecase"
 	uploadsDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/uploads/delivery"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
-
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
-
-	"github.com/asaskevich/govalidator"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // swag init
@@ -126,7 +124,7 @@ func main() {
 
 	// auth
 
-	grpcConnAuth, err := grpc.Dial(
+	grpcConnAuth, err := grpc.NewClient(
 		"auth:8081",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -198,7 +196,7 @@ func main() {
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 			// Обработка предзапросов (OPTIONS)
-			if r.Method == "OPTIONS" {
+			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusOK)
 				return
 			}
@@ -269,7 +267,6 @@ func startMainServer(router *mux.Router) {
 	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func startChatServerGRPC(chatService chatService.ChatUsecase) {

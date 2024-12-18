@@ -8,6 +8,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
@@ -15,10 +20,6 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
 	multiparthelper "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/multipartHelper"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -69,7 +70,7 @@ var requestProfileDuration = prometheus.NewHistogramVec(
 // @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
-// @Router /profile [get]
+// @Router /profile [get].
 func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -117,7 +118,7 @@ func (d *Delivery) GetSelfProfileHandler(w http.ResponseWriter, r *http.Request)
 // @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
-// @Router /profile/{userid} [get]
+// @Router /profile/{userid} [get].
 func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -172,7 +173,7 @@ func (d *Delivery) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} responser.ErrorResponse "Failed to update profile"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized"
 // @Failure 404 {object} responser.ErrorResponse "User not found"
-// @Router /profile [put]
+// @Router /profile [put].
 func (d *Delivery) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()

@@ -10,6 +10,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"go.octolab.org/pointer"
+
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/csrf"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
@@ -17,10 +22,6 @@ import (
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/utils/validator"
 	authv1 "github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-	"go.octolab.org/pointer"
 )
 
 //go:generate mockgen -source=handlers.go -destination=mocks/mocks.go
@@ -59,7 +60,7 @@ var requestAuthDuration = prometheus.NewHistogramVec(
 // @Success 201 {object} responser.SuccessResponse "Authentication successful"
 // @Failure 400 {object} responser.ErrorResponse "Invalid format JSON"
 // @Failure 401 {object} responser.ErrorResponse "Incorrect login or password"
-// @Router /login [post]
+// @Router /login [post].
 func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -91,7 +92,6 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Username: creds.Username,
 			Password: creds.Password,
 		})
-
 	if err != nil {
 		log.Errorf("не удалось аутентифицировать пользователя")
 		responser.SendError(ctx, w, "Invalid format JSON", http.StatusUnauthorized)
@@ -108,7 +108,6 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("пользователь успешно аутентифицирован")
 
 		responser.SendOK(w, "Authentication successful", http.StatusCreated)
-
 	} else {
 		log.Errorf("неверный логин или пароль")
 		responser.SendError(ctx, w, "Incorrect login or password", http.StatusUnauthorized)
@@ -125,7 +124,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} responser.ErrorResponse "Invalid input data"
 // @Failure 409 {object} responser.ErrorResponse "A user with that username already exists"
 // @Failure 400 {object} responser.ErrorResponse "User failed to create"
-// @Router /signup [post]
+// @Router /signup [post].
 func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -159,7 +158,6 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			Name:     creds.Username,
 			Password: creds.Password,
 		})
-
 	if err != nil {
 		responser.SendError(ctx, w, "A user with that username already exists", http.StatusConflict)
 		return
@@ -169,7 +167,6 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	d.setTokens(w, r, creds.Username)
 	userData, err := d.client.GetUserDataByUsername(ctx, &authv1.GetUserDataByUsernameRequest{Username: creds.Username})
-
 	if err != nil {
 		responser.SendError(ctx, w, "User failed to create", http.StatusBadRequest)
 		return
@@ -203,7 +200,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Success 200 {object} models.UserDataRespDTO "User data retrieved successfully"
 // @Failure 401 {object} responser.ErrorResponse "Unauthorized: token is invalid"
-// @Router /auth [get]
+// @Router /auth [get].
 func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -308,7 +305,7 @@ func (d *Delivery) Csrf(next http.HandlerFunc) http.HandlerFunc {
 // @Produce json
 // @Success 200 {object}  responser.SuccessResponse "Logout successful"
 // @Failure 401 {object} responser.ErrorResponse "No access token found"
-// @Router /logout [post]
+// @Router /logout [post].
 func (d *Delivery) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	metric.IncHit()
 	start := time.Now()
@@ -388,7 +385,6 @@ func (d *Delivery) parseCookies(cookies []*http.Cookie) (string, error) {
 }
 
 func convertUserDataToDTO(userData *authv1.GetUserDataByUsernameResponse) models.UserDataRespDTO {
-
 	return models.UserDataRespDTO{
 		ID:        uuid.MustParse(userData.GetID()),
 		Username:  html.EscapeString(userData.GetUsername()),
@@ -398,7 +394,6 @@ func convertUserDataToDTO(userData *authv1.GetUserDataByUsernameResponse) models
 }
 
 func convertFromGRPCUser(user *authv1.UserJWT) models.User {
-
 	return models.User{
 		ID:       uuid.MustParse(user.GetID()),
 		Username: user.GetUsername(),

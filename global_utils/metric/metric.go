@@ -8,11 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
+
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 )
 
 func WriteRequestDuration(start time.Time, met *prometheus.HistogramVec, method string) {
@@ -20,7 +21,7 @@ func WriteRequestDuration(start time.Time, met *prometheus.HistogramVec, method 
 	met.WithLabelValues(method).Observe(elapsed)
 }
 
-// hardware metrics
+// hardware metrics.
 var (
 	cpuUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -69,7 +70,7 @@ func init() {
 	log.Info("Метрики железа зарегистрировагы")
 }
 
-// RecordMetrics запускаем в основном сервисе
+// RecordMetrics запускаем в основном сервисе.
 func RecordMetrics() {
 	go func() {
 		for {
@@ -104,7 +105,7 @@ func RecordMetrics() {
 	CollectMetrics()
 }
 
-// CollectMetrics запускаем не в основном сервисе
+// CollectMetrics запускаем не в основном сервисе.
 func CollectMetrics() {
 	go func() {
 		for {
@@ -143,7 +144,6 @@ var errors ErrorsStorage = ErrorsStorage{
 }
 
 func PushError(callMethod string, statusCode int) {
-
 	errorLabel := ErrorLabels{
 		callMethod: callMethod,
 		statusCode: strconv.Itoa(statusCode),

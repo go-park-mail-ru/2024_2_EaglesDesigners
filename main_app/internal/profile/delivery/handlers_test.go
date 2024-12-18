@@ -9,14 +9,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/delivery"
-	mock_usecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/delivery/mocks"
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+
+	auth "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/auth/models"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/delivery"
+	mock_usecase "github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/delivery/mocks"
+	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/main_app/internal/profile/models"
 )
 
 func TestGetProfileHandler(t *testing.T) {
