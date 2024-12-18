@@ -44,6 +44,9 @@ jobs:
           script: |
             cd 2024_2_EaglesDesigners/
             git pull
-            make up
+            sudo chown 999:999 ./log
+	          sudo chmod 700 ./log
+            sudo docker-compose down
+            sudo docker-compose up --build -d
 
 

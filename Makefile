@@ -7,6 +7,8 @@ SRC_DIR=src
 CMD_DIR=cmd/app
 
 up:
+	sudo chown 999:999 ./log ; \
+	sudo chmod 700 ./log ; \
 	sudo docker-compose down && sudo docker-compose up --build
 
 down:
