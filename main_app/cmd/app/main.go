@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
@@ -261,7 +262,24 @@ func main() {
 }
 
 func startMainServer(router *mux.Router) {
-	handler := router
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{
+			"https://patefon.site",
+			"http://localhost",
+			"https://localhost",
+			"https://localhost:8083",
+			"http://localhost:8083",
+			"http://localhost:9090",
+			"https://localhost:9090",
+			"http://127.0.0.1:9090",
+			"https://127.0.0.1:9090",
+		},
+		AllowCredentials:   true,
+		AllowedMethods:     []string{"GET", "POST", "PUT", "OPTIONS", "DELETE"},
+		AllowedHeaders:     []string{"*"},
+		OptionsPassthrough: false,
+	})
+	handler := c.Handler(router)
 
 	log.Println("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", handler); err != nil {

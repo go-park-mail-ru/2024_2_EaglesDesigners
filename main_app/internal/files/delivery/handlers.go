@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/responser"
@@ -141,7 +142,9 @@ func (d Delivery) GetStickerPack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responser.SendStruct(ctx, w, pack, http.StatusOK)
+	// responser.SendStruct(ctx, w, pack, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(pack)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // GetStickerPacks godoc
@@ -161,7 +164,9 @@ func (d Delivery) GetStickerPacks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responser.SendStruct(ctx, w, packs, http.StatusOK)
+	// responser.SendStruct(ctx, w, packs, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(packs)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // // @Router /files [post]

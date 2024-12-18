@@ -74,7 +74,7 @@ func MethodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // SendStruct отправляет полученный экземпляр структуры в формате json с статусом кода statusCode.
-func SendStruct(ctx context.Context, w http.ResponseWriter, response any, statusCode int) {
+func SendStruct(ctx context.Context, w http.ResponseWriter, response interface{}, statusCode int) {
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
 		SendError(ctx, w, "Failed to create response", http.StatusBadRequest)
@@ -88,4 +88,16 @@ func SendStruct(ctx context.Context, w http.ResponseWriter, response any, status
 		SendError(ctx, w, "Failed to create response", http.StatusBadRequest)
 		return
 	}
+}
+
+// SendStruct отправляет полученный экземпляр структуры в формате json с статусом кода statusCode.
+func SendJson(ctx context.Context, w http.ResponseWriter, jsonResp []byte, err error, statusCode int) {
+	if err != nil {
+		SendError(ctx, w, "Failed to create response", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.Write(jsonResp)
 }
