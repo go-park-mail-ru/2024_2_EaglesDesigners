@@ -33,21 +33,21 @@ type Delivery struct {
 // /files/675f391413dbaf51a93aa2db.
 func New(usecase Usecase) *Delivery {
 	URLs := []string{
-		"/uploads/stickers/utka/675f2ea013dbaf51a93aa2d3.webp",
-		"/uploads/stickers/utka/675f466313dbaf51a93aa2e4.webp",
-		"/uploads/stickers/utka/675f391413dbaf51a93aa2db.webp",
-		"/uploads/stickers/utka/6762d25b5803e3d181d0ecc4.webp",
-		"/uploads/stickers/utka/6762d4535803e3d181d0ecc6.webp",
-		"/uploads/stickers/utka/6762d4545803e3d181d0ecc7.webp",
-		"/uploads/stickers/utka/6762d5135803e3d181d0ecc8.webp",
+		"/uploads/stickers/675f2ea013dbaf51a93aa2d3.webp",
+		"/uploads/stickers/675f466313dbaf51a93aa2e4.webp",
+		"/uploads/stickers/675f391413dbaf51a93aa2db.webp",
+		"/uploads/stickers/6762d25b5803e3d181d0ecc4.webp",
+		"/uploads/stickers/6762d4535803e3d181d0ecc6.webp",
+		"/uploads/stickers/6762d4545803e3d181d0ecc7.webp",
+		"/uploads/stickers/6762d5135803e3d181d0ecc8.webp",
 
-		"/uploads/stickers/gopher/6762d5505803e3d181d0ecc9.webp",
-		"/uploads/stickers/gopher/6762d7f95803e3d181d0ecca.webp",
-		"/uploads/stickers/gopher/6762d8aa5803e3d181d0eccb.webp",
-		"/uploads/stickers/gopher/6762d8d85803e3d181d0eccc.webp",
-		"/uploads/stickers/gopher/6762d8f45803e3d181d0eccd.webp",
-		"/uploads/stickers/gopher/6762d90e5803e3d181d0ecce.webp",
-		"/uploads/stickers/gopher/6762d9215803e3d181d0eccf.webp",
+		"/uploads/stickers/6762d5505803e3d181d0ecc9.webp",
+		"/uploads/stickers/6762d7f95803e3d181d0ecca.webp",
+		"/uploads/stickers/6762d8aa5803e3d181d0eccb.webp",
+		"/uploads/stickers/6762d8d85803e3d181d0eccc.webp",
+		"/uploads/stickers/6762d8f45803e3d181d0eccd.webp",
+		"/uploads/stickers/6762d90e5803e3d181d0ecce.webp",
+		"/uploads/stickers/6762d9215803e3d181d0eccf.webp",
 	}
 
 	for _, url := range URLs {
