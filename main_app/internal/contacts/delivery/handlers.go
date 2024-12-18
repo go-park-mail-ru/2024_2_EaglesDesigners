@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"context"
-	"encoding/json"
 	"html"
 	"net/http"
 	"sync"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/mailru/easyjson"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
@@ -113,7 +113,9 @@ func (d *Delivery) GetContactsHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("контакты успешно отправлены")
 
-	responser.SendStruct(ctx, w, response, http.StatusOK)
+	//responser.SendStruct(ctx, w, response, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(response)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // AddContactHandler godoc
@@ -151,7 +153,7 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	var contactCreds models.ContactReqDTO
 
-	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
+	if err := easyjson.UnmarshalFromReader(r.Body, &contactCreds); err != nil {
 		log.Errorf("в теле запросе нет необходимых тегов")
 		responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
 		return
@@ -189,7 +191,9 @@ func (d *Delivery) AddContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Contact delivery: контакт успешно создан")
 
-	responser.SendStruct(ctx, w, response, http.StatusCreated)
+	//responser.SendStruct(ctx, w, response, http.StatusCreated)
+	jsonResp, err := easyjson.Marshal(response)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusCreated)
 }
 
 // DeleteContactHandler godoc
@@ -226,7 +230,7 @@ func (d *Delivery) DeleteContactHandler(w http.ResponseWriter, r *http.Request) 
 
 	var contactCreds models.ContactReqDTO
 
-	if err := json.NewDecoder(r.Body).Decode(&contactCreds); err != nil {
+	if err := easyjson.UnmarshalFromReader(r.Body, &contactCreds); err != nil {
 		log.Errorf("в теле запросе нет необходимых тегов")
 		responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
 		return
@@ -299,7 +303,9 @@ func (d *Delivery) SearchContactsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	responser.SendStruct(ctx, w, output, http.StatusOK)
+	// responser.SendStruct(ctx, w, output, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(output)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 func convertContactToDTO(contact models.Contact) models.ContactRespDTO {

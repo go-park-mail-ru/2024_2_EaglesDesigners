@@ -18,6 +18,7 @@ type Payload struct {
 	Size     int64
 }
 
+//easyjson:json
 type GetStickerPackResponse struct {
 	Photo string   `json:"photo" valid:"-" example:"url1"`
 	URLs  []string `json:"stickers" valid:"-" example:"url1,url2,url3"`
@@ -28,6 +29,7 @@ type StickerPack struct {
 	PackID uuid.UUID `json:"id" valid:"-"`
 }
 
+//easyjson:json
 type StickerPacks struct {
 	Packs []StickerPack `json:"packs" valid:"-"`
 }

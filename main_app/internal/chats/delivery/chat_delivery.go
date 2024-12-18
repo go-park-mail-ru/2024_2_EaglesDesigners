@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
@@ -96,7 +97,7 @@ func (c *ChatDelivery) GetUserChatsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	jsonResp, err := json.Marshal(chatsDTO)
+	jsonResp, err := easyjson.Marshal(chatsDTO)
 	if err != nil {
 		log.Printf("error happened in JSON marshal. Err: %s", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -180,7 +181,8 @@ func (c *ChatDelivery) AddNewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responser.SendStruct(ctx, w, returnChat, 201)
+	jsonResp, err := easyjson.Marshal(returnChat)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // JoinChannel godoc
@@ -252,7 +254,7 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 	}
 
 	var usersToAdd model.AddUsersIntoChatDTO
-	err = json.NewDecoder(r.Body).Decode(&usersToAdd)
+	err = easyjson.UnmarshalFromReader(r.Body, &usersToAdd)
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
@@ -278,7 +280,8 @@ func (c *ChatDelivery) AddUsersIntoChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	responser.SendStruct(ctx, w, addedUsers, 200)
+	jsonResp, err := easyjson.Marshal(addedUsers)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // DeleteUsersFromChat godoc
@@ -315,7 +318,8 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 	}
 
 	var usersToDelete model.DeleteUsersFromChatDTO
-	err = json.NewDecoder(r.Body).Decode(&usersToDelete)
+	err = easyjson.UnmarshalFromReader(r.Body, &usersToDelete)
+
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -341,7 +345,8 @@ func (c *ChatDelivery) DeleteUsersFromChat(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	responser.SendStruct(ctx, w, delUsers, 200)
+	jsonResp, err := easyjson.Marshal(delUsers)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // DeleteUserFromChat godoc
@@ -401,7 +406,9 @@ func (c *ChatDelivery) DeleteUserFromChat(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	responser.SendStruct(ctx, w, delUsers, 200)
+	// responser.SendStruct(ctx, w, delUsers, 200)
+	jsonResp, err := easyjson.Marshal(delUsers)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // LeaveChat godoc
@@ -559,7 +566,7 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	jsonString := r.FormValue("chat_data")
 	if jsonString != "" {
-		if err := json.Unmarshal([]byte(jsonString), &chatUpdate); err != nil {
+		if err := easyjson.Unmarshal([]byte(jsonString), &chatUpdate); err != nil {
 			responser.SendError(ctx, w, invalidJSONError, http.StatusBadRequest)
 			return
 		}
@@ -609,7 +616,9 @@ func (c *ChatDelivery) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responser.SendStruct(ctx, w, updatedChat, 200)
+	//responser.SendStruct(ctx, w, updatedChat, 200)
+	jsonResp, err := easyjson.Marshal(updatedChat)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 func sendSuccess(ctx context.Context, w http.ResponseWriter) {
@@ -669,7 +678,9 @@ func (c *ChatDelivery) GetChatInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responser.SendStruct(ctx, w, info, http.StatusOK)
+	//responser.SendStruct(ctx, w, info, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(info)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // UpdateGroup godoc
@@ -723,7 +734,9 @@ func (c *ChatDelivery) AddBranch(w http.ResponseWriter, r *http.Request) {
 		responser.SendError(ctx, w, "invalid data", http.StatusBadRequest)
 	}
 
-	responser.SendStruct(ctx, w, branch, http.StatusCreated)
+	//responser.SendStruct(ctx, w, branch, http.StatusCreated)
+	jsonResp, err := easyjson.Marshal(branch)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusCreated)
 }
 
 // SearchChats ищет чаты по названию, в query указать ключевое слово ?key_word=
@@ -777,7 +790,9 @@ func (c *ChatDelivery) SearchChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responser.SendStruct(ctx, w, output, http.StatusOK)
+	//responser.SendStruct(ctx, w, output, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(output)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // SetChatNotofications позволяет включить или выключить уведомления.

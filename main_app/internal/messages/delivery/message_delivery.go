@@ -10,6 +10,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/mailru/easyjson"
+
 
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/logger"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/global_utils/metric"
@@ -253,7 +255,8 @@ func (h *MessageController) UpdateMessage(w http.ResponseWriter, r *http.Request
 	}
 
 	var messageDTO models.Message
-	err = json.NewDecoder(r.Body).Decode(&messageDTO)
+	err = easyjson.UnmarshalFromReader(r.Body, &messageDTO)
+
 	if err != nil {
 		log.Printf("Не удалось распарсить Json: %v", err)
 		responser.SendError(ctx, w, fmt.Sprintf("Не удалось распарсить Json: %v", err), http.StatusBadRequest)
@@ -322,15 +325,8 @@ func (h *MessageController) GetAllMessages(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	jsonResp, err := json.Marshal(messages)
-	if err != nil {
-		log.Printf("error happened in JSON marshal. Err: %s", err)
-		responser.SendError(ctx, w, fmt.Sprintf("error happened in JSON marshal. Err: %s", err), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	jsonResp, err := easyjson.Marshal(messages)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // GetMessagesWithPage godoc
@@ -396,7 +392,9 @@ func (h *MessageController) GetMessagesWithPage(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	responser.SendStruct(ctx, w, messages, http.StatusOK)
+	// responser.SendStruct(ctx, w, messages, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(messages)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 // SearchMessages godoc
@@ -457,5 +455,7 @@ func (h *MessageController) SearchMessages(w http.ResponseWriter, r *http.Reques
 		responser.SendError(ctx, w, fmt.Sprintf("внутренняя ошибка: %v", err), http.StatusInternalServerError)
 		return
 	}
-	responser.SendStruct(ctx, w, messages, http.StatusOK)
+	// responser.SendStruct(ctx, w, messages, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(messages)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }

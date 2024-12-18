@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"html"
 	"log"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.octolab.org/pointer"
 
@@ -74,7 +74,7 @@ func (d *Delivery) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("пришел запрос на аутентификацию")
 
 	var creds models.AuthReqDTO
-	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+	if err := easyjson.UnmarshalFromReader(r.Body, &creds); err != nil {
 		log.Errorf("не удалось распарсить json")
 		responser.SendError(ctx, w, "Invalid format JSON", http.StatusBadRequest)
 		return
@@ -140,7 +140,7 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("пришел запрос на регистрацию")
 
 	var creds models.RegisterReqDTO
-	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+	if err := easyjson.UnmarshalFromReader(r.Body, &creds); err != nil {
 		responser.SendError(ctx, w, "Invalid input data", http.StatusBadRequest)
 		return
 	}
@@ -189,7 +189,9 @@ func (d *Delivery) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("пользователь успешно зарегистрирован")
 
-	responser.SendStruct(ctx, w, response, http.StatusCreated)
+	// responser.SendStruct(ctx, w, response, http.StatusCreated)
+	jsonResp, err := easyjson.Marshal(response)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusCreated)
 }
 
 // AuthHandler godoc
@@ -240,7 +242,9 @@ func (d *Delivery) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("пользователь успешно авторизован")
 
-	responser.SendStruct(ctx, w, response, http.StatusOK)
+	// responser.SendStruct(ctx, w, response, http.StatusOK)
+	jsonResp, err := easyjson.Marshal(response)
+	responser.SendJson(ctx, w, jsonResp, err, http.StatusOK)
 }
 
 var errTokenExpired = errors.New("токен истек")
