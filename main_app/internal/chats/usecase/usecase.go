@@ -340,6 +340,26 @@ func (s *ChatUsecaseImpl) DeleteChat(ctx context.Context, chatId uuid.UUID, user
 		return err
 	}
 
+	chatType, err := s.repository.GetChatType(ctx, chatId)
+	if err != nil {
+		return err
+	}
+
+	if chatType == personal {
+		log.Printf("Chat usecase -> DeleteChat: удаление чата %v", chatId)
+
+		// send notification to chat
+
+		err = s.repository.DeleteChat(ctx, chatId)
+		if err != nil {
+			log.Printf("Chat usecase -> DeleteChat: не удалось удалить чат: %v", err)
+			return err
+		}
+
+		s.sendIvent(ctx, DeleteChat, chatId, nil)
+		return nil
+	}
+
 	// проверяем есть ли права
 	switch role {
 	case Owner:

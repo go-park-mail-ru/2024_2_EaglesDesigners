@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/protos/gen/go/authv1"
-	authDelivery "github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/middleware"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/delivery"
 	"github.com/go-park-mail-ru/2024_2_EaglesDesigner/websocket_service/internal/websocket/usecase"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -56,9 +54,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer grpcConnAuth.Close()
-	authClient := authv1.NewAuthClient(grpcConnAuth)
-
-	auth := authDelivery.New(authClient)
 
 	// ручки
 	tmpl := template.Must(template.ParseFiles("index.html"))
@@ -67,7 +62,7 @@ func main() {
 		tmpl.Execute(w, nil)
 	})
 
-	router.HandleFunc("/startwebsocket", auth.Authorize(socketDelivery.HandleConnection))
+	router.HandleFunc("/startwebsocket", socketDelivery.HandleConnection)
 	// мктрики
 	router.Handle("/metrics", promhttp.Handler())
 
